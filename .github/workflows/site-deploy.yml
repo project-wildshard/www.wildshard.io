@@ -23,6 +23,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      APP_CLIENT_ID: ${{ secrets.APP_CLIENT_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,6 +37,25 @@ jobs:
           node-version-file: package.json
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
+      # `@wildshard/format` is a private dev dependency, for `pnpm site:facts`.
+      # The site's build never reads it, but the install fetches it.
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        if: env.APP_CLIENT_ID != ''
+        with:
+          client-id: ${{ env.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: project-wildshard
+          permission-contents: read
+      - name: Read private org repos with the app token
+        if: steps.app-token.outputs.token != ''
+        env:
+          TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          base="https://x-access-token:${TOKEN}@github.com/"
+          git config --global url."$base".insteadOf "https://github.com/"
+          git config --global --add url."$base".insteadOf "git@github.com:"
+          git config --global --add url."$base".insteadOf "ssh://git@github.com/"
       - run: pnpm install --frozen-lockfile
       - run: npm install --global vercel@59.11.2
       - name: Deploy the site
