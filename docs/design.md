@@ -8,7 +8,7 @@ Living doc: **how** this repo is built. What it does and why is
 ## Today
 
 The marketing site lives in `src/site/`. It is a static Vite build of
-six pages: Jake's words from `COPY.md`, the game's numbers from
+six pages: Jake's words from `COPY.md`, the game's numbers and grid from
 `facts.json`, and media URLs from `media.json`. `tools/deploy.sh` builds
 a clean export of HEAD and uploads the output to the Vercel project
 `wildshard-site`, which has no Git link and owns the domains. The
@@ -27,9 +27,10 @@ The repo-kit scaffold sits beside it:
 
 ## Dependencies
 
-- None on other Wildshard repos yet. The site needs nothing from
-  `@wildshard/format`; a future one would be a git dependency by tag
-  (`github:project-wildshard/shardfile#vX.Y.Z`).
+- `@wildshard/format` by git tag
+  (`github:project-wildshard/shardfile#v0.3.1`), dev only: `pnpm
+  site:facts` and its test read it, and the site's build doesn't. The
+  install still fetches it, so `site-deploy` needs the org app token.
 
 ## Boundaries the checks enforce
 

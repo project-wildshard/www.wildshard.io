@@ -29,3 +29,7 @@
   so api-server keeps a copy of `grid.cells` and each repo's CI compares
   with the other's `main`. Tests may not touch the network, so `pnpm
   check` proves the comparison on real files and CI runs it for real.
+- Docs: every field of `facts.json` now names its source, and D30
+  replaces D29's recipe. `src/site/README.md` still says a singleplayer
+  script writes the file, but agents don't edit READMEs, so the import
+  plan holds that line for Jake.

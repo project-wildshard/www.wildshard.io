@@ -18,7 +18,7 @@ The marketing website at wildshard.io (www and wildshard.dev redirect to it), wi
 ## Requirements
 
 - **R-1**: The marketing site and its media
-- **R-2**: The facts it shows, read from a committed copy of the game's facts JSON
+- **R-2**: The facts it shows, read from a committed `facts.json`: the format's numbers refreshed from `@wildshard/format`, the rest kept by hand (`docs/dev.md`)
 
 ## Not this repo
 

@@ -39,6 +39,16 @@ The rest of the job is checked: it installs, and `tools/deploy.sh
 --build-only` builds `e4ec745`. Until then `pnpm site:deploy` ships by
 hand on the CLI login.
 
+Three facts stay by hand until their owners ship (`docs/dev.md`):
+
+- `grid.cells`: from the catalogue (J61); then this repo and api-server
+  stop keeping two copies.
+- `grid.road`: from the engine's `ROAD_WIDTH`, once the engine has a tag.
+- `shardfile`: from `shard-templates`, once the template is imported.
+
+`src/site/README.md` still says a singleplayer script writes
+`facts.json`. Agents don't edit READMEs, so that line waits for Jake.
+
 ## Before the import
 
 - W1

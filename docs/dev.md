@@ -17,6 +17,8 @@ Run from the repo root.
 - `pnpm site:deploy`: ships HEAD to production on your Vercel CLI
   login. A push that changes `src/site/` does the same through
   `site-deploy.yml`, which needs the `VERCEL_BUILD_TOKEN` secret.
+- `pnpm site:facts`: rewrites what `src/site/facts.json` takes from
+  `@wildshard/format` (see "Refreshing the site's facts").
 - `pnpm site:media <folder>`: publishes the trailer and shard loops to
   Vercel Blob and rewrites `src/site/media.json`.
 - `pnpm test:e2e`: Playwright against a built app. CI only.
@@ -60,19 +62,39 @@ goes in `tmp/<task>/` and is deleted when done.
 
 ## Refreshing the site's facts
 
-`src/site/facts.json` is a committed copy of what the game publishes:
-the grid, road width, memory caps, schema path count and the template's
-shard.json excerpt. Nothing updates it, so refresh it by hand at a game
-release. Build the shards in a wildshard-singleplayer checkout first,
-because the excerpt reads `out/_template/shard.json`:
+`src/site/facts.json` is the one source for what the site says about
+the game, and for the grid the waitlist form and `/build` draw. A
+refresh needs no game checkout. The build reads only this file.
 
-```
-node scripts/build-shardfiles.mjs
-node scripts/site-facts.mjs --out ../wildshard/www.wildshard.io/src/site/facts.json
-```
+| Field | Source | How it changes |
+| --- | --- | --- |
+| `grid.cellSize`, `grid.pitch` | `@wildshard/format`: `CHUNK_SIZE`, `CONTENT_CAPS.pitch` | bump the pin, `pnpm site:facts` |
+| `memory` | `@wildshard/format`: `MEMORY_GATES` | bump the pin, `pnpm site:facts` |
+| `schemaPaths` | `@wildshard/format`: paths in `ShardfileSchema` | bump the pin, `pnpm site:facts` |
+| `grid.cells` | **by hand**, until the catalogue is the real placement (J61) | edit it, then the steps below |
+| `grid.road` | **by hand**: the engine's `ROAD_WIDTH`; the format has no road width (`ENTRY_ASPHALT` is a depth), and the engine has no tag | edit it |
+| `shardfile` | **by hand**: an excerpt of the template's built `shard.json`, until `shard-templates` ships it | edit it |
 
-Commit the result here; the push deploys it. The build stops if a new
-shard has no map label in `src/site/vite.config.ts` and `COPY.md`.
+`pnpm test` fails when `facts.json` falls behind the pinned format, and
+`pnpm site:facts` stops when the grid's size or the excerpt's `version`
+no longer fit the format. Nothing can see a wrong placement, road or
+excerpt: those were last checked against singleplayer at `1e55422db9`,
+by reading its source. Commit the result here; the push deploys it.
+
+### Moving a shard on the grid
+
+The form is drawn from `grid.cells`. api-server refuses claims from
+its own copy, `src/server/routes/waitlist-grid.json`, so change both:
+
+1. Edit `grid.cells` here and push. A new shard also needs its map label
+   in `src/site/vite.config.ts` and `COPY.md`, or the build stops.
+2. In api-server, run `pnpm site:grid ../www.wildshard.io/src/site/facts.json`
+   and push.
+
+CI in each repo compares with the other's `main` (`pnpm site:api-grid`
+here, `pnpm site:grid --check` there), so one repo is red between the
+two pushes. Tests can't reach another repo, so that gate is CI's. To run
+it by hand: `pnpm site:api-grid ../api-server/src/server/routes/waitlist-grid.json`.
 
 ## Git hooks
 

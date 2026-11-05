@@ -23,4 +23,11 @@ this repo's own decisions are D-numbers.
 - **D29**: 2026-11-05: `src/site/facts.json` is committed and refreshed by
   hand at a game release (`docs/dev.md`). Nothing pushes it from the game
   yet: the simplest thing that works, chosen for the move out of
-  singleplayer.
+  singleplayer. Its recipe is replaced by D30.
+- **D30**: 2026-11-05: `facts.json` no longer needs a game checkout.
+  `pnpm site:facts` writes what `@wildshard/format` knows, a dev
+  dependency the build never reads. The grid's cells, the road and the
+  template excerpt stay by hand. `grid.cells` is the waitlist's one
+  source: api-server keeps a copy and CI compares the two, because
+  api-server depends on `shardfile` alone. The catalogue takes the grid
+  over later (J61).
