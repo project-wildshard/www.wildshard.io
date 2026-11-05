@@ -1,8 +1,10 @@
-import { z } from 'zod'
+import { literal, object, string } from 'valibot'
 
-export const HealthSchema = z.object({
-  ok: z.literal(true),
-  version: z.string(),
+import type { InferOutput } from 'valibot'
+
+export const HealthSchema = object({
+  ok: literal(true),
+  version: string(),
 })
 
-export type Health = z.infer<typeof HealthSchema>
+export type Health = InferOutput<typeof HealthSchema>

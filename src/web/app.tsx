@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks'
+import { parse } from 'valibot'
 
 import { HealthSchema } from '../shared/health.ts'
 
@@ -11,7 +12,7 @@ async function fetchHealth(): Promise<Health> {
     throw new Error(`health check failed: ${String(response.status)}`)
   }
   const body: unknown = await response.json()
-  return HealthSchema.parse(body)
+  return parse(HealthSchema, body)
 }
 
 type HealthState =
