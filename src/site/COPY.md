@@ -1666,7 +1666,7 @@ How the MMO works.
 The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
 
 <!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-27 (E506).
-     {=name} numbers come from site/facts.json, which the game generates from its own files (scripts/site-facts.mjs). -->
+     {=name} numbers come from facts.json; docs/dev.md says what writes it and what is kept by hand. -->
 
 ## MMO · status
 
@@ -1891,7 +1891,7 @@ clocks, randomness, network, DOM or files
 
 Script ABI v0 · AssemblyScript first; other languages can target the same interface later
 
-<!-- The grid: drawn and counted from src/game/grid/singleplayer.json, via site/facts.json at build time; src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
+<!-- The grid: drawn and counted from facts.json's grid at build time; src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
 
 ## MMO · grid question
 

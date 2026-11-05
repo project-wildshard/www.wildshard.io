@@ -1,6 +1,6 @@
 // The site's numbers (E506 RD14, MR11 / MR12: "hand-copied numbers rot within days"), read from src/site/facts.json:
-// the one facts file the game publishes (P1-W1). Its scripts/site-facts.mjs writes it from the game's own sources, and
-// docs/dev.md says how it reaches this repo: by hand, at a release. The site reads nothing else of the game. A plain module: no plugin,
+// the one facts file, committed here. tools/refresh-facts.ts writes what @wildshard/format knows; docs/dev.md says what
+// stays hand-maintained. The site reads nothing else. A plain module: no plugin,
 // no new dependency. This file turns the raw numbers into the words COPY.md shows.
 //   readFacts(file)      what src/site/vite.config.ts does
 // COPY.md says {=name} where a number belongs (src/site/tools/copy.ts fills it); the grid pictures read `cells`; the

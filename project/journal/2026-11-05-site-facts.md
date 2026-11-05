@@ -11,3 +11,17 @@
   only. The build still reads nothing of it, but `site-deploy` has to
   install it, so that job now mints the org app token too. The journal
   line in the import entry about no org token in the deploy is history.
+- The refresh no longer needs a game checkout: `pnpm site:facts` writes
+  the cell size, pitch, memory caps and schema path count from the
+  format. `schemaInventory` isn't exported, so `tools/schema-paths.ts`
+  ports the walk; singleplayer's own (1e55422db9) and the port both say
+  8604 on format v0.2.0 and v0.3.1.
+- Honest result: no number moved. The v0.3.x diff is net input and a
+  boss arena row, so 8604, 1200 / 1800, 500 and 562.5 all still hold.
+  The only false thing in the file was its `$doc`, which said a
+  singleplayer script writes it. The grid, road (15) and template
+  excerpt also match singleplayer at 1e55422db9, read from source; the
+  excerpt was not rebuilt from `out/_template/shard.json`.
+- `ENTRY_ASPHALT` is 15 too, but it is how deep the asphalt runs into a
+  cell, not the road's width, so `road` stays by hand until the engine
+  has a tag.
