@@ -10,7 +10,7 @@
   "engines": {
     "node": ">=24.18.0"
   },
-  "packageManager": "pnpm@10.21.0",
+  "packageManager": "pnpm@10.34.9",
   "scripts": {
     "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "dev": "node src/tools/build-web.ts --dev",
