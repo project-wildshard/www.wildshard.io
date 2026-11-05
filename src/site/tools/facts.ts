@@ -1,9 +1,9 @@
-// The site's numbers (E506 RD14, MR11 / MR12: "hand-copied numbers rot within days"), read from site/facts.json: the
-// one facts file the game publishes (P1-W1; its scripts/site-facts.mjs writes it from the game's own sources, and the
-// game's build serves a copy as /site-facts.json). The site reads nothing else of the game. A plain module: no plugin,
+// The site's numbers (E506 RD14, MR11 / MR12: "hand-copied numbers rot within days"), read from src/site/facts.json:
+// the one facts file the game publishes (P1-W1). Its scripts/site-facts.mjs writes it from the game's own sources, and
+// docs/dev.md says how it reaches this repo: by hand, at a release. The site reads nothing else of the game. A plain module: no plugin,
 // no new dependency. This file turns the raw numbers into the words COPY.md shows.
-//   readFacts(file)      what site/vite.config.ts does
-// COPY.md says {=name} where a number belongs (site/tools/copy.ts fills it); the grid pictures read `cells`; the
+//   readFacts(file)      what src/site/vite.config.ts does
+// COPY.md says {=name} where a number belongs (src/site/tools/copy.ts fills it); the grid pictures read `cells`; the
 // shardfile peek (MS15) reads `shardfile`, an excerpt of the template's built shard.json.
 import { readFileSync } from 'node:fs';
 
@@ -69,7 +69,7 @@ export function readFacts(file: string): SiteFacts {
 export function fillFacts(s: string, facts: SiteFacts): string {
   return s.replaceAll(/\{=(\w+)\}/gu, (_m, name: string) => {
     const v = facts.text[name];
-    if (v === undefined) throw new Error(`site/COPY.md: no site fact {=${name}} (site/tools/facts.ts)`);
+    if (v === undefined) throw new Error(`src/site/COPY.md: no site fact {=${name}} (src/site/tools/facts.ts)`);
     return v;
   });
 }

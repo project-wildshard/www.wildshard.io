@@ -15,7 +15,7 @@
     "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
     "dev": "node src/tools/build-web.ts --dev",
     "build": "node src/tools/build-web.ts",
-    "typecheck": "tsc -p src/tsconfig.json && tsc -p src/web/tsconfig.json",
+    "typecheck": "tsc -p src/tsconfig.json && tsc -p src/web/tsconfig.json && tsc -p src/site/tsconfig.json",
     "lint": "oxlint -c src/.oxlintrc.json --type-aware --deny-warnings --ignore-pattern '.githooks/**' --ignore-pattern 'tmp/**'",
     "lint:fix": "oxlint -c src/.oxlintrc.json --type-aware --fix --ignore-pattern '.githooks/**' --ignore-pattern 'tmp/**'",
     "format": "oxfmt -c src/.oxfmtrc.json src",
@@ -25,6 +25,9 @@
     "check:asks": "node src/scripts/asks.mjs check",
     "md:wrap": "node src/scripts/md-wrap.mjs",
     "test:hooks": "node --test '.githooks/*.test.mjs'",
+    "site:build": "vite build --config src/site/vite.config.ts",
+    "site:deploy": "bash src/site/tools/deploy.sh",
+    "site:media": "node src/site/tools/publish-media.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks"
   },
   "dependencies": {
@@ -36,11 +39,13 @@
   "devDependencies": {
     "@playwright/test": "1.60.0",
     "@types/node": "24.3.1",
+    "@vercel/blob": "2.8.0",
     "esbuild": "0.28.2",
     "oxfmt": "0.74.0",
     "oxlint": "1.89.0",
     "oxlint-tsgolint": "7.0.2004",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vite": "8.3.0"
   },
   "pnpm": {
     "ignoredOptionalDependencies": [

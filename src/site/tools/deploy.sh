@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# Deploy the marketing site (MARKETING-SITE MS4, E465): by hand or from CI on a push to site/ (site-deploy.yml).
+# Deploy the marketing site (MARKETING-SITE MS4, E465): by hand or from CI on a push to src/site/ (site-deploy.yml).
 # Builds from a clean export of this folder at HEAD (nobody's half-finished files ship), then uploads the static output
 # to the Vercel project `wildshard-site` (no Git link). Public from the first deploy (Jake, Q4).
 #
-#   bash site/tools/deploy.sh                 # commit first: it ships HEAD, not the working tree
-#   bash site/tools/deploy.sh --build-only    # build the export into site/dist and stop (no upload)
+#   bash src/site/tools/deploy.sh                 # commit first: it ships HEAD, not the working tree
+#   bash src/site/tools/deploy.sh --build-only    # build the export into src/site/dist and stop (no upload)
 #
-# The export holds only this folder (P1-W1): its pages, COPY.md, public/ and facts.json, the facts the game publishes.
-# It is unpacked under site/.deploy/ so `vite` resolves from the node_modules above it (this folder's own once it is
-# its own repo; the game repo root's while it lives there). CI runs it too (.github/workflows/site-deploy.yml, MS10)
-# on every push that changes site/. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
+# The export holds only this folder (P1-W1): its pages, COPY.md, public/ and facts.json, the game's facts committed here.
+# It is unpacked under src/site/.deploy/ so `vite` resolves from the repo root's node_modules above it. CI runs it too
+# (.github/workflows/site-deploy.yml, MS10) on every push that changes src/site/. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
 set -euo pipefail
 
 site="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
@@ -17,7 +16,7 @@ cd "$site"
 sha="$(git rev-parse --short HEAD)"
 dirty="$(git status --porcelain -- . | grep -v '^??' || true)"
 if [ -n "$dirty" ]; then
-  echo "deploy-site: site/ has uncommitted edits; HEAD ($sha) ships without them:" >&2
+  echo "deploy-site: src/site/ has uncommitted edits; HEAD ($sha) ships without them:" >&2
   echo "$dirty" >&2
 fi
 

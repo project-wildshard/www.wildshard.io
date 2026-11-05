@@ -1,13 +1,13 @@
-// Publishes the marketing site's motion (MARKETING-SITE MS11) to Vercel Blob and writes site/media.json.
+// Publishes the marketing site's motion (MARKETING-SITE MS11) to Vercel Blob and writes src/site/media.json.
 //
-//   node site/tools/publish-media.ts <folder>
+//   node src/site/tools/publish-media.ts <folder>
 //
 // <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-1080.mp4` (the phone copy, 1920 × 1080;
 // an older folder's `trailer-720.mp4` is taken when there is none) and, for any shards whose loops
 // change, `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
 // public, under a content-hashed name (`site/media/<name>-<hash8>.mp4`), so a re-run with unchanged files uploads
 // nothing and a changed file gets a new URL (the Blob CDN caches a year). The poster is a small WebP in
-// site/public/media/, served by the site itself.
+// src/site/public/media/, served by the site itself.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -84,7 +84,7 @@ async function publish(dir: string, file: string, token: string, known: string[]
 
 async function main(): Promise<void> {
   const arg = process.argv[2];
-  if (!arg) throw new Error('usage: node site/tools/publish-media.ts <folder with the encoded mp4s>');
+  if (!arg) throw new Error('usage: node src/site/tools/publish-media.ts <folder with the encoded mp4s>');
   const dir = resolve(arg);
   const token = blobToken();
   const known = knownUrls();

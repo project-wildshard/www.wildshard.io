@@ -1,11 +1,11 @@
 // The site's words (MARKETING-SITE, Jake 2026-10-09: "a single file I can go and hand edit"): every piece of text on the
-// page lives in site/COPY.md under a `## Name` heading, and site/index.html holds only slots that name them.
+// page lives in src/site/COPY.md under a `## Name` heading, and src/site/index.html holds only slots that name them.
 //   {{Name}}        text, with inline markdown: **bold**, `code`, [links](url); a ✓ is drawn in the accent colour
 //   {{@Name}}       an attribute (alt, aria-label, placeholder, meta content): plain text
 //   {{$Name}}       a string in the page's script
 //   {{list:Name}}   one <li> per "- " line of the entry
 // The build stops on a slot with no entry, an entry no slot uses, or a heading used twice, so the file and the page
-// can't drift apart. site/vite.config.ts runs it.
+// can't drift apart. src/site/vite.config.ts runs it.
 
 /** the entries of COPY.md by heading; notes (HTML comments) and `# Section` lines are for people */
 export function parseCopy(md: string): Map<string, string> {
@@ -15,7 +15,7 @@ export function parseCopy(md: string): Map<string, string> {
   let body: string[] = [];
   const close = (): void => {
     if (key === null) return;
-    if (entries.has(key)) throw new Error(`site/COPY.md: "## ${key}" appears twice`);
+    if (entries.has(key)) throw new Error(`src/site/COPY.md: "## ${key}" appears twice`);
     entries.set(key, body.join('\n').trim());
   };
   for (const line of text.split('\n')) {
@@ -65,7 +65,7 @@ export function fillCopy(html: string, copy: ReadonlyMap<string, string>): { htm
     }
     return inline(v);
   });
-  if (missing.size > 0) throw new Error(`site/COPY.md has no entry for: ${[...missing].map((m) => `"## ${m}"`).join(', ')}`);
+  if (missing.size > 0) throw new Error(`src/site/COPY.md has no entry for: ${[...missing].map((m) => `"## ${m}"`).join(', ')}`);
   return { html: out, used };
 }
 

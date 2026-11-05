@@ -55,6 +55,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm test:hooks
+      # The site's build is its test: it stops on a broken slot, fact or page.
+      - run: pnpm site:build
 
   e2e:
     # Pinned: Playwright 1.60 can't install Chromium on ubuntu-latest (26.04).

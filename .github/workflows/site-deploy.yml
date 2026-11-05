@@ -1,12 +1,15 @@
 name: site-deploy
 
-# The marketing site (MARKETING-SITE MS10, E465) redeploys itself whenever site/ changes (site/COPY.md is Jake's copy).
+# The marketing site (MARKETING-SITE MS10, E465) redeploys itself whenever src/site/ changes (src/site/COPY.md is Jake's
+# copy). It uploads to the Vercel project wildshard-site, which has no Git link and owns the domains.
 on:
   push:
     branches: [main]
     paths:
-      - 'site/**'
+      - 'src/site/**'
       - '.github/workflows/site-deploy.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   workflow_dispatch:
 
 concurrency:
@@ -21,18 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          version: 10
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
-          node-version: 24
+          package_json_file: package.json
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
           cache: pnpm
-      - uses: ./.github/actions/org-deps
-        with:
-          client-id: ${{ secrets.APP_CLIENT_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          cache-dependency-path: pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: npm install --global vercel@59.11.2
       - name: Deploy the site
@@ -40,4 +42,4 @@ jobs:
           VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
         run: |
           test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
-          bash site/tools/deploy.sh
+          bash src/site/tools/deploy.sh
