@@ -16,10 +16,13 @@ import { fileURLToPath } from 'node:url'
 //                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags
 //   <!--gen:grid-->       /mmo's grid to scale and <!--gen:gridmini--> home's lit 5 × 5 (desktop only), both drawn from
 //                         facts.json's grid (MR11, MR5); %SEAM% sizes /mmo's seam from the same facts
+//   <!--gen:claimgrid-->  home's waitlist radios and <!--gen:buildgrid--> /build's picture of them, from the same grid
+//                         (tools/claim-grid.ts); api-server refuses the same cells
 // It also emits /version.json, which tools/deploy.sh reads back. deploy.sh builds a clean export of this folder (no
 // .git), so it passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig } from 'vite'
 
+import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
 
@@ -167,6 +170,10 @@ function expand(template: string): string {
   if (out.includes('<!--gen:gridmini-->')) {
     out = out.replace('<!--gen:gridmini-->', gridMini())
   }
+  const slot = (c: FactCell): string => `{{${label(c)}}}`
+  out = out
+    .replace('<!--gen:claimgrid-->', claimGridHtml(FACTS.cells, slot))
+    .replace('<!--gen:buildgrid-->', buildGridHtml(FACTS.cells, slot))
   if (out.includes('%SEAM%')) {
     out = out.replace(
       '%SEAM%',

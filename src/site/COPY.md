@@ -784,10 +784,6 @@ Sky Reach
 
 Template
 
-## Map · centre
-
-Centre
-
 ## Map · your wish
 
 Your wish
@@ -1629,7 +1625,7 @@ Planned for the MMO · not live yet
 
 ## Build · grid description
 
-A 5 by 5 wish map: seven shards and the centre placed, the other cells open for a wish
+A 5 by 5 wish map: seven shards placed, the other cells open for a wish
 
 ## Build · grid yours
 
