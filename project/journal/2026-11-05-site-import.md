@@ -10,3 +10,9 @@
   in CI. The site needs nothing from `@wildshard/format`, so no git dep
   and no org token in the deploy. A local build matched the live pages
   byte for byte (home, /mmo, /play, /map, /build, 404, css hash).
+- Formatted the four tool files and took oxlint's fixes. 250 findings
+  remain across 29 rules, mostly short names and magic numbers in the
+  SVG maths: those stay on the shrink-only row in `src/.oxlintrc.json`
+  (D28). Pages, css and data stay out of oxfmt: their bytes ship, and
+  a tool writes `facts.json` and `media.json`. The build still matched
+  the live pages afterwards.
