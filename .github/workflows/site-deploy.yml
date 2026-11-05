@@ -1,0 +1,43 @@
+name: site-deploy
+
+# The marketing site (MARKETING-SITE MS10, E465) redeploys itself whenever site/ changes (site/COPY.md is Jake's copy).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - '.github/workflows/site-deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: site-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: ./.github/actions/org-deps
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global vercel@59.11.2
+      - name: Deploy the site
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: |
+          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
+          bash site/tools/deploy.sh

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a12">
+<title>{{Build page · title}}</title>
+<meta name="description" content="{{@Build page · description}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://wildshard.io/build/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{@Page · title}}">
+<meta property="og:title" content="{{@Build page · title}}">
+<meta property="og:description" content="{{@Build page · description}}">
+<meta property="og:url" content="https://wildshard.io/build/">
+<meta property="og:image" content="https://wildshard.io/og-build.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{@Page · image description}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{@Build page · title}}">
+<meta name="twitter:description" content="{{@Build page · description}}">
+<meta name="twitter:image" content="https://wildshard.io/og-build.jpg">
+<link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="page-top">
+  <a class="home" href="/"><img src="/favicon.svg" width="22" height="22" alt="">{{Nav · home}}</a>
+  <a class="play" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Nav · play now}}</a>
+  <nav class="page-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/" aria-current="page">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a></nav>
+</header>
+<main class="wrap">
+  <section id="build-top">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · question}}</p></div>
+      <h1 class="title">{{Build · title}}</h1>
+      <p class="lede">{{Build · intro}}</p>
+    </div>
+    <div class="body">
+      <div class="session bk b-session">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Build · session path}}</span></div>
+        <div class="b-session-body">
+          <p class="ask">{{Build · session prompt}}</p>
+          <p class="out">{{Build · session line 1}}</p>
+          <p class="out">{{Build · session line 2}}</p>
+          <p class="out">{{Build · session line 3}}</p>
+          <p class="out">{{Build · session line 4}}</p>
+          <p class="out">{{Build · session line 5}}</p>
+        </div>
+      </div>
+      <p class="status b-status">{{Build · status}}</p>
+      <div class="b-duo">
+        <div class="bk"><b>{{Build · you title}}</b><ul>{{list:Build · you points}}</ul></div>
+        <div class="bk b-agent"><b>{{Build · agent title}}</b><ul>{{list:Build · agent points}}</ul></div>
+      </div>
+      <p class="b-agent-note">{{Build · agent note}}</p>
+    </div>
+  </section>
+
+  <section id="build-steps">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · steps question}}</p></div>
+      <h2>{{Build · steps title}}</h2>
+      <p class="lede">{{Build · steps intro}}</p>
+    </div>
+    <div class="body">
+      <div class="session bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{How · terminal path}}</span></div>
+        <ol class="steps">
+          <li><div><strong>{{How · step 1}}</strong><p>{{Build · step 1 text}}</p>
+            <div class="term"><p class="out">{{How · step 1 terminal}}</p></div></div></li>
+          <li><div><strong>{{How · step 2}}</strong><p>{{Build · step 2 text}}</p>
+            <div class="term"><p class="ask">{{Build · step 2 command}}</p><p class="out">{{Build · step 2 terminal}}</p></div></div></li>
+          <li><div><strong>{{How · step 3}}</strong><p>{{Build · step 3 text}}</p>
+            <div class="term"><p class="ask">{{How · step 3 prompt}}</p><p class="out">{{How · step 3 terminal}}</p></div>
+            <a class="b-jump" href="#build-chain">{{Build · step 3 link}}</a></div></li>
+          <li><div><strong>{{How · step 4}}</strong><p>{{Build · step 4 text}}</p>
+            <div class="term"><p class="out">{{Build · step 4 terminal}}</p></div></div></li>
+          <li><div><strong>{{How · step 5}}</strong><p>{{Build · step 5 text}}</p></div></li>
+          <li><div><strong>{{How · step 6}}</strong><p>{{Build · step 6 text}}</p></div></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="build-chain">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · chain question}}</p></div>
+      <h2>{{Build · chain title}}</h2>
+      <p class="lede">{{Build · chain intro}}</p>
+    </div>
+    <div class="body">
+      <ol class="b-chain">
+        <li class="b-line"><span class="n">01 · {{Sentence · step 1 label}}</span><div class="sentence bk"><p class="ask">{{Sentence · the line}}</p></div></li>
+        <li><span class="n">02 · {{Build · pitch label}}</span><figure><img src="/media/thinice-pitch.webp" width="800" height="1200" alt="{{@Build · pitch image description}}" loading="lazy" decoding="async"><span class="tag warn">{{Mockup · tag}}</span></figure><p>{{Build · pitch caption}}</p></li>
+        <li><span class="n">03 · {{Build · style label}}</span><figure><img src="/media/thinice-style.webp" width="800" height="1200" alt="{{@Build · style image description}}" loading="lazy" decoding="async"><span class="tag warn">{{Mockup · tag}}</span></figure><p>{{Build · style caption}}</p></li>
+        <li><span class="n">04 · {{Build · map label}}</span><figure><img src="/media/thinice-map-m.webp" srcset="/media/thinice-map-m.webp 800w, /media/thinice-map.webp 900w" sizes="(min-width: 1024px) 25vw, 50vw" width="800" height="800" alt="{{@Build · map image description}}" loading="lazy" decoding="async"><span class="tag warn">{{Mockup · tag}}</span></figure><p>{{Build · map caption}}</p></li>
+        <li><span class="n">05 · {{Sentence · step 5 label}}</span><figure><img src="/media/thinice-view.webp" width="553" height="1200" alt="{{@Sentence · step 5 image description}}" loading="lazy" decoding="async"><span class="tag warn">{{Mockup · tag}}</span></figure><p>{{Sentence · step 5 caption}}</p></li>
+      </ol>
+      <div class="note">{{Sentence · note}}</div>
+    </div>
+  </section>
+
+  <section id="build-template">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · template question}}</p></div>
+      <h2>{{Build · template title}}</h2>
+      <p class="lede">{{Build · template intro}}</p>
+    </div>
+    <div class="body">
+      <figure class="plate bk">
+        <img src="/media/card-template.webp" width="1080" height="864" alt="{{@The Template · image description}}" loading="lazy" decoding="async">
+        <span class="tag">{{Build · template tag}}</span>
+      </figure>
+      <div class="bk b-tree">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Build · template path}}</span></div>
+        <ul>{{list:Build · template files}}</ul>
+      </div>
+      <div class="note">{{Build · template note}}</div>
+    </div>
+  </section>
+
+  <section id="build-budgets">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · budgets question}}</p></div>
+      <h2>{{Build · budgets title}}</h2>
+      <p class="lede">{{Build · budgets intro}}</p>
+    </div>
+    <div class="body">
+      <ul class="b-budgets">{{list:Build · budgets}}</ul>
+      <div class="bk b-validate">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Build · validate path}}</span></div>
+        <div class="b-session-body">
+          <p class="ask">{{Build · validate command}}</p>
+          <p class="out">{{Build · validate line 1}}</p>
+          <p class="out">{{Build · validate line 2}}</p>
+          <p class="out">{{Build · validate line 3}}</p>
+          <p class="out b-refuse">{{Build · validate refusal}}</p>
+        </div>
+      </div>
+      <p class="b-text">{{Build · validate text}}</p>
+      <a class="more-page" href="/mmo/">{{Build · mmo deep link}}</a>
+    </div>
+  </section>
+
+  <section id="build-tools">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · tools question}}</p></div>
+      <h2>{{Build · tools title}}</h2>
+      <p class="lede">{{Build · tools intro}}</p>
+    </div>
+    <div class="body">
+      <ul class="b-tools">
+        <li class="bk"><span class="tag">{{Build · tool in use tag}}</span><b>{{Build · tool 1 name}}</b><p>{{Build · tool 1 line}}</p></li>
+        <li class="bk"><span class="tag">{{Build · tool in use tag}}</span><b>{{Build · tool 2 name}}</b><p>{{Build · tool 2 line}}</p></li>
+        <li class="bk"><span class="tag">{{Build · tool in use tag}}</span><b>{{Build · tool 3 name}}</b><p>{{Build · tool 3 line}}</p></li>
+        <li class="bk b-next"><span class="tag warn">{{Build · tool draft tag}}</span><b>{{Build · tool 4 name}}</b><p>{{Build · tool 4 line}}</p></li>
+        <li class="bk b-next"><span class="tag warn">{{Build · tool next tag}}</span><b>{{Build · tool 5 name}}</b><p>{{Build · tool 5 line}}</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="build-grow">
+    <div class="side">
+      <div class="q"><p class="ask">{{Build · grow question}}</p></div>
+      <h2>{{Build · grow title}}</h2>
+      <p class="lede">{{Build · grow intro}}</p>
+    </div>
+    <div class="body">
+      <ul class="grow">{{list:Grow · points}}</ul>
+      <div class="note">{{Build · grow note}}</div>
+    </div>
+  </section>
+</main>
+
+<section class="door-end" id="build-author">
+  <div class="wrap">
+    <div class="side">
+      <div class="q"><p class="ask">{{Author · question}}</p></div>
+      <h2>{{Author · title}}</h2>
+      <p class="lede">{{Author · intro}}</p>
+      <div class="founding bk">{{Author · founding authors}}</div>
+    </div>
+    <div class="body">
+      <div class="claim-grid b-grid" role="img" aria-label="{{@Build · grid description}}">
+        <span class="cell"><i>A1</i></span><span class="cell"><i>B1</i></span><span class="cell"><i>C1</i></span><span class="cell"><i>D1</i></span><span class="cell"><i>E1</i></span>
+        <span class="cell"><i>A2</i></span><span class="cell taken"><i>B2</i><b>{{Map · Driftwood}}</b></span><span class="cell taken"><i>C2</i><b>{{Map · Pine}}</b></span><span class="cell taken"><i>D2</i><b>{{Map · Nalati}}</b></span><span class="cell"><i>E2</i></span>
+        <span class="cell"><i>A3</i></span><span class="cell taken"><i>B3</i><b>{{Map · Dunes}}</b></span><span class="cell centre"><i>C3</i><b>{{Map · centre}}</b></span><span class="cell taken"><i>D3</i><b>{{Map · Sky Reach}}</b></span><span class="cell b-yours"><i>E3</i><b>{{Build · grid yours}}</b></span>
+        <span class="cell"><i>A4</i></span><span class="cell taken"><i>B4</i><b>{{Map · Template}}</b></span><span class="cell taken"><i>C4</i><b>{{Map · Nine Dragon}}</b></span><span class="cell"><i>D4</i></span><span class="cell"><i>E4</i></span>
+        <span class="cell"><i>A5</i></span><span class="cell"><i>B5</i></span><span class="cell"><i>C5</i></span><span class="cell"><i>D5</i></span><span class="cell"><i>E5</i></span>
+      </div>
+      <p class="note">{{Build · grid note}}</p>
+      <a class="door author b-door" href="/#author">{{Build · author button}}<small>{{Build · author button note}}</small></a>
+      <a class="more-page b-on" href="/mmo/">{{Together · more page link}}</a>
+    </div>
+  </div>
+</section>
+<footer><span class="brand"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><nav class="foot-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a><a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></nav><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+</body>
+</html>

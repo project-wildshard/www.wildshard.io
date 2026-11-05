@@ -32,6 +32,8 @@
     // Plain-JS repo scripts, outside the TS project; covered by
     // `pnpm test:hooks` instead. (.githooks/ sits outside src/.)
     "scripts/**",
+    // Imported verbatim from wildshard-singleplayer (D28).
+    "site/**",
     "dist/**",
     "node_modules/**",
     "test-results/**",

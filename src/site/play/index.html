@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a12">
+<title>{{Play page · title}}</title>
+<meta name="description" content="{{@Play page · description}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://wildshard.io/play/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{@Page · title}}">
+<meta property="og:title" content="{{@Play page · title}}">
+<meta property="og:description" content="{{@Play page · description}}">
+<meta property="og:url" content="https://wildshard.io/play/">
+<meta property="og:image" content="https://wildshard.io/og-play.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{@Page · image description}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{@Play page · title}}">
+<meta name="twitter:description" content="{{@Play page · description}}">
+<meta name="twitter:image" content="https://wildshard.io/og-play.jpg">
+<link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script type="application/json" id="media"><!--gen:media--></script>
+<header class="page-top">
+  <a class="home" href="/"><img src="/favicon.svg" width="22" height="22" alt="">{{Nav · home}}</a>
+  <a class="play" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Nav · play now}}</a>
+  <nav class="page-nav" aria-label="{{@Nav · label}}"><a href="/play/" aria-current="page">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a></nav>
+</header>
+<main class="wrap">
+  <section id="play-top">
+    <div class="side">
+      <div class="q"><p class="ask">{{Play · question}}</p></div>
+      <h1 class="title">{{Play · title}}</h1>
+      <p class="lede">{{Play · intro}}</p>
+    </div>
+    <div class="body">
+      <ul class="grow">{{list:Play · verbs}}</ul>
+      <a class="door play bk pl-door" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Install · play button}}<small>{{Install · play button note}}</small></a>
+      <p class="status">{{Hero · status}}</p>
+    </div>
+  </section>
+
+  <section id="play-shards">
+    <div class="side">
+      <div class="q"><p class="ask">{{Play · shards question}}</p></div>
+      <h2>{{Play · shards title}}</h2>
+      <p class="lede">{{Play · shards intro}}</p>
+      <nav class="pl-index" aria-label="{{@Play · shards index label}}">
+        <a href="#play-driftwood">{{Driftwood Isle · name}}</a><a href="#play-pine">{{Pine Hollow · name}}</a><a href="#play-nalati">{{Nalati Grasslands · name}}</a><a href="#play-dunes">{{Signal Dunes · name}}</a><a href="#play-skyreach">{{Sky Reach · name}}</a><a href="#play-ninedragon">{{Nine Dragon Stack · name}}</a><a href="#play-template">{{The Template · name}}</a>
+      </nav>
+    </div>
+    <div class="body">
+      <article class="pl-shard" id="play-driftwood">
+        <div class="pl-shot" data-loop="driftwood-isle"><img src="/media/wide-driftwood.webp" alt="{{@Driftwood Isle · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge open">{{Play · badge open}}</span><span class="pl-look">{{Play · Driftwood Isle look}}</span></div>
+        <h3>{{Driftwood Isle · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Driftwood Isle text}}</p>
+        <ul class="pl-facts">{{list:Play · Driftwood Isle facts}}</ul>
+      </article>
+      <article class="pl-shard" id="play-pine">
+        <div class="pl-shot" data-loop="pine-hollow"><img src="/media/wide-pine.webp" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge open">{{Play · badge early}}</span><span class="pl-look">{{Play · Pine Hollow look}}</span></div>
+        <h3>{{Pine Hollow · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Pine Hollow text}}</p>
+        <ul class="pl-facts">{{list:Play · Pine Hollow facts}}</ul>
+      </article>
+      <article class="pl-shard" id="play-nalati">
+        <div class="pl-shot" data-loop="nalati-grasslands"><img src="/media/wide-nalati.webp" alt="{{@Nalati Grasslands · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge open">{{Play · badge early}}</span><span class="pl-look">{{Play · Nalati Grasslands look}}</span></div>
+        <h3>{{Nalati Grasslands · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Nalati Grasslands text}}</p>
+        <ul class="pl-facts">{{list:Play · Nalati Grasslands facts}}</ul>
+      </article>
+      <article class="pl-shard" id="play-dunes">
+        <div class="pl-shot dunes" data-loop="sunscar-dunes"><img src="/media/card-dunes.webp" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Signal Dunes look}}</span></div>
+        <h3>{{Signal Dunes · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Signal Dunes text}}</p>
+        <ul class="pl-facts">{{list:Play · Signal Dunes facts}}</ul>
+      </article>
+      <article class="pl-shard" id="play-skyreach">
+        <div class="pl-shot" data-loop="far-reach"><img src="/media/wide-skyreach.webp" alt="{{@Sky Reach · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Sky Reach look}}</span></div>
+        <h3>{{Sky Reach · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Sky Reach text}}</p>
+        <ul class="pl-facts">{{list:Play · Sky Reach facts}}</ul>
+      </article>
+      <article class="pl-shard" id="play-ninedragon">
+        <div class="pl-shot" data-loop="nine-dragon-stack"><img src="/media/wide-ninedragon.webp" alt="{{@Nine Dragon Stack · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
+        <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Nine Dragon Stack look}}</span></div>
+        <h3>{{Nine Dragon Stack · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <p class="pl-what">{{Play · Nine Dragon Stack text}}</p>
+        <ul class="pl-facts">{{list:Play · Nine Dragon Stack facts}}</ul>
+      </article>
+      <article class="pl-shard grey" id="play-template">
+        <div class="pl-shot"><img src="/media/card-template.webp" alt="{{@The Template · image description}}" loading="lazy" decoding="async"></div>
+        <div class="pl-tags"><span class="pl-badge">{{Play · badge developer}}</span><span class="pl-look">{{Play · The Template look}}</span></div>
+        <h3>{{The Template · name}} <a href="/build/">{{Shards · build link}}</a></h3>
+        <p class="pl-what">{{Play · The Template text}}</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="play-controls">
+    <div class="side">
+      <div class="q"><p class="ask">{{Play · controls question}}</p></div>
+      <h2>{{Play · controls title}}</h2>
+      <p class="lede">{{Play · controls intro}}</p>
+    </div>
+    <div class="body">
+      <div class="pl-pane bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Play · phone pane}}</span></div>
+        <div class="pl-touch">
+          <figure class="pl-hud" aria-label="{{@Play · hud description}}">
+            <span class="pl-h pause">{{Play · hud pause}}</span>
+            <span class="pl-h edge horse">{{Play · hud horse}}</span>
+            <span class="pl-h edge hover">{{Play · hud hover}}</span>
+            <span class="pl-h swap">{{Play · hud swap}}</span>
+            <span class="pl-h free">{{Play · hud free look}}</span>
+            <span class="pl-h use">{{Play · hud use}}</span>
+            <span class="pl-h disc lock">{{Play · hud lock}}</span>
+            <span class="pl-h disc dodge">{{Play · hud dodge}}</span>
+            <span class="pl-h disc jump">{{Play · hud jump}}</span>
+            <span class="pl-h bar"><span class="pl-zone move"><i class="stick"></i><b>{{Play · hud move}}</b></span><span class="pl-zone look"><i class="pad"></i><b>{{Play · hud look}}</b></span></span>
+            <span class="pl-h attack">{{Play · hud attack}}</span>
+            <span class="tag warn pl-diagram">{{Play · diagram tag}}</span>
+          </figure>
+          <ul class="pl-facts pl-ctl">{{list:Play · phone controls}}</ul>
+        </div>
+      </div>
+      <div class="pl-pane bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Play · desktop pane}}</span></div>
+        <ul class="pl-keys">{{list:Play · desktop controls}}</ul>
+        <p class="pl-keys-note">{{Play · desktop note}}</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="play-next">
+    <div class="side">
+      <div class="q"><p class="ask">{{Play · next question}}</p></div>
+      <h2>{{Play · next title}}</h2>
+      <p class="lede">{{Play · next intro}}</p>
+    </div>
+    <div class="body">
+      <figure class="plate bk pl-concept">
+        <img src="/media/concept-emerald-m.webp" srcset="/media/concept-emerald-m.webp 800w, /media/concept-emerald.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" width="1600" height="900" alt="{{@Play · concept description}}" loading="lazy" decoding="async">
+        <span class="tag warn">{{Mockup · tag}}</span>
+        <figcaption>{{Play · concept caption}}</figcaption>
+      </figure>
+      <div class="pl-road">
+        <h3>{{Play · live label}}</h3>
+        <ul class="pl-live">{{list:Play · live}}</ul>
+        <h3>{{Play · coming label}}</h3>
+        <ul class="pl-coming">{{list:Play · coming}}</ul>
+      </div>
+      <a class="more-page" href="/mmo/">{{Play · mmo page link}}</a>
+    </div>
+  </section>
+
+  <section id="play-install">
+    <div class="side">
+      <div class="q"><p class="ask">{{Play · install question}}</p></div>
+      <h2>{{Play · install title}}</h2>
+      <p class="lede">{{Play · install intro}}</p>
+    </div>
+    <div class="body">
+      <div class="install bk">
+        <p class="install-intro">{{Install · home screen intro}}</p>
+        <ol>{{list:Install · steps}}</ol>
+        <ul class="pl-facts pl-devices">{{list:Play · install devices}}</ul>
+        <ul class="grow pl-perks">{{list:Play · install perks}}</ul>
+        <p>{{Install · apps note}}</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="pl-end" id="play-end">
+  <div class="wrap">
+    <p class="ask">{{Play · end prompt}}</p>
+    <h2>{{Play · end title}}</h2>
+    <p class="lede">{{Play · end text}}</p>
+    <a class="pl-go" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Play · end button}}<small>{{Play · end button note}}</small></a>
+    <a class="more-page pl-on" href="/build/">{{Play · build link}}</a>
+  </div>
+</section>
+
+<footer><span class="brand"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><nav class="foot-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a><a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></nav><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+
+<script>
+(function () {
+  // each shard's loop fades in over its still: on a phone when it scrolls into view, on desktop on hover (as the home page)
+  var media = {}; try { media = JSON.parse(document.getElementById("media").textContent || "{}"); } catch (e) { media = {}; }
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var hover = window.matchMedia("(hover: hover) and (min-width: 1024px)").matches;
+  function start(v, src) { if (!v.src) v.src = src; var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+  document.querySelectorAll("[data-loop]").forEach(function (shot) {
+    var m = media.loops && media.loops[shot.getAttribute("data-loop")];
+    if (!m) return;
+    var v = document.createElement("video");
+    v.className = "loop"; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute("aria-hidden", "true"); v.preload = "none";
+    v.addEventListener("playing", function () { v.classList.add("on"); });
+    shot.appendChild(v);
+    if (hover) {
+      var card = shot.closest(".pl-shard") || shot;
+      card.addEventListener("mouseenter", function () { start(v, m.wide); });
+      card.addEventListener("mouseleave", function () { v.pause(); v.classList.remove("on"); });
+    } else if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) start(v, m.wide); else if (v.src) v.pause(); }); }, { threshold: 0.5 }).observe(shot);
+    }
+  });
+})();
+</script>
+</body>
+</html>

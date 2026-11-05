@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a12">
+<title>{{MMO page · title}}</title>
+<meta name="description" content="{{@MMO page · description}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://wildshard.io/mmo/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{@Page · title}}">
+<meta property="og:title" content="{{@MMO page · title}}">
+<meta property="og:description" content="{{@MMO page · description}}">
+<meta property="og:url" content="https://wildshard.io/mmo/">
+<meta property="og:image" content="https://wildshard.io/og-mmo.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{@Page · image description}}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{@MMO page · title}}">
+<meta name="twitter:description" content="{{@MMO page · description}}">
+<meta name="twitter:image" content="https://wildshard.io/og-mmo.jpg">
+<link rel="preload" href="/fonts/rajdhani-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="page-top">
+  <a class="home" href="/"><img src="/favicon.svg" width="22" height="22" alt="">{{Nav · home}}</a>
+  <a class="play" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Nav · play now}}</a>
+  <nav class="page-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/" aria-current="page">{{Nav · mmo}}</a></nav>
+</header>
+<main class="wrap mmo-page">
+  <!-- MS31: the MMO, technical. Every claim is traced in site/COPY.md's notes to the doc or code it came from. -->
+  <section id="mmo-top">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · question}}</p></div>
+      <h1 class="title">{{MMO · title}}</h1>
+      <p class="lede">{{MMO · intro}}</p>
+      <p class="mmo-status">{{MMO · status}}</p>
+    </div>
+    <div class="body">
+      <ol class="mmo-flow" aria-label="{{@MMO · flow label}}">
+        <li class="bk"><span class="n">{{MMO · flow 1 label}}</span><b>{{MMO · flow 1 title}}</b><p>{{MMO · flow 1 text}}</p></li>
+        <li class="bk"><span class="n">{{MMO · flow 2 label}}</span><b>{{MMO · flow 2 title}}</b><p>{{MMO · flow 2 text}}</p></li>
+        <li class="bk"><span class="n">{{MMO · flow 3 label}}</span><b>{{MMO · flow 3 title}}</b><p>{{MMO · flow 3 text}}</p></li>
+        <li class="bk later"><span class="n">{{MMO · flow 4 label}}</span><b>{{MMO · flow 4 title}}</b><p>{{MMO · flow 4 text}}</p><span class="tag warn">{{MMO · tag planned}}</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="mmo-shardfile">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · shardfile question}}</p></div>
+      <h2>{{MMO · shardfile title}}</h2>
+      <p class="lede">{{MMO · shardfile intro}}</p>
+    </div>
+    <div class="body">
+      <div class="manifest bk">
+        <div class="h">{{Together · package heading}}</div>
+        <div class="y">{{Together · holds 1}}</div><div class="y">{{Together · holds 2}}</div><div class="y">{{Together · holds 3}}</div>
+        <div class="n">{{Together · never holds}}</div>
+      </div>
+      <div class="json bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Together · shardfile title}}</span></div>
+        <pre><!--gen:shardfile--></pre>
+      </div>
+      <div class="note">{{MMO · shardfile note}}</div>
+      <div class="faq mmo-faq">
+        <details><summary>{{MMO · shardfile sections label}}</summary>
+          <ul class="mmo-list mmo-anatomy">{{list:MMO · shardfile sections}}</ul>
+          <div class="note">{{MMO · shardfile sections note}}</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="mmo-budgets">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · budgets question}}</p></div>
+      <h2>{{MMO · budgets title}}</h2>
+      <p class="lede">{{MMO · budgets intro}}</p>
+    </div>
+    <div class="body">
+      <div class="session bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{MMO · budgets terminal path}}</span></div>
+        <div class="term mmo-term"><p class="ask">{{MMO · budgets command}}</p><p class="out">{{MMO · budgets command output}}</p></div>
+        <ol class="steps">
+          <li><div><strong>{{MMO · budgets step 1}}</strong><p class="mmo-d">{{MMO · budgets step 1 text}}</p></div></li>
+          <li><div><strong>{{MMO · budgets step 2}}</strong><p class="mmo-d">{{MMO · budgets step 2 text}}</p></div></li>
+          <li><div><strong>{{MMO · budgets step 3}}</strong><p class="mmo-d">{{MMO · budgets step 3 text}}</p></div></li>
+          <li><div><strong>{{MMO · budgets step 4}}</strong><p class="mmo-d">{{MMO · budgets step 4 text}}</p></div></li>
+          <li><div><strong>{{MMO · budgets step 5}}</strong><p class="mmo-d">{{MMO · budgets step 5 text}}</p></div></li>
+        </ol>
+      </div>
+      <div class="note">{{MMO · budgets note}}</div>
+    </div>
+  </section>
+
+  <section id="mmo-sandbox">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · sandbox question}}</p></div>
+      <h2>{{MMO · sandbox title}}</h2>
+      <p class="lede">{{MMO · sandbox intro}}</p>
+    </div>
+    <div class="body">
+      <div class="who mmo-stats">
+        <b>{{MMO · sandbox stat 1}}</b><span>{{MMO · sandbox stat 1 label}}</span>
+        <b>{{MMO · sandbox stat 2}}</b><span>{{MMO · sandbox stat 2 label}}</span>
+        <b>{{MMO · sandbox stat 3}}</b><span>{{MMO · sandbox stat 3 label}}</span>
+        <b class="act">{{MMO · sandbox stat 4}}</b><span>{{MMO · sandbox stat 4 label}}</span>
+      </div>
+      <ul class="mmo-list">{{list:MMO · sandbox points}}</ul>
+      <div class="note">{{MMO · sandbox note}}</div>
+    </div>
+  </section>
+
+  <section id="mmo-grid">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · grid question}}</p></div>
+      <h2>{{MMO · grid title}}</h2>
+      <p class="lede">{{MMO · grid intro}}</p>
+    </div>
+    <div class="body">
+      <figure class="mmo-map bk">
+        <!--gen:grid-->
+        <figcaption>{{MMO · grid map caption}}</figcaption>
+      </figure>
+      <div class="mmo-seam" style="%SEAM%" aria-label="{{@MMO · seam description}}">
+        <div class="cell-a"><span>{{MMO · seam shard}}</span></div>
+        <div class="st"><span>{{MMO · seam strip}}</span></div>
+        <div class="hw"><span>{{MMO · seam highway}}</span></div>
+        <div class="st"><span>{{MMO · seam strip}}</span></div>
+        <div class="cell-b"><span>{{MMO · seam next shard}}</span></div>
+      </div>
+      <div class="note">{{MMO · seam note}}</div>
+      <ul class="mmo-list">{{list:MMO · grid points}}</ul>
+    </div>
+  </section>
+
+  <section id="mmo-layers">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · layers question}}</p></div>
+      <h2>{{MMO · layers title}}</h2>
+      <p class="lede">{{MMO · layers intro}}</p>
+    </div>
+    <div class="body">
+      <ol class="mmo-stack">
+        <li class="bk mmo-shardrow"><code>{{MMO · layer 4 name}}</code><p>{{MMO · layer 4 text}}</p>
+          <div class="chips" aria-hidden="true"><i>{{Map · Driftwood}}</i><i>{{Map · Pine}}</i><i>{{Map · Nalati}}</i><i>{{Map · Dunes}}</i><i>{{Map · Sky Reach}}</i><i>{{Map · Nine Dragon}}</i><i>{{Map · Template}}</i></div></li>
+        <li class="bk"><code>{{MMO · layer 3 name}}</code><p>{{MMO · layer 3 text}}</p></li>
+        <li class="bk"><code>{{MMO · layer 2 name}}</code><p>{{MMO · layer 2 text}}</p></li>
+        <li class="bk"><code>{{MMO · layer 1 name}}</code><p>{{MMO · layer 1 text}}</p></li>
+      </ol>
+      <p class="mmo-truth">{{MMO · layers today}}</p>
+    </div>
+  </section>
+
+  <section id="mmo-together">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · together question}}</p></div>
+      <h2>{{MMO · together title}}</h2>
+      <span class="tag warn mmo-planned">{{MMO · tag planned}}</span>
+      <p class="lede">{{MMO · together intro}}</p>
+    </div>
+    <div class="body">
+      <div class="mmo-net" aria-label="{{@MMO · net description}}">
+        <div class="bk end"><b>{{MMO · net phone}}</b><span>{{MMO · net phone text}}</span></div>
+        <div class="wire"><span>{{MMO · net up}}</span><span>{{MMO · net down}}</span></div>
+        <div class="bk room"><b>{{MMO · net room}}</b><span>{{MMO · net room text}}</span></div>
+      </div>
+      <ul class="mmo-list">{{list:MMO · together points}}</ul>
+      <p class="mmo-truth">{{MMO · together today}}</p>
+    </div>
+  </section>
+
+  <section id="mmo-own">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · own question}}</p></div>
+      <h2>{{MMO · own title}}</h2>
+      <p class="lede">{{MMO · own intro}}</p>
+    </div>
+    <div class="body">
+      <ul class="mmo-list mmo-own">{{list:MMO · own points}}</ul>
+      <div class="note">{{MMO · own note}}</div>
+    </div>
+  </section>
+
+  <section id="mmo-road">
+    <div class="side">
+      <div class="q"><p class="ask">{{MMO · road question}}</p></div>
+      <h2>{{MMO · road title}}</h2>
+      <p class="lede">{{MMO · road intro}}</p>
+    </div>
+    <div class="body">
+      <ol class="mmo-road">
+        <li class="done"><span class="st">{{MMO · road done}}</span><b>{{MMO · road 1 title}}</b><p>{{MMO · road 1 text}}</p></li>
+        <li class="done"><span class="st">{{MMO · road done}}</span><b>{{MMO · road 2 title}}</b><p>{{MMO · road 2 text}}</p></li>
+        <li class="doing"><span class="st">{{MMO · road testing}}</span><b>{{MMO · road 3 title}}</b><p>{{MMO · road 3 text}}</p></li>
+        <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 4 title}}</b><p>{{MMO · road 4 text}}</p></li>
+        <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 5 title}}</b><p>{{MMO · road 5 text}}</p></li>
+        <li><span class="st">{{MMO · road todo}}</span><b>{{MMO · road 6 title}}</b><p>{{MMO · road 6 text}}</p></li>
+      </ol>
+      <nav class="doors mmo-doors" aria-label="{{@MMO · next label}}">
+        <a class="door author" href="/build/">{{MMO · next build}}<small>{{MMO · next build note}}</small></a>
+        <a class="door play bk" href="/play/">{{MMO · next play}}<small>{{MMO · next play note}}</small></a>
+      </nav>
+      <a class="more-page" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Nav · play now}}</a>
+    </div>
+  </section>
+
+</main>
+<footer><span class="brand"><img src="/favicon.svg" width="18" height="18" alt="" loading="lazy" decoding="async">{{Footer · name}}</span><nav class="foot-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a><a href="mailto:project.wildshard@gmail.com">project.wildshard@gmail.com</a></nav><span>&gt; <span class="cursor" aria-hidden="true"></span></span></footer>
+</body>
+</html>
