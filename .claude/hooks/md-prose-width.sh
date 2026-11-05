@@ -22,13 +22,15 @@ case "$file" in *.md) ;; *) exit 0 ;; esac
 root="${CLAUDE_PROJECT_DIR:-}"
 [ -n "$root" ] || exit 0
 case "$file" in "$root"/*) ;; *) exit 0 ;; esac
-case "$file" in
-  */node_modules/*|*/.claude/worktrees/*|*/project/archive/*|*/tmp/*) exit 0 ;;
+# Match the skipped folders against the repo-relative path: the absolute
+# path may itself sit under /tmp (Linux temp dirs, CI sandboxes).
+rel="${file#"$root"/}"
+case "$rel" in
+  node_modules/*|*/node_modules/*|.claude/worktrees/*|project/archive/*|tmp/*) exit 0 ;;
 esac
 [ -f "$file" ] && [ -f "$root/src/scripts/md-wrap.mjs" ] || exit 0
 
 cd "$root" || exit 0
-rel="${file#"$root"/}"
 out="$(node src/scripts/md-wrap.mjs --check --new-only "$rel" 2>&1)" && exit 0
 
 cat >&2 <<EOF
