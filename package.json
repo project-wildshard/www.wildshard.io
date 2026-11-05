@@ -1,6 +1,6 @@
 {
   "name": "@wildshard/www-wildshard-io",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "The marketing website at wildshard.io (www and wildshard.dev redirect to it), with the in-engine trailer.",
   "type": "module",
