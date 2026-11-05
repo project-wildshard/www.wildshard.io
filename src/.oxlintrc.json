@@ -1,0 +1,172 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "promise",
+    "node",
+    "react",
+    "react-perf",
+    "jsx-a11y"
+  ],
+  // Strictest of greenroom (every category denied) and wildshard-singleplayer
+  // (these options, and import/no-nodejs-modules outside Node-side folders).
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "categories": {
+    "correctness": "deny",
+    "suspicious": "deny",
+    "pedantic": "deny",
+    "perf": "deny",
+    "style": "deny",
+    "restriction": "deny",
+    "nursery": "deny"
+  },
+  "ignorePatterns": [
+    // Plain-JS repo scripts, outside the TS project; covered by
+    // `pnpm test:hooks` instead. (.githooks/ sits outside src/.)
+    "scripts/**",
+    "dist/**",
+    "node_modules/**",
+    "test-results/**",
+    "playwright-report/**"
+  ],
+  "rules": {
+    "typescript/explicit-function-return-type": [
+      "deny",
+      {
+        "allowExpressions": false,
+        "allowTypedFunctionExpressions": false,
+        "allowHigherOrderFunctions": false,
+        "allowDirectConstAssertionInArrowFunctions": false,
+        "allowConciseArrowFunctionExpressionsStartingWithVoid": false,
+        "allowFunctionsWithoutTypeParameters": false,
+        "allowIIFEs": false
+      }
+    ],
+    "typescript/explicit-module-boundary-types": [
+      "deny",
+      {
+        "allowArgumentsExplicitlyTypedAsAny": false,
+        "allowDirectConstAssertionInArrowFunctions": false,
+        "allowHigherOrderFunctions": false,
+        "allowTypedFunctionExpressions": false
+      }
+    ],
+    "typescript/no-floating-promises": [
+      "deny",
+      {
+        "allowForKnownSafeCalls": [
+          {
+            "from": "package",
+            "package": "node:test",
+            "name": ["describe", "it", "suite", "test"]
+          }
+        ]
+      }
+    ],
+    "typescript/prefer-readonly-parameter-types": [
+      "deny",
+      {
+        "treatMethodsAsReadonly": true,
+        // Framework objects that are mutable by design and only ever passed in.
+        "allow": [
+          { "from": "package", "package": "hono", "name": "Context" },
+          { "from": "package", "package": "node:test", "name": "TestContext" },
+          {
+            "from": "package",
+            "package": "http",
+            "name": ["IncomingMessage", "ServerResponse"]
+          },
+          {
+            "from": "package",
+            "package": "playwright",
+            "name": [
+              "PlaywrightTestArgs",
+              "PlaywrightTestOptions",
+              "PlaywrightWorkerArgs",
+              "PlaywrightWorkerOptions"
+            ]
+          }
+        ]
+      }
+    ],
+    "eslint/func-style": [
+      "deny",
+      "declaration",
+      { "allowArrowFunctions": true }
+    ],
+    "eslint/no-duplicate-imports": [
+      "deny",
+      { "allowSeparateTypeImports": true }
+    ],
+    // `return await` everywhere keeps stack traces and squares require-await with promise-function-async.
+    "typescript/return-await": ["deny", "always"],
+    // `void promise` is the marker no-floating-promises asks for.
+    "eslint/no-void": ["deny", { "allowAsStatement": true }],
+    // Continuation lines of a multi-line comment start mid-sentence.
+    "eslint/capitalized-comments": [
+      "deny",
+      "always",
+      { "ignoreConsecutiveComments": true }
+    ],
+    "react/jsx-filename-extension": ["deny", { "extensions": [".tsx"] }],
+
+    // Disabled: each contradicts another rule or fights the stack.
+    "eslint/sort-imports": "off", // oxfmt's sortImports owns import order; two sorters fight
+    "eslint/sort-keys": "off", // key order carries meaning (schemas, options); not autofixable
+    "eslint/one-var": "off", // one binding per declaration is how oxfmt lays code out
+    "eslint/no-undef": "off", // tsc reports undefined names; this misreads type-only globals
+    "eslint/no-undefined": "off", // contradicts unicorn/no-null; undefined is the absent value
+    "eslint/no-ternary": "off", // JSX conditional rendering needs it; no-nested-ternary stays on
+    "import/no-named-export": "off", // contradicts import/no-default-export; named exports win
+    "import/prefer-default-export": "off", // contradicts import/no-default-export
+    "import/no-relative-parent-imports": "off", // #subpath imports break the tsc build's extension rewrite
+    "node/no-top-level-await": "off", // contradicts unicorn/prefer-top-level-await; ESM-only, never require()d
+    "oxc/no-async-await": "off", // contradicts typescript/promise-function-async and require-await
+    "oxc/no-optional-chaining": "off", // contradicts typescript/prefer-optional-chain
+    "oxc/no-rest-spread-properties": "off", // ES5-compat ban; target is es2024
+    "react/react-in-jsx-scope": "off", // contradicts the react-jsx automatic runtime
+    "react/jsx-no-literals": "off" // i18n-only rule; no translations yet
+  },
+  "overrides": [
+    {
+      // Node programs may import node: modules; everything else (shared, client,
+      // web code) may not, as in wildshard-singleplayer.
+      "files": [
+        "cli/**",
+        "server/**",
+        "tools/**",
+        "test/**",
+        "e2e/**",
+        "cook/**",
+        "**/*.test.ts",
+        "*.config.ts",
+        "**/*.config.ts"
+      ],
+      "rules": {
+        "import/no-nodejs-modules": "off"
+      }
+    },
+    {
+      "files": ["*.config.ts", "**/*.config.ts"],
+      "rules": {
+        "import/no-default-export": "off", // playwright loads the default export
+        "node/no-process-env": "off" // config reads CI from the environment
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "test/**", "e2e/**"],
+      "rules": {
+        "eslint/no-magic-numbers": "off", // assertions compare against literal expected values
+        "node/no-sync": "off", // test fixtures set up git repos synchronously
+        "node/no-process-env": "off" // the git helper isolates git from the developer's env
+      }
+    }
+  ]
+}

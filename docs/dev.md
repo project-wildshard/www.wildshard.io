@@ -1,52 +1,64 @@
 # Developing www.wildshard.io
 
-Living doc: commands, layout, code rules and git hooks. AGENTS.md
-links here.
+Living doc: commands, layout, code rules and git hooks. AGENTS.md links
+here; what the repo does is `docs/prd.md`, how it is built `docs/design.md`.
 
 ## Commands
 
 Run from the repo root.
 
-- `pnpm install`: installs deps and points `core.hooksPath` at
-  `.githooks/`.
-- `pnpm check`: the repo's checks. The pre-push hook runs it.
-- `pnpm test:hooks`: the `.githooks/` suite (CI, and pre-commit when
-  hooks change).
-- `pnpm md:wrap`: rewraps Markdown prose.
-- `src/scripts/ask-new.sh "<Jake's words>"`: opens an ask
-  (`docs/tasks/asks/README.md`).
+- `pnpm install`: installs deps and points `core.hooksPath` at `.githooks/`.
+- `pnpm check`: typecheck + lint + format:check + unit tests + asks. The pre-push hook runs it.
+- `pnpm test`: `node:test` on `src/**/*.test.ts`, run as .ts by Node's type stripping.
+- `pnpm test:hooks`: the `.githooks/` suite (CI, and pre-commit when hooks change).
+- `pnpm dev`: esbuild watch + the server on http://127.0.0.1:4404.
+- `pnpm build`: builds the web app into `src/dist/web`.
+- `pnpm test:e2e`: Playwright against a built app. CI only.
+- `pnpm lint:fix` / `pnpm format`: the hooks only check; these fix.
+- `node src/cli/main.ts --help`: the CLI without installing it. `serve [--port n]` starts the server (default 4404).
+- `pnpm md:wrap`: rewraps Markdown prose to ~72 columns.
+- `src/scripts/ask-new.sh "<Jake's words>"`: opens an ask (`docs/tasks/asks/README.md`).
 
 ## Layout
 
-The root stays thin: README.md and AGENTS.md (humans only),
-CLAUDE.md (`@AGENTS.md`), package.json, pnpm-lock.yaml, .npmrc,
-.gitignore, .editorconfig, `docs/`, `project/`, `src/` and the dot
-dirs. Scratch goes in `tmp/<task>/` and is deleted when done.
+The root stays thin: README.md and AGENTS.md (humans only), CLAUDE.md
+(`@AGENTS.md`), package.json, pnpm-lock.yaml, .npmrc, .gitignore,
+.editorconfig, `docs/`, `project/`, `src/` and the dot dirs. Scratch
+goes in `tmp/<task>/` and is deleted when done.
 
-- `src/`: code, including `src/scripts/` (asks, md-wrap).
-- `docs/`: living docs; `docs/plans/` is the queue,
-  `docs/tasks/asks/` the receipts.
-- `project/`: history; `project/journal/`, `project/archive/`.
+- `src/cli/`: the CLI (`--version`, `--help`; commands arrive with the import).
+- `src/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
+- `src/server/`: the Hono app (`GET /api/health`) and `serve.ts`.
+- `src/shared/`: zod schemas used on both sides of the wire.
+- `src/web/`: the Preact web app, with its own `tsconfig.json` (DOM lib).
+- `src/tools/build-web.ts`: esbuild into `src/dist/web` (`--dev` watches and serves).
+- `src/e2e/`: Playwright smoke test (CI).
+- `src/scripts/`: repo tooling (asks, md-wrap), plain JS.
+- `docs/`: living docs. `docs/plans/` is the queue, `docs/tasks/asks/`
+  the receipts.
+- `project/`: history. `journal/`, `origins/` (the meta-repo plans this
+  repo came from), `archive/`.
+
+## Code rules
+
+- TypeScript only, imports with explicit `.ts`/`.tsx` extensions.
+- Every function has an explicit return type. `src/.oxlintrc.json` denies
+  every category (D28); disable a rule only with a one-line reason beside it.
+- Pin dependencies exactly (`.npmrc` has `save-exact=true`).
+- Other Wildshard repos are git dependencies pinned by tag
+  (`github:project-wildshard/<repo>#vX.Y.Z`). They are private, so CI reads
+  them with the org GitHub App token.
+- Tests use real things (git in temp dirs, real files and processes); never
+  mock git. No LLM, `claude`, herdr or network in tests.
 
 ## Git hooks
 
-Enabled by `pnpm install` (`git config core.hooksPath .githooks`).
+| Hook | Checks | Bypass |
+| --- | --- | --- |
+| commit-msg | Conventional Commits subject ≤ 50, body ≤ 72, one `Assisted-by: AGENT:MODEL` trailer, no AI `Co-Authored-By` | `SKIP_ATTRIB=1` (human-only commit) |
+| pre-commit | `main` in the main checkout (D27), staged set echo, whitespace, 1 MB cap, credentials, sh / mjs syntax, new-plan Status line, journal (D25) | `ALLOW_BRANCH=1`, `ALLOW_BIG=1`, `ALLOW_SECRET=1`, `SKIP_JOURNAL=1` |
+| pre-commit | lint + format:check on staged code, typecheck; 8 s budget | `SKIP_BUDGET=1` (time only), `SKIP_CHECK=1` |
+| pre-push | outgoing commits: size, credentials, syntax; then `pnpm check` | `ALLOW_BIG=1`, `ALLOW_SECRET=1`, `SKIP_CHECK=1` |
 
-- **pre-commit**: main only, no worktrees (`ALLOW_BRANCH=1`); 1 MB
-  blob cap (`ALLOW_BIG=1`; large binaries go to R2); credential scan
-  (`ALLOW_SECRET=1`); new plans need a `Status:` line; 30+ changed
-  lines need a `project/journal/` entry (`SKIP_JOURNAL=1`); the code
-  lane (`SKIP_CHECK=1`).
-- **commit-msg**: Conventional Commits, subject ≤ 50, body wrapped at
-  72, one `Assisted-by: AGENT:MODEL` trailer for AI commits
-  (`SKIP_ATTRIB=1` for human-only commits), no `Co-Authored-By` for
-  AI and no robot banners.
-- **pre-push**: re-runs the blob checks on every outgoing commit, then
-  `pnpm check`.
-
-## Dependencies on other Wildshard repos
-
-Git dependencies pinned by tag, never a branch:
-`github:project-wildshard/<repo>#vX.Y.Z`. Releases commit built `dist/`
-on a tag-only commit. The org's repos are private, so CI reads them with
-an org GitHub App token.
+Bypasses are for the case they name, never for a red gate: fix the code,
+not the gate.
