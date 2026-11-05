@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# 1. Outgoing-commit checks: .githooks/check-push.mjs (reads git's ref
+#    lines on stdin). Bypasses: ALLOW_BIG=1, ALLOW_SECRET=1.
+# 2. Push lane (full `pnpm check`): .githooks/run-checks.mjs.
+#    Bypass: SKIP_CHECK=1.
+# Enable once per clone: git config core.hooksPath .githooks
+set -euo pipefail
+hooks="$(git rev-parse --show-toplevel)/.githooks"
+node "$hooks/check-push.mjs"
+exec node "$hooks/run-checks.mjs" push

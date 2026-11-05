@@ -1,0 +1,17 @@
+{
+  "name": "@wildshard/www.wildshard.io",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The marketing website",
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "packageManager": "pnpm@10.21.0",
+  "scripts": {
+    "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+    "check": "node src/scripts/asks.mjs check",
+    "test:hooks": "node --test '.githooks/*.test.mjs'",
+    "md:wrap": "node src/scripts/md-wrap.mjs"
+  }
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Commit-message rules: .githooks/check-commit-message.mjs.
+# Enable once per clone: git config core.hooksPath .githooks
+set -euo pipefail
+exec node "$(git rev-parse --show-toplevel)/.githooks/check-commit-message.mjs" "$1"

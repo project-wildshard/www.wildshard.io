@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# 1. Staged-index checks: .githooks/check-index.mjs.
+#    Bypasses: ALLOW_BRANCH=1, ALLOW_BIG=1, ALLOW_SECRET=1, SKIP_JOURNAL=1.
+# 2. Commit lane (typecheck, lint, format): .githooks/run-checks.mjs.
+#    Bypasses: SKIP_BUDGET=1 (time cap only), SKIP_CHECK=1.
+# Enable once per clone: git config core.hooksPath .githooks
+set -euo pipefail
+hooks="$(git rev-parse --show-toplevel)/.githooks"
+node "$hooks/check-index.mjs"
+exec node "$hooks/run-checks.mjs" commit

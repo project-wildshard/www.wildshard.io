@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+# No worktrees here (D27); ignored so a stray one never gets committed.
+.claude/worktrees/
