@@ -16,3 +16,8 @@
   (D28). Pages, css and data stay out of oxfmt: their bytes ship, and
   a tool writes `facts.json` and `media.json`. The build still matched
   the live pages afterwards.
+- Docs now describe the site and the hand refresh of `facts.json`
+  (D29). `VERCEL_BUILD_TOKEN` is not set: Vercel refuses to mint a token
+  from the CLI login, by REST and by `vercel tokens add`. The workflow
+  stays red with a clear error until Jake sets it; the deploy script
+  runs by hand meanwhile.

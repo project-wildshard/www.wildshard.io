@@ -13,6 +13,12 @@ Run from the repo root.
 - `pnpm test:hooks`: the `.githooks/` suite (CI, and pre-commit when hooks change).
 - `pnpm dev`: esbuild watch + the server on http://127.0.0.1:4404.
 - `pnpm build`: builds the web app into `src/dist/web`.
+- `pnpm site:build`: builds the marketing site into `src/site/dist`.
+- `pnpm site:deploy`: ships HEAD to production on your Vercel CLI
+  login. A push that changes `src/site/` does the same through
+  `site-deploy.yml`, which needs the `VERCEL_BUILD_TOKEN` secret.
+- `pnpm site:media <folder>`: publishes the trailer and shard loops to
+  Vercel Blob and rewrites `src/site/media.json`.
 - `pnpm test:e2e`: Playwright against a built app. CI only.
 - `pnpm lint:fix` / `pnpm format`: the hooks only check; these fix.
 - `node src/cli/main.ts --help`: the CLI without installing it. `serve [--port n]` starts the server (default 4404).
@@ -31,6 +37,7 @@ goes in `tmp/<task>/` and is deleted when done.
 - `src/server/`: the Hono app (`GET /api/health`) and `serve.ts`.
 - `src/shared/`: zod schemas used on both sides of the wire.
 - `src/web/`: the Preact web app, with its own `tsconfig.json` (DOM lib).
+- `src/site/`: the marketing site, a Vite build with its own `tsconfig.json`. Jake's words are in `COPY.md`.
 - `src/tools/build-web.ts`: esbuild into `src/dist/web` (`--dev` watches and serves).
 - `src/e2e/`: Playwright smoke test (CI).
 - `src/scripts/`: repo tooling (asks, md-wrap), plain JS.
@@ -50,6 +57,22 @@ goes in `tmp/<task>/` and is deleted when done.
   them with the org GitHub App token.
 - Tests use real things (git in temp dirs, real files and processes); never
   mock git. No LLM, `claude`, herdr or network in tests.
+
+## Refreshing the site's facts
+
+`src/site/facts.json` is a committed copy of what the game publishes:
+the grid, road width, memory caps, schema path count and the template's
+shard.json excerpt. Nothing updates it, so refresh it by hand at a game
+release. Build the shards in a wildshard-singleplayer checkout first,
+because the excerpt reads `out/_template/shard.json`:
+
+```
+node scripts/build-shardfiles.mjs
+node scripts/site-facts.mjs --out ../wildshard/www.wildshard.io/src/site/facts.json
+```
+
+Commit the result here; the push deploys it. The build stops if a new
+shard has no map label in `src/site/vite.config.ts` and `COPY.md`.
 
 ## Git hooks
 

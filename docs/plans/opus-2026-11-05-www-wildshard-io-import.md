@@ -1,6 +1,6 @@
 # www.wildshard.io: import from singleplayer
 
-Status: draft 2026-11-05: waits on W1; F1.
+Status: in progress 2026-11-05: imported from `3bd238492b`; `site-deploy.yml` waits on the `VERCEL_BUILD_TOKEN` secret.
 
 One-page runbook for bringing this repo's code over from
 `Raynos/project-wildshard-singleplayer`. The why and the full plan live in `Raynos/project-wildshard-meta`:
@@ -9,11 +9,19 @@ Live cross-repo status: `docs/multi-repo/STATE.md` there.
 
 ## What comes in
 
-From `Raynos/project-wildshard-singleplayer@727236c625` (paths may move before the import; re-check them then):
+From `Raynos/project-wildshard-singleplayer@3bd238492bcdc582d9fb09598540ad42b4a7488b`:
 
 - `site/`
 - `.github/workflows/site-deploy.yml`
 - the Vercel project `wildshard-site` and its token
+
+## Left to do
+
+Set the repo secret `VERCEL_BUILD_TOKEN` to a team-scoped token Jake
+creates in the Vercel dashboard, then run the `site-deploy` workflow
+once. The CLI login cannot mint one (403, "Cannot create tokens for
+this app"), and singleplayer's value cannot be read back. Until then
+`pnpm site:deploy` ships by hand on the CLI login.
 
 ## Before the import
 

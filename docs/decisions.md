@@ -20,3 +20,7 @@ this repo's own decisions are D-numbers.
   denied, unused disable directives are errors, `import/no-nodejs-modules`
   outside Node-side folders). Imported code may arrive under a shrink-only
   ratchet (Jake, 2026-11-05).
+- **D29**: 2026-11-05: `src/site/facts.json` is committed and refreshed by
+  hand at a game release (`docs/dev.md`). Nothing pushes it from the game
+  yet: the simplest thing that works, chosen for the move out of
+  singleplayer.

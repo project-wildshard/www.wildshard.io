@@ -1,13 +1,20 @@
 # www.wildshard.io: design
 
-Status: draft 2026-11-05: scaffold only; the real design arrives with the import.
+Status: draft 2026-11-05: the site is imported; the scaffold beside it is unused so far.
 
 Living doc: **how** this repo is built. What it does and why is
 `docs/prd.md`. Keep this true as the code changes.
 
 ## Today
 
-Only the scaffold exists:
+The marketing site lives in `src/site/`. It is a static Vite build of
+six pages: Jake's words from `COPY.md`, the game's numbers from
+`facts.json`, and media URLs from `media.json`. `tools/deploy.sh` builds
+a clean export of HEAD and uploads the output to the Vercel project
+`wildshard-site`, which has no Git link and owns the domains. The
+waitlist form posts to `wildshard-singleplayer.vercel.app/api/waitlist`.
+
+The repo-kit scaffold sits beside it:
 
 - `src/cli/`: the CLI (`--version`, `--help`; commands arrive with the import).
 - `src/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
@@ -20,15 +27,10 @@ Only the scaffold exists:
 
 ## Dependencies
 
-- `shardfile`, by git tag (`github:project-wildshard/<repo>#vX.Y.Z`)
+- None on other Wildshard repos yet. The site needs nothing from
+  `@wildshard/format`; a future one would be a git dependency by tag
+  (`github:project-wildshard/shardfile#vX.Y.Z`).
 
 ## Boundaries the checks enforce
 
 - Builds without reading any other repo's files (W1)
-
-## Coming with the import
-
-- `site/`
-- `.github/workflows/site-deploy.yml`
-- the Vercel project `wildshard-site` and its token
-- `site/tools/facts.ts` today reads four game files; W1 replaces them with published facts.
