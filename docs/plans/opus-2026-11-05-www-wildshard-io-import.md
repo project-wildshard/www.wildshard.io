@@ -17,11 +17,27 @@ From `Raynos/project-wildshard-singleplayer@3bd238492bcdc582d9fb09598540ad42b4a7
 
 ## Left to do
 
-Set the repo secret `VERCEL_BUILD_TOKEN` to a team-scoped token Jake
-creates in the Vercel dashboard, then run the `site-deploy` workflow
-once. The CLI login cannot mint one (403, "Cannot create tokens for
-this app"), and singleplayer's value cannot be read back. Until then
-`pnpm site:deploy` ships by hand on the CLI login.
+`site-deploy` stops at its first check until the repo has
+`VERCEL_BUILD_TOKEN`. There is no way round a new token:
+
+- singleplayer's value cannot be read back, and the CLI login cannot
+  mint one (403, "Cannot create tokens for this app");
+- a Git link would need no token, but Vercel's GitHub App is not
+  installed on `project-wildshard` (only `project-wildshard-ci` is), and
+  installing it is a bigger ask than a token;
+- the CLI login is Jake's own and stays out of repo secrets.
+
+So Jake makes one at <https://vercel.com/account/settings/tokens>, scope
+`raynos-projects`, name `www-site-deploy`, copies it, and runs:
+
+```sh
+pbpaste | gh secret set VERCEL_BUILD_TOKEN -R project-wildshard/www.wildshard.io
+gh workflow run site-deploy -R project-wildshard/www.wildshard.io
+```
+
+The rest of the job is checked: it installs, and `tools/deploy.sh
+--build-only` builds `e4ec745`. Until then `pnpm site:deploy` ships by
+hand on the CLI login.
 
 ## Before the import
 
