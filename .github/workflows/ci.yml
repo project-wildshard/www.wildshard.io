@@ -55,6 +55,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm test:hooks
+      # Tests can't reach another repo, so CI holds this gate: api-server must
+      # refuse the cells the form doesn't offer (docs/dev.md).
+      - name: api-server has the form's grid
+        if: steps.app-token.outputs.token != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api repos/project-wildshard/api-server/contents/src/server/routes/waitlist-grid.json \
+            -H 'Accept: application/vnd.github.raw+json' > "$RUNNER_TEMP/waitlist-grid.json"
+          pnpm site:api-grid "$RUNNER_TEMP/waitlist-grid.json"
       # The site's build is its test: it stops on a broken slot, fact or page.
       - run: pnpm site:build
 

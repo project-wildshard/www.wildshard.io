@@ -25,3 +25,7 @@
 - `ENTRY_ASPHALT` is 15 too, but it is how deep the asphalt runs into a
   cell, not the road's width, so `road` stays by hand until the engine
   has a tag.
+- The form and api-server's `TAKEN` can't share one file across repos,
+  so api-server keeps a copy of `grid.cells` and each repo's CI compares
+  with the other's `main`. Tests may not touch the network, so `pnpm
+  check` proves the comparison on real files and CI runs it for real.
