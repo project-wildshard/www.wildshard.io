@@ -237,7 +237,7 @@
       <div class="founding bk">{{Author · founding authors}}</div>
     </div>
     <div class="body">
-      <form class="bk" id="waitlist" action="https://wildshard-singleplayer.vercel.app/api/waitlist" method="post">
+      <form class="bk" id="waitlist" action="https://api.wildshard.io/api/waitlist" method="post">
         <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Author · form path}}</span></div>
         <label class="field" id="f-email"><span class="lab">{{Author · email label}}</span><input type="email" name="email" placeholder="{{@Author · email placeholder}}" autocomplete="email" inputmode="email" required aria-describedby="err-email"><span class="err" id="err-email" role="alert"></span></label>
         <input class="trap" type="text" name="trap" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -335,7 +335,7 @@
   var moreBtn = document.querySelector(".more-shards");
   if (moreBtn) moreBtn.addEventListener("click", function () { document.querySelector(".shards").classList.add("open"); moreBtn.setAttribute("aria-expanded", "true"); });
 
-  // the waitlist posts to the game's API (api/waitlist.ts)
+  // the waitlist posts to api-server; the form's action is the one place its URL lives
   var form = document.getElementById("waitlist"), label = document.getElementById("send-label"), send = form.querySelector(".send");
   var thanks = document.getElementById("thanks"), thanksText = thanks.textContent; thanks.textContent = ""; // filled when it's true, so it's announced
   form.noValidate = true; // the script shows its own messages; without it, the browser's own checks and a plain post
@@ -356,7 +356,7 @@
     var cell = form.querySelector("input[name=cell]:checked");
     var data = { email: email, build: build, cell: cell ? cell.value : "", trap: form.trap.value };
     label.textContent = {{$Author · sending}}; send.disabled = true;
-    fetch("https://wildshard-singleplayer.vercel.app/api/waitlist", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) })
+    fetch(form.action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data) })
       .then(function (res) {
         label.textContent = res.ok ? {{$Author · sent}} : (res.status === 400 ? {{$Author · bad email}} : {{$Author · failed}}); send.disabled = res.ok;
         if (res.ok) { thanks.textContent = thanksText; thanks.classList.add("on"); }

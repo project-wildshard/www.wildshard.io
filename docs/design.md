@@ -12,7 +12,7 @@ six pages: Jake's words from `COPY.md`, the game's numbers and grid from
 `facts.json`, and media URLs from `media.json`. `tools/deploy.sh` builds
 a clean export of HEAD and uploads the output to the Vercel project
 `wildshard-site`, which has no Git link and owns the domains. The
-waitlist form posts to `wildshard-singleplayer.vercel.app/api/waitlist`.
+waitlist form posts to `api.wildshard.io/api/waitlist`.
 
 The repo-kit scaffold sits beside it:
 
