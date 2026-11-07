@@ -31,7 +31,7 @@ that touch the area:
 - org repos: `docs/design.md`, `docs/decisions.md`, `docs/plans/`;
 - singleplayer: `docs/design/mmo/GLOSSARY.md`, `docs/ENGINE.md`,
   `docs/HOST-BAR.md`, `docs/plans/decisions.md`;
-- meta repo `docs/multi-repo/`: `MULTI-REPO-PLAN.md` (J-numbers),
+- meta repo `docs/plans/multi-repo/`: `MULTI-REPO-PLAN.md` (J-numbers),
   `STATE.md`, `P1-IN-TREE.md`, `LANES-AFTER-SORT.md`,
   `E5-REPLICATION.md`.
 
@@ -115,7 +115,7 @@ As decisions settle:
 - A decision goes in the repo's `docs/decisions.md` as a D-number;
   a cross-repo one goes to Jake as a J-number in `MULTI-REPO-PLAN.md`.
 - Work becomes a plan row: `write-plan` in an org repo, meta
-  `docs/multi-repo/` for singleplayer, which takes no plan files. The
+  `docs/plans/multi-repo/` for singleplayer, which takes no plan files. The
   refactor runs later, in its own session.
 - A rejection with a lasting reason: offer to record it, so the next
   run skips it. Skip reasons like "not now".

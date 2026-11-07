@@ -22,7 +22,7 @@ good document makes the agent take the same **process** every run.
 - **Short.** `AGENTS.md`'s headings show the shape: a topic, a pointer
   to the doc, and a few rules (`## Engine layers → docs/ENGINE.md`).
 - **Cite the decision instead of arguing it.** J-numbers are Jake's
-  cross-repo decisions (meta `docs/multi-repo/MULTI-REPO-PLAN.md`),
+  cross-repo decisions (meta `docs/plans/multi-repo/MULTI-REPO-PLAN.md`),
   D-numbers a repo's `docs/decisions.md`, G- and E-numbers
   singleplayer's, and M1, R2, B1 are requirements
   (`docs/design/mmo/MMO-REQUIREMENTS.md`). "Features frozen (J103,
@@ -39,7 +39,7 @@ good document makes the agent take the same **process** every run.
   reading of code.
 - **A brief or a plan row ends on a done-when line.** A lane brief
   also says `Owns:` and `Must not touch:`
-  (meta `docs/multi-repo/LANES-AFTER-SORT.md`), and carries its stop
+  (meta `docs/plans/multi-repo/LANES-AFTER-SORT.md`), and carries its stop
   caps (`docs/process/SUBAGENTS.md`).
 - **`AGENTS.md` and `README.md` are Jake's.** Propose steering for
   `AGENTS_SUGGEST.md`. Leave `CLAUDE.md` as `@AGENTS.md`.

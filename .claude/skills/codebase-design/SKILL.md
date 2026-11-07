@@ -79,7 +79,7 @@ exactly (J54), so a wire change is one change on both sides.
 A design that breaks these is the wrong design. Check each one.
 
 - **Sides.** A module sits on one side of `shared/`, `client/`,
-  `server/`, `cook/` (J1, J2, meta `docs/multi-repo/MULTI-REPO-PLAN.md`
+  `server/`, `cook/` (J1, J2, meta `docs/plans/multi-repo/MULTI-REPO-PLAN.md`
   §5). Law both sides need is one `shared/` module with an adapter on
   each side. `shared/`, `server/` and `cook/` have no DOM and no
   renderer. In singleplayer `lint/engine-sides.json` tags every file

@@ -106,7 +106,7 @@ Look for these first. They recur, and each already has a fix shape.
 
 | Failure | The moment | Fix shape |
 |---|---|---|
-| CI cancelled by pushers | The `prepare` group keeps one pending run: 35 of 80 push runs were cancelled, so a red spans several lanes' commits (meta `docs/multi-repo/LANES-AFTER-SORT.md`) | A red names the SHA range since the last finished run |
+| CI cancelled by pushers | The `prepare` group keeps one pending run: 35 of 80 push runs were cancelled, so a red spans several lanes' commits (meta `docs/plans/multi-repo/LANES-AFTER-SORT.md`) | A red names the SHA range since the last finished run |
 | Lanes in one working tree | Another lane's dirty file broke your typecheck, or a commit swept up its work (`docs/process/GIT.md`) | Narrower gate, pathspec commits, disjoint `Owns:` lines in the briefs |
 | Ratchets | A count was raised to go green, or a red push said "Ratchet rose" | Fix the code; the list only falls; policy lists need the coordinator (GIT.md) |
 | Frozen oracles | J122's path rewrite changed a provenance string in a frozen Nalati oracle and its hash pin refused (`41fe96961e`, `196437ebec`) | Codemods skip oracles; a check names them |
@@ -138,7 +138,7 @@ nothing, and say so if the session was clean.
 |---|---|---|
 | Lint, hook, ratchet | Kit files (`.githooks/`, `.claude/`, `src/.oxlintrc.json`, `src/scripts/`) change in leftover `src/repo-kit/files/`; the repo's own checks change in place | `lint/wildshard-plugin.js`, `lint/*.json`, `.githooks/`, `scripts/check-*` |
 | `AGENTS.md`, `README.md` | Human-only: propose the line for `AGENTS_SUGGEST.md` | Jake's call: propose the line in the chat |
-| Follow-up work | A row in `docs/plans/` | A row in meta `docs/multi-repo/`, never a plan or status file here (Jake, 2026-11-04: "dont add any plan files to the wildshard singleplayer repo") |
+| Follow-up work | A row in `docs/plans/` | A row in meta `docs/plans/multi-repo/`, never a plan or status file here (Jake, 2026-11-04: "dont add any plan files to the wildshard singleplayer repo") |
 
 A proposed check is code: try it on the repo before it can block a
 commit. Retro sees one session, so it cannot tell you a rule now
