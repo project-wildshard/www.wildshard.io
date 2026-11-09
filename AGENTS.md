@@ -34,3 +34,4 @@ Docs / Repo shape
 Code rules
 
  - In the test suite, No LLM, no claude, no herdr.
+ - Every Chromium launch passes `--use-mock-keychain` and `--password-store=basic` (else a macOS keychain dialog opens).
