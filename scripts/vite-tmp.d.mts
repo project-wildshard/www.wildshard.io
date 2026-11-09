@@ -19,5 +19,5 @@ export function temporaryRun(env?: NodeJS.ProcessEnv, options?: TemporaryRunOpti
 /** The Vite/Vitest plugin that keeps a run's temp files under the repo's tmp/vitest/<pid>. */
 export function viteTmpRoot(options?: TemporaryRunOptions): {
   name: string;
-  configureVitest(context: { vitest: { onClose(listener: () => void): void } }): void;
+  configureVitest: (context: { vitest: { onClose: (listener: () => void) => void } }) => void;
 };

@@ -13,10 +13,10 @@ import { spawn } from 'node:child_process';
 import { lstatSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 
 const HOUR = 3_600_000, GIB = 1024 ** 3;
-const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const ROOT = resolve(import.meta.dirname, '..');
 /** Vitest's folder name: nanoid(), 21 characters of [A-Za-z0-9_-]. */
 const VITEST_FOLDER = /^[A-Za-z0-9_-]{21}$/u;
 const VITEST_CHILDREN = new Set(['client', 'ssr']);
@@ -91,14 +91,14 @@ export function pruneCompileCache(directory, { capBytes = 4 * GIB, maxAgeMs = 24
 /** A killed run never reaches its own cleanup, so a later one sweeps, detached, at most every ten minutes.
  * @param {NodeJS.ProcessEnv} env @param {string} root @param {string} janitor */
 function sweepAfterKilledRuns(env, root, janitor) {
-  if (env['CI'] !== undefined || env['VITEST_TMP_ROOT'] !== undefined) return;
+  if (env.CI !== undefined || env.VITEST_TMP_ROOT !== undefined) return;
   const stamp = join(root, 'tmp/.temp-janitor-stamp');
   try {
     if (Date.now() - statSync(stamp).mtimeMs < 600_000) return;
   } catch { /* Never swept here. */ }
   try {
     writeFileSync(stamp, '');
-    spawn(process.execPath, [janitor], { detached: true, stdio: 'ignore', env: { ...env, WS_SYSTEM_TMPDIR: env['TMPDIR'] ?? tmpdir() } })
+    spawn(process.execPath, [janitor], { detached: true, stdio: 'ignore', env: { ...env, WS_SYSTEM_TMPDIR: env.TMPDIR ?? tmpdir() } })
       .on('error', () => undefined).unref();
   } catch { /* Housekeeping never fails a run. */ }
 }
@@ -108,31 +108,31 @@ function sweepAfterKilledRuns(env, root, janitor) {
  * Workers and their children inherit it. A second call in the same process reuses the folder and its exit handler.
  * @param {NodeJS.ProcessEnv} [env] @param {{root?:string,janitor?:string}} [options]
  */
-export function temporaryRun(env = process.env, { root = ROOT, janitor = fileURLToPath(import.meta.url) } = {}) {
-  const parent = env['VITEST_TMP_ROOT'] ?? join(root, 'tmp/vitest');
+export function temporaryRun(env = process.env, { root = ROOT, janitor = import.meta.filename } = {}) {
+  const parent = env.VITEST_TMP_ROOT ?? join(root, 'tmp/vitest');
   mkdirSync(parent, { recursive: true });
   try { writeFileSync(join(root, 'tmp/.gitignore'), '*\n', { flag: 'wx' }); } catch { /* Already there, or root's own. */ }
   sweepAfterKilledRuns(env, root, janitor);
-  const original = env['TMPDIR'], originalCompileCache = env['NODE_COMPILE_CACHE'];
+  const original = env.TMPDIR, originalCompileCache = env.NODE_COMPILE_CACHE;
   const dir = join(parent, String(process.pid));
   mkdirSync(dir, { recursive: true });
-  env['TMPDIR'] = dir;
+  env.TMPDIR = dir;
   // Workers import the cache files by their per-run path, so a shared compile cache gains an entry per module per run.
   const compileCache = join(dir, 'node-compile-cache');
-  env['NODE_COMPILE_CACHE'] = compileCache;
+  env.NODE_COMPILE_CACHE = compileCache;
   const cleanup = () => {
     rmSync(dir, { recursive: true, force: true });
-    if (env['TMPDIR'] === dir) {
+    if (env.TMPDIR === dir) {
       if (original === undefined) Reflect.deleteProperty(env, 'TMPDIR');
-      else env['TMPDIR'] = original;
+      else env.TMPDIR = original;
     }
-    if (env['NODE_COMPILE_CACHE'] === compileCache) {
+    if (env.NODE_COMPILE_CACHE === compileCache) {
       if (originalCompileCache === undefined) Reflect.deleteProperty(env, 'NODE_COMPILE_CACHE');
-      else env['NODE_COMPILE_CACHE'] = originalCompileCache;
+      else env.NODE_COMPILE_CACHE = originalCompileCache;
     }
   };
-  if (env['WS_VITEST_TMP_DIR'] !== dir) {
-    env['WS_VITEST_TMP_DIR'] = dir;
+  if (env.WS_VITEST_TMP_DIR !== dir) {
+    env.WS_VITEST_TMP_DIR = dir;
     process.once('exit', cleanup);
   }
   return { dir, cleanup };
@@ -150,8 +150,8 @@ export function viteTmpRoot(options = {}) {
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const dryRun = process.argv.includes('--dry-run'), cache = process.env['NODE_COMPILE_CACHE'];
-  const system = process.env['WS_SYSTEM_TMPDIR'] ?? tmpdir();
+  const dryRun = process.argv.includes('--dry-run'), cache = process.env.NODE_COMPILE_CACHE;
+  const system = process.env.WS_SYSTEM_TMPDIR ?? tmpdir();
   console.info(JSON.stringify({ dryRun, vitestRuns: sweepVitestRuns(ROOT, { dryRun }), systemTemp: sweepSystemTemp(system, { dryRun }),
     compileCache: cache === undefined ? null : pruneCompileCache(cache, { dryRun }) }));
 }
