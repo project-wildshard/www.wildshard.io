@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url'
 // .git), so it passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig } from 'vite'
 
+import { viteTmpRoot } from '../../scripts/vite-tmp.mjs'
 import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
@@ -54,7 +55,6 @@ function fields(v: unknown): Record<string, unknown> | null {
     ? Object.fromEntries(Object.entries(v))
     : null
 }
-
 const FACTS = readFacts(join(root, 'facts.json'))
 
 function esc(s: string): string {
@@ -296,5 +296,5 @@ export default defineConfig({
       ),
     },
   },
-  plugins: [generated()],
+  plugins: [viteTmpRoot(), generated()],
 })
