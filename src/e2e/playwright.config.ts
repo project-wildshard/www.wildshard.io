@@ -2,6 +2,8 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
+import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs'
+
 import type { PlaywrightTestConfig } from '@playwright/test'
 
 // A port apart from the default 4404, so e2e runs beside a live `www.wildshard.io serve`.
@@ -15,7 +17,15 @@ const config: PlaywrightTestConfig = defineConfig({
   forbidOnly: process.env['CI'] !== undefined,
   reporter: process.env['CI'] === undefined ? 'list' : 'github',
   use: { baseURL: BASE_URL, trace: 'retain-on-failure' },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: [...KEYCHAIN_ARGS] },
+      },
+    },
+  ],
   webServer: {
     command: `pnpm build && node src/cli/main.ts serve --port ${String(E2E_PORT)}`,
     // The package root (the repo root), where package.json lives.

@@ -16,7 +16,7 @@
     "dev": "node src/tools/build-web.ts --dev",
     "build": "node src/tools/build-web.ts",
     "typecheck": "tsc -p src/tsconfig.json && tsc -p src/web/tsconfig.json && tsc -p src/site/tsconfig.json",
-    "lint": "oxlint -c src/.oxlintrc.json --type-aware --deny-warnings --ignore-pattern '.githooks/**' --ignore-pattern 'tmp/**'",
+    "lint": "oxlint -c src/.oxlintrc.json --type-aware --deny-warnings --ignore-pattern '.githooks/**' --ignore-pattern 'tmp/**' --ignore-pattern 'scripts/chromium-keychain*' --ignore-pattern 'test/tooling/chrome-keychain.test.mjs'",
     "lint:fix": "oxlint -c src/.oxlintrc.json --type-aware --fix --ignore-pattern '.githooks/**' --ignore-pattern 'tmp/**'",
     "format": "oxfmt -c src/.oxfmtrc.json src",
     "format:check": "oxfmt -c src/.oxfmtrc.json --check src",
@@ -30,7 +30,7 @@
     "site:media": "node src/site/tools/publish-media.ts",
     "site:facts": "node src/site/tools/refresh-facts.ts",
     "site:api-grid": "node src/site/tools/api-grid.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks && node --check scripts/chromium-keychain-check.mjs && node --test test/tooling/chrome-keychain.test.mjs"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",
