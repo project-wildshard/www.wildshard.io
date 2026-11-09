@@ -35,13 +35,27 @@ test('raw executable aliases and every child-process API are checked', () => {
   assert.ok(keychainProblems("exec('/cache/chromium-1254/chrome --headless');").length > 0);
   assert.deepEqual(keychainProblems("exec('/cache/chromium-1254/chrome --use-mock-keychain --password-store=basic --headless');"), []);
   assert.ok(keychainProblems("import { execFile as run } from 'node:child_process'; run('/cache/chromium-1254/chrome', []);").length > 0);
+  for (const call of [
+    "import cp from 'node:child_process'; cp.execFile",
+    "import * as cp from 'node:child_process'; cp.spawn",
+    "const cp = require('node:child_process'); cp['spawn']",
+    "require('node:child_process')['execFile']",
+    "const {execFile: run} = require('node:child_process'); run",
+  ]) {
+    assert.ok(keychainProblems(`${call}('/cache/chromium-1254/chrome', []);`).length > 0);
+    assert.deepEqual(keychainProblems(`${call}('/cache/chromium-1254/chrome', [...KEYCHAIN_ARGS]);`), []);
+  }
   for (const method of ['launch', 'launchPersistentContext', 'launchServer']) {
     assert.ok(keychainProblems(`import { chromium } from 'playwright'; chromium.${method}({});`).length > 0);
     assert.deepEqual(keychainProblems(`import { chromium } from 'playwright'; chromium.${method}({args: [...KEYCHAIN_ARGS]});`), []);
   }
   assert.ok(keychainProblems("import { chromium } from 'playwright'; chromium.launch({args: [...KEYCHAIN_ARGS]}); chromium.launch({});").length > 0);
   assert.ok(keychainProblems("import { chromium } from 'playwright'; chromium.connect(endpoint);").length > 0);
+  assert.ok(keychainProblems("import { chromium as c } from 'playwright'; c.connectOverCDP(endpoint);").length > 0);
   assert.ok(keychainProblems("import { chromium } from 'playwright'; const pattern = /['\"]/u; chromium.launch({});").length > 0);
+  const shell = '#!/bin/bash\nBROWSER="/cache/chromium-1254/chrome"\nexec "$BROWSER"';
+  assert.ok(keychainProblems(shell + ' --headless\n').length > 0);
+  assert.deepEqual(keychainProblems(shell + ' --headless --use-mock-keychain --password-store=basic\n'), []);
 });
 
 test('no source drops Playwright default arguments', () => {

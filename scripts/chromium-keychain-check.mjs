@@ -2,6 +2,19 @@
 const childMethods = ['spawn', 'spawnSync', 'execFile', 'execFileSync', 'exec', 'execSync'];
 const browserBinary = /chrom(?:e|ium)|executablePath\s*\(/iu;
 
+/** A literal shell executable or a named executable variable must carry both flags. */
+function shellProblems(/** @type {string} */ text) {
+  if (!/^#![^\n]*\b(?:ba|z|da)?sh\b/u.test(text)) return [];
+  const variables = new Map([...text.matchAll(/^\s*(\w+)=(?:['"]([^'"\n]+)['"]|([^\s\n]+))/gmu)].map(match => [match[1], match[2] ?? match[3]]));
+  return text.replace(/\\\n\s*/gu, ' ').split('\n').flatMap(line => {
+    const command = /^\s*(?:exec\s+)?("[^"]+"|'[^']+'|[^\s;]+)(.*)$/u.exec(line);
+    if (!command || command[1].startsWith('#') || command[1].includes('=')) return [];
+    const program = command[1].replace(/\$\{?(\w+)\}?/gu, (_all, name) => variables.get(name) ?? name);
+    if (!browserBinary.test(program)) return [];
+    return ['--use-mock-keychain', '--password-store=basic'].every(flag => command[2].includes(flag)) ? [] : ['bare Chromium shell executable'];
+  });
+}
+
 // Keep offsets while preventing examples, comments and generated source strings
 // from being mistaken for executable calls in the containing file.
 function codeMask(/** @type {string} */ text) {
@@ -58,8 +71,9 @@ function expression(/** @type {string} */ text, /** @type {number} */ start, sto
 
 /** Return actionable failures; aliases keep raw executable spawns visible. */
 export function keychainProblems(/** @type {string} */ text) {
-  const problems = [];
+  const problems = shellProblems(text);
   const code = codeMask(text);
+  let ownsSafeChromium = false;
   if (text.includes('ignore' + 'DefaultArgs')) problems.push('drops Playwright default arguments');
   const bindings = new Map();
   for (const match of code.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/gu)) {
@@ -70,7 +84,9 @@ export function keychainProblems(/** @type {string} */ text) {
     const seen = new Set();
     for (let pass = 0; pass < 12; pass++) {
       let changed = false;
-      value = value.replace(/\b[A-Za-z_$][\w$]*\b/gu, name => {
+      const mask = codeMask(value);
+      value = value.replace(/\b[A-Za-z_$][\w$]*\b/gu, (name, offset) => {
+        if (mask[offset] === ' ' && value.slice(offset - 2, offset) !== '${') return name;
         if (name === 'KEYCHAIN_ARGS' || seen.has(name) || !bindings.has(name)) return name;
         seen.add(name); changed = true; return `(${bindings.get(name)})`;
       });
@@ -81,19 +97,29 @@ export function keychainProblems(/** @type {string} */ text) {
   const safe = (/** @type {string} */ value) => /\.\.\.\s*KEYCHAIN_ARGS\b/u.test(expand(value))
     || ['--use-mock-keychain', '--password-store=basic'].every(flag => expand(value).includes(flag));
   const names = [...childMethods];
-  for (const match of text.matchAll(/\b(spawn(?:Sync)?|execFile(?:Sync)?|exec(?:Sync)?)\s+as\s+(\w+)/gu)) names.push(match[2]);
+  const namespaces = new Set([...text.matchAll(/import\s+\*\s+as\s+(\w+)\s+from\s+['"](?:node:)?child_process['"]/gu)].map(match => match[1]));
+  for (const match of text.matchAll(/import\s+(\w+)\s+from\s+['"](?:node:)?child_process['"]/gu)) namespaces.add(match[1]);
+  for (const match of text.matchAll(/\b(spawn(?:Sync)?|execFile(?:Sync)?|exec(?:Sync)?)\s+(?:as\s+|:\s*)(\w+)/gu)) names.push(match[2]);
+  for (const match of text.matchAll(/\b(spawn(?:Sync)?|execFile(?:Sync)?|exec(?:Sync)?)\s*:\s*(\w+)/gu)) names.push(match[2]);
   const childCall = new RegExp(`\\b(?:${names.join('|')})\\s*\\(`, 'gu');
-  for (const match of code.matchAll(childCall)) {
+  let childCode = code;
+  for (const match of text.matchAll(/(\brequire\s*\(\s*['"](?:node:)?child_process['"]\s*\)|\b\w+)\s*\[\s*['"](spawn(?:Sync)?|execFile(?:Sync)?|exec(?:Sync)?)['"]\s*\]\s*\(/gu)) {
+    if (code[match.index] === ' ' || !/child_process/u.test(expand(match[1])) && !namespaces.has(match[1])) continue;
+    const replacement = ' '.repeat(match[0].length - match[2].length - 1) + match[2] + '(';
+    childCode = childCode.slice(0, match.index) + replacement + childCode.slice(match.index + match[0].length);
+  }
+  for (const match of childCode.matchAll(childCall)) {
+    const receiver = /(\w+)\s*\.\s*$/u.exec(code.slice(Math.max(0, match.index - 80), match.index))?.[1];
+    if (receiver && !namespaces.has(receiver) && !/child_process/u.test(expand(receiver))) continue;
     const start = match.index + match[0].length;
     const first = text.slice(start, expression(text, start, true));
     const call = text.slice(start, expression(text, start));
-    if (browserBinary.test(expand(first)) && !safe(call)) problems.push(`bare Chromium child process at offset ${match.index}`);
+    if (browserBinary.test(expand(first))) {
+      if (safe(call)) ownsSafeChromium = true;
+      else problems.push(`bare Chromium child process at offset ${match.index}`);
+    }
   }
   if (/playwright/u.test(text) && /chromium|Desktop Chrome/u.test(text)) {
-    if (/\bchromium\s*\.\s*(?:connect|connectOverCDP)\s*\(/u.test(code)
-      && (!text.includes('Browser.getBrowserCommandLine') || !text.includes('KEYCHAIN_ARGS.every'))) {
-      problems.push('Chromium attachment must verify the connected process command line');
-    }
     for (const match of code.matchAll(/\.\s*(?:launch|launchPersistentContext|launchServer)\s*\(/gu)) {
       const before = text.slice(Math.max(0, match.index - 20), match.index);
       if (/\bwebkit\s*$/u.test(before)) continue;
@@ -102,8 +128,12 @@ export function keychainProblems(/** @type {string} */ text) {
       if (receiver && new RegExp(`\\b${receiver}\\s*:\\s*NativeRasterHost\\b`, 'u').test(text)) continue;
       const start = match.index + match[0].length;
       if (!safe(text.slice(start, expression(text, start)))) problems.push(`bare Playwright launch at offset ${match.index}`);
+      else ownsSafeChromium = true;
     }
-    if (/Desktop Chrome/u.test(text) && !/launchOptions\s*:\s*\{\s*args\s*:\s*\[\s*\.\.\.KEYCHAIN_ARGS/u.test(text)) problems.push('Desktop Chrome project lacks safe launchOptions');
+    if (/\.\s*(?:connect|connectOverCDP)\s*\(/u.test(code) && !ownsSafeChromium
+      && (!text.includes('Browser.getBrowserCommandLine') || !text.includes('KEYCHAIN_ARGS.every'))) problems.push('Chromium attachment must verify the connected process command line');
+    if (/\bdefineConfig\s*\(/u.test(code) && /Desktop Chrome/u.test(text)
+      && !/launchOptions\s*:\s*\{\s*args\s*:\s*\[\s*\.\.\.KEYCHAIN_ARGS/u.test(text)) problems.push('Desktop Chrome project lacks safe launchOptions');
   }
   return problems;
 }
