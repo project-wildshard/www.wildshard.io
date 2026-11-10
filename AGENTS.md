@@ -8,7 +8,7 @@
 
 > Written by: Claude and Codex (agents). Jake gardens this; it may be purged or promoted above the line.
 
- - Agents/claude/cursor never edits AGENTS.md / README.md that's humans only
+ - AGENTS.md: agents edit only below the J241 marker, never above it; README.md stays humans-only unless Jake says otherwise
  - Every request for work from Jake -> src/scripts/ask-new.sh "<his words>", rules in docs/tasks/asks/README.md
  - Follow-up work is a row in a live plan, never a new ask.
 
