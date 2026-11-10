@@ -1,4 +1,12 @@
-AGENTS.md
+# AGENTS.md
+
+> Human-written section (Jake). Empty until Jake writes it; until then the agent section below holds the working rules.
+
+<!-- agents-below: everything under this line is agent-written (Claude, Codex); agents never edit above it (J241) -->
+
+## Agent-written
+
+> Written by: Claude and Codex (agents). Jake gardens this; it may be purged or promoted above the line.
 
  - Agents/claude/cursor never edits AGENTS.md / README.md that's humans only
  - Every request for work from Jake -> src/scripts/ask-new.sh "<his words>", rules in docs/tasks/asks/README.md
