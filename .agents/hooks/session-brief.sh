@@ -31,7 +31,7 @@ echo "-- other agents in this repo (herdr) --"
 if [ "${HERDR_ENV:-}" != 1 ]; then
   echo "  (not running inside herdr)"
 else
-  peers="$(bash "$here/herdr-peers.sh" "$PWD" "$session")"
+  peers="$(bash "$here/herdr-peers.sh" "" "$session")"  # "": the canonical checkout
   if [ -n "$peers" ]; then
     printf '%s\n' "$peers" | while IFS="$(printf '\t')" read -r pane status goal where; do
       [ "$goal" = "-" ] && goal="(no goal set)"
@@ -79,11 +79,24 @@ else
 fi
 
 echo
-echo "-- main only: no branches, no worktrees (D27) --"
+# A repo with the plan-worktree tool (scripts/worktree.mjs; engine since
+# J240, the rest at WORKTREE-LAND-STANDARD WL4) also allows
+# .worktrees/<slug> on plan/<slug>; any other repo stays main only.
+plan_wt='/\.worktrees/[a-z0-9][a-z0-9._-]* +[0-9a-f]+ \[plan/'
+plan_branch='^branch plan/[a-z0-9][a-z0-9._-]*$'
+plan_remote='^remote [^/]+/plan/[a-z0-9][a-z0-9._-]*$'
+if [ -f scripts/worktree.mjs ]; then
+  echo "-- main only, plus plan worktrees: .worktrees/<slug> on plan/<slug> (D27, J221, J240) --"
+  plans="$(git worktree list 2>/dev/null | tail -n +2 | grep -E "$plan_wt" || true)"
+  if [ -n "$plans" ]; then printf '%s\n' "$plans" | sed 's/^/  plan worktree /'; fi
+else
+  echo "-- main only: no branches, no worktrees (D27) --"
+  plan_wt='^$'; plan_branch='^$'; plan_remote='^$'
+fi
 strays="$(
-  git worktree list 2>/dev/null | tail -n +2 | sed 's/^/worktree /'
-  git for-each-ref --format='branch %(refname:short)' refs/heads 2>/dev/null | grep -vx 'branch main'
-  git for-each-ref --format='remote %(refname:short)' refs/remotes 2>/dev/null | grep -vxE 'remote [^/]+(/HEAD|/main)?'
+  git worktree list 2>/dev/null | tail -n +2 | grep -vE "$plan_wt" | sed 's/^/worktree /'
+  git for-each-ref --format='branch %(refname:short)' refs/heads 2>/dev/null | grep -vx 'branch main' | grep -vE "$plan_branch"
+  git for-each-ref --format='remote %(refname:short)' refs/remotes 2>/dev/null | grep -vxE 'remote [^/]+(/HEAD|/main)?' | grep -vE "$plan_remote"
 )"
 if [ -n "$strays" ]; then
   printf '%s\n' "$strays" | sed 's/^/  !! /'

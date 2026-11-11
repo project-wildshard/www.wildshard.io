@@ -198,6 +198,38 @@ describe('session-brief.sh: same brief from both tools', () => {
     const result = run(join(root, '.worktrees', 'x'), 'session-brief.sh', fixture('codex', 'session-start', root));
     assert.match(result.stdout, new RegExp(`^== ${basename(root)} session brief`));
   });
+  test('plan worktrees are allowed only where the worktree tool is (J240), stray anywhere else (D27)', () => {
+    const mainOnly = (root) => run(root, 'session-brief.sh', fixture('claude', 'session-start', root)).stdout.split('-- main only')[1].split('\n-- ')[0];
+    const root = sandbox();
+    assert.equal(git(root, ['worktree', 'add', '-q', '-b', 'plan/foo', '.worktrees/foo']).status, 0);
+    assert.match(mainOnly(root), /!! worktree .*\.worktrees\/foo/);
+    assert.match(mainOnly(root), /!! branch plan\/foo/);
+    mkdirSync(join(root, 'scripts'));
+    writeFileSync(join(root, 'scripts', 'worktree.mjs'), '');
+    const allowed = mainOnly(root);
+    assert.match(allowed, /plan worktree .*\.worktrees\/foo/);
+    assert.match(allowed, /\(clean: main only\)/);
+    assert.doesNotMatch(allowed, /!!/);
+    assert.equal(git(root, ['worktree', 'add', '-q', '--detach', join(root, 'tmp-wt')]).status, 0);
+    assert.match(mainOnly(root), /!! worktree .*tmp-wt/);
+  });
+  test('from a plan worktree, peers are listed from the canonical checkout with where they work (DS6)', () => {
+    const root = sandbox();
+    assert.equal(git(root, ['worktree', 'add', '-q', '-b', 'plan/x', '.worktrees/x']).status, 0);
+    cpSync(join(root, '.agents'), join(root, '.worktrees', 'x', '.agents'), { recursive: true });
+    const bin = join(root, 'tmp-bin');
+    mkdirSync(bin);
+    const agents = [
+      { pane_id: 'w1:p1', agent_status: 'working', cwd: root, agent_session: { value: 'a' }, terminal_title_stripped: 'On main' },
+      { pane_id: 'w1:p2', agent_status: 'idle', cwd: join(root, '.worktrees', 'x', 'src'), agent_session: { value: 'b' }, terminal_title_stripped: 'In plan x' },
+    ];
+    writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents } }));
+    writeFileSync(join(bin, 'herdr'), `#!/usr/bin/env bash\n[ "$1 $2" = "agent list" ] && cat "${join(bin, 'agents.json')}"\n`);
+    chmodSync(join(bin, 'herdr'), 0o755);
+    const out = run(join(root, '.worktrees', 'x'), 'session-brief.sh', fixture('codex', 'session-start', root), { HERDR_ENV: '1', PATH: `${bin}:${process.env.PATH}` }).stdout;
+    assert.match(out, /w1:p1 {2}working {2}On main {2}\[main\]/);
+    assert.match(out, /w1:p2 {2}idle {2}In plan x {2}\[\.worktrees\/x\]/);
+  });
   test('leaves out its own session, read from either tool\'s stdin', () => {
     const root = sandbox();
     const bin = join(root, 'tmp-bin');

@@ -24,3 +24,7 @@ so Codex loads `.codex/hooks.json` here. A pathspec commit cannot turn
 a tracked skill directory into a link, so the swap is staged in the
 index and amended in whole.
 The journal entry rides in that amend too, so D25's check sees it.
+
+Later the same day: repo-kit `eb3db9e` took engine's plan-worktree
+support into the kit's brief and herdr-peers (with two hook tests), so
+this repo takes the kit's bytes again.

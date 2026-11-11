@@ -49,8 +49,9 @@ in order; don't paraphrase or shortcut.
      half-done work. Ask the owner over herdr / SendMessage to commit
      first, or leave yours uncommitted and say so in the report.
    - Subject `type(scope): summary`, ≤ 50 chars; body wrapped at 72;
-     final `Assisted-by: Claude Code:<actual model>`. Never
-     `Co-Authored-By:` for an AI. The commit-msg hook refuses the rest.
+     final `Assisted-by: <agent>:<actual model>` (Claude Code or
+     Codex, no colon in the agent name). Never `Co-Authored-By:` for
+     an AI. The commit-msg hook refuses the rest.
 2. **Gates green on HEAD.** The pre-commit lane ran on your staged
    files. If you touched `.githooks/` or `.agents/hooks/`, the hook
    suite ran too (`pnpm test:hooks` / `node --test
