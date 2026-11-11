@@ -38,14 +38,19 @@ if [ "${1:-}" = "--build-only" ]; then
   exit 0
 fi
 
-# Link the output folder to the project (ids are not secrets; the CLI's own login is the credential).
+# Link the output folder to the project (ids are not secrets; the CLI's own login is the credential). The settings
+# block is the project's static settings, so `vercel build` packs dist into .vercel/output here, offline, with
+# vercel.json's headers turned into routes; Vercel then only copies files (VERCEL-SPEND-PLAN Build CPU).
 mkdir -p "$work/dist/.vercel"
-cp vercel-project.json "$work/dist/.vercel/project.json"
+node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));p.settings={framework:null,buildCommand:null,installCommand:null,outputDirectory:null,rootDirectory:null,devCommand:null};fs.writeFileSync(process.argv[2],JSON.stringify(p))' \
+  vercel-project.json "$work/dist/.vercel/project.json"
+token=()
+if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then token=(--token "$VERCEL_BUILD_TOKEN"); fi
+(cd "$work/dist" && vercel build --prod --yes --scope raynos-projects ${token[@]+"${token[@]}"} >/dev/null)
 
 echo "deploy-site: uploading"
-deploy=(vercel deploy "$work/dist" --prod --yes --scope raynos-projects)
-if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then deploy+=(--token "$VERCEL_BUILD_TOKEN"); fi
-url="$("${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)" # the CLI's own errors stay visible
+deploy=(vercel deploy --prebuilt --prod --yes --scope raynos-projects ${token[@]+"${token[@]}"})
+url="$(cd "$work/dist" && "${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)" # the CLI's own errors stay visible
 echo "deploy-site: $url"
 
 live="https://wildshard-site.vercel.app"
