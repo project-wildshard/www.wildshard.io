@@ -1,33 +1,33 @@
 {
   "trailer": {
-    "mp4": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/trailer-1280-7b56a3ed.mp4",
-    "mp4Phone": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/trailer-1080-9fc85807.mp4",
+    "mp4": "/media/v/trailer-1280-7b56a3ed.mp4",
+    "mp4Phone": "/media/v/trailer-1080-9fc85807.mp4",
     "poster": "/media/trailer-alpha-poster.webp"
   },
   "loops": {
     "driftwood-isle": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/driftwood-isle-card-90ac4aa9.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/driftwood-isle-wide-2f8ba366.mp4"
+      "card": "/media/v/driftwood-isle-card-90ac4aa9.mp4",
+      "wide": "/media/v/driftwood-isle-wide-2f8ba366.mp4"
     },
     "pine-hollow": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/pine-hollow-card-79398d48.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/pine-hollow-wide-7afb127e.mp4"
+      "card": "/media/v/pine-hollow-card-79398d48.mp4",
+      "wide": "/media/v/pine-hollow-wide-7afb127e.mp4"
     },
     "nalati-grasslands": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/nalati-grasslands-card-b850cbfc.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/nalati-grasslands-wide-1e0acc54.mp4"
+      "card": "/media/v/nalati-grasslands-card-b850cbfc.mp4",
+      "wide": "/media/v/nalati-grasslands-wide-1e0acc54.mp4"
     },
     "sunscar-dunes": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/sunscar-dunes-card-11f369c7.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/sunscar-dunes-wide-ad7873a4.mp4"
+      "card": "/media/v/sunscar-dunes-card-11f369c7.mp4",
+      "wide": "/media/v/sunscar-dunes-wide-ad7873a4.mp4"
     },
     "far-reach": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/far-reach-card-00d65a9d.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/far-reach-wide-b98a8ed8.mp4"
+      "card": "/media/v/far-reach-card-00d65a9d.mp4",
+      "wide": "/media/v/far-reach-wide-b98a8ed8.mp4"
     },
     "nine-dragon-stack": {
-      "card": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/nine-dragon-stack-card-86258d0e.mp4",
-      "wide": "https://64yencbq8tncsy39.public.blob.vercel-storage.com/site/media/nine-dragon-stack-wide-2a5dbb8f.mp4"
+      "card": "/media/v/nine-dragon-stack-card-86258d0e.mp4",
+      "wide": "/media/v/nine-dragon-stack-wide-2a5dbb8f.mp4"
     }
   }
 }

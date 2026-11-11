@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploy the marketing site (MARKETING-SITE MS4, E465): by hand or from CI on a push to src/site/ (site-deploy.yml).
 # Builds from a clean export of this folder at HEAD (nobody's half-finished files ship), then uploads the static output
-# to the Vercel project `wildshard-site` (no Git link). Public from the first deploy (Jake, Q4).
+# to the Cloudflare Worker `wildshard-www` (wrangler.jsonc; it left Vercel's `wildshard-site` on 2026-11-11, J271).
 #
 #   bash src/site/tools/deploy.sh                 # commit first: it ships HEAD, not the working tree
 #   bash src/site/tools/deploy.sh --build-only    # build the export into src/site/dist and stop (no upload)
@@ -9,7 +9,7 @@
 # The export holds only this folder (P1-W1): its pages, COPY.md, public/ and facts.json, the game's facts committed here.
 # It is unpacked at tmp/site-deploy.XXXXXX, two levels below the repo root, so `vite` resolves from the root's
 # node_modules and vite.config.ts's `../../scripts/vite-tmp.mjs` finds the root's scripts/ (d7acaff). CI runs it too
-# (.github/workflows/site-deploy.yml, MS10) on every push that changes src/site/. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
+# (.github/workflows/site-deploy.yml, MS10) on every push that changes src/site/. There CLOUDFLARE_API_TOKEN is the credential; locally wrangler's own login is.
 set -euo pipefail
 
 site="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
@@ -38,25 +38,15 @@ if [ "${1:-}" = "--build-only" ]; then
   exit 0
 fi
 
-# Link the output folder to the project (ids are not secrets; the CLI's own login is the credential). The settings
-# block is the project's static settings, so `vercel build` packs dist into .vercel/output here, offline, with
-# vercel.json's headers turned into routes; Vercel then only copies files (VERCEL-SPEND-PLAN Build CPU).
-mkdir -p "$work/dist/.vercel"
-node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));p.settings={framework:null,buildCommand:null,installCommand:null,outputDirectory:null,rootDirectory:null,devCommand:null};fs.writeFileSync(process.argv[2],JSON.stringify(p))' \
-  vercel-project.json "$work/dist/.vercel/project.json"
-token=()
-if [ -n "${VERCEL_BUILD_TOKEN:-}" ]; then token=(--token "$VERCEL_BUILD_TOKEN"); fi
-(cd "$work/dist" && vercel build --prod --yes --scope raynos-projects ${token[@]+"${token[@]}"} >/dev/null)
-
+# Upload to the Worker wildshard-www (wrangler.jsonc: static assets plus worker.ts), on Cloudflare since 2026-11-11
+# (meta WWW-CLOUDFLARE-PLAN, J271). Locally wrangler's own login is the credential; CI passes CLOUDFLARE_API_TOKEN.
 echo "deploy-site: uploading"
-deploy=(vercel deploy --prebuilt --prod --yes --scope raynos-projects ${token[@]+"${token[@]}"})
-url="$(cd "$work/dist" && "${deploy[@]}" | grep -Eo "https://[^ ]+vercel.app" | tail -1)" # the CLI's own errors stay visible
-echo "deploy-site: $url"
+(cd "$repo" && SITE_DIR="$work" pnpm -s site:deploy:cf)
 
-live="https://wildshard-site.vercel.app"
-# The production alias can briefly serve the preceding deployment after Vercel reports Ready: retry, uncached.
+live="${SITE_LIVE:-https://wildshard.io}"
+# Retry, uncached: the edge can serve the preceding version for a moment after the upload.
 for _ in {1..12}; do
-  build="$(curl -fsS -H 'Cache-Control: no-cache' "$live/version.json" | sed -E 's/.*"build":"([^"]+)".*/\1/' || true)"
+  build="$(curl -fsS -H 'Cache-Control: no-cache' "$live/version.json?t=$(date +%s)" | sed -E 's/.*"build":"([^"]+)".*/\1/' || true)"
   case "$build" in "$sha"*) echo "deploy-site: live at $live (build $build)"; exit 0 ;; esac
   sleep 5
 done

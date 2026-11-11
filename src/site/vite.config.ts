@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 // here (tools/facts.ts words it, tools/refresh-facts.ts writes it; E506 RD14). These blocks are filled from elsewhere:
 //   <!--gen:shardfile-->  facts.json's `shardfile`: an excerpt of the template's built shard.json (MS15), hand-kept
 //                         and checked in here, so the site builds when the game is down
-//   <!--gen:media-->      media.json: the trailer and shard loops on Blob (MS11, tools/publish-media.ts);
+//   <!--gen:media-->      media.json: the trailer and shard loops, on R2 behind the Worker (MS11, tools/publish-media.ts);
 //                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags
 //   <!--gen:grid-->       /mmo's grid to scale and <!--gen:gridmini--> home's lit 5 × 5 (desktop only), both drawn from
 //                         facts.json's grid (MR11, MR5); %SEAM% sizes /mmo's seam from the same facts

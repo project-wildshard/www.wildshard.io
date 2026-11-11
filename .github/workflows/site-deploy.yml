@@ -1,7 +1,9 @@
 name: site-deploy
 
 # The marketing site (MARKETING-SITE MS10, E465) redeploys itself whenever src/site/ changes (src/site/COPY.md is Jake's
-# copy). It uploads to the Vercel project wildshard-site, which has no Git link and owns the domains.
+# copy). It uploads to the Cloudflare Worker wildshard-www, which owns wildshard.io and www (meta WWW-CLOUDFLARE-PLAN,
+# J271; it left Vercel 2026-11-11). Until the repo has a CLOUDFLARE_API_TOKEN secret (Workers Scripts Write on the
+# account), the deploy step only warns, and deploys go from a Mac: `bash src/site/tools/deploy.sh`.
 on:
   push:
     branches: [main]
@@ -57,18 +59,14 @@ jobs:
           git config --global --add url."$base".insteadOf "git@github.com:"
           git config --global --add url."$base".insteadOf "ssh://git@github.com/"
       - run: pnpm install --frozen-lockfile
-      - run: npm install --global vercel@59.11.2
+      - run: npm install --global wrangler@4.160.1
       - name: Deploy the site
         env:
-          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 0a870ffdd1b0bca67f7fedad77f67957
         run: |
-          test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo '::warning::No CLOUDFLARE_API_TOKEN secret: the site was not deployed (deploy.sh from a Mac)'
+            exit 0
+          fi
           bash src/site/tools/deploy.sh
-      # Every deployment is a full copy billed as storage and Vercel's retention does not clear them
-      # (meta VERCEL-SPEND-PLAN). Keeps live, aliased and the newest two; cleanup only warns.
-      - name: Prune superseded deployments
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        env:
-          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
-        run: node scripts/prune-deployments.mjs --project wildshard-site --keep 2

@@ -14,13 +14,16 @@ Run from the repo root.
 - `pnpm dev`: esbuild watch + the server on http://127.0.0.1:4404.
 - `pnpm build`: builds the web app into `src/dist/web`.
 - `pnpm site:build`: builds the marketing site into `src/site/dist`.
-- `pnpm site:deploy`: ships HEAD to production on your Vercel CLI
-  login. A push that changes `src/site/` does the same through
-  `site-deploy.yml`, which needs the `VERCEL_BUILD_TOKEN` secret.
+- `pnpm site:deploy`: ships HEAD to the Cloudflare Worker
+  `wildshard-www` on your wrangler login. `pnpm site:deploy:cf`
+  uploads an existing `src/site/dist` as it is. A push that changes
+  `src/site/` does the same through `site-deploy.yml` once the repo
+  has a `CLOUDFLARE_API_TOKEN` secret; without it the step warns.
 - `pnpm site:facts`: rewrites what `src/site/facts.json` takes from
   `@wildshard/format` (see "Refreshing the site's facts").
 - `pnpm site:media <folder>`: publishes the trailer and shard loops to
-  Vercel Blob and rewrites `src/site/media.json`.
+  R2 `wildshard-records` (`site/media/`, via wrangler) and rewrites
+  `src/site/media.json`.
 - `pnpm test:e2e`: Playwright against a built app. CI only.
 - `pnpm lint:fix` / `pnpm format`: the hooks only check; these fix.
 - `node src/cli/main.ts --help`: the CLI without installing it. `serve [--port n]` starts the server (default 4404).

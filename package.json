@@ -32,6 +32,7 @@
     "test:hooks": "node --test '.githooks/*.test.mjs'",
     "site:build": "vite build --config src/site/vite.config.ts",
     "site:deploy": "bash src/site/tools/deploy.sh",
+    "site:deploy:cf": "wrangler deploy --config ${SITE_DIR:-src/site}/wrangler.jsonc",
     "site:media": "node src/site/tools/publish-media.ts",
     "site:facts": "node src/site/tools/refresh-facts.ts",
     "site:api-grid": "node src/site/tools/api-grid.ts",
@@ -46,7 +47,6 @@
   "devDependencies": {
     "@playwright/test": "1.60.0",
     "@types/node": "24.3.1",
-    "@vercel/blob": "2.8.0",
     "@wildshard/format": "github:project-wildshard/shardfile#v0.3.1",
     "esbuild": "0.28.2",
     "oxfmt": "0.74.0",

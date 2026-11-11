@@ -10,8 +10,11 @@ Living doc: **how** this repo is built. What it does and why is
 The marketing site lives in `src/site/`. It is a static Vite build of
 six pages: Jake's words from `COPY.md`, the game's numbers and grid from
 `facts.json`, and media URLs from `media.json`. `tools/deploy.sh` builds
-a clean export of HEAD and uploads the output to the Vercel project
-`wildshard-site`, which has no Git link and owns the domains. The
+a clean export of HEAD and uploads it to the Cloudflare Worker
+`wildshard-www` (`wrangler.jsonc`: static assets plus `worker.ts`),
+which owns `wildshard.io` and `www` as custom domains. The Worker
+308s www to the apex and serves the mp4s from R2 at `/media/v/`. It
+left Vercel on 2026-11-11 (meta WWW-CLOUDFLARE-PLAN, J271). The
 waitlist form posts to `api.wildshard.io/api/waitlist`.
 
 The repo-kit scaffold sits beside it:

@@ -1,13 +1,16 @@
-// Publishes the marketing site's motion (MARKETING-SITE MS11) to Vercel Blob and writes src/site/media.json.
+// Publishes the marketing site's motion (MARKETING-SITE MS11) to R2 and writes src/site/media.json.
 //
 //   node src/site/tools/publish-media.ts <folder>
 //
 // <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-1080.mp4` (the phone copy, 1920 × 1080;
 // an older folder's `trailer-720.mp4` is taken when there is none) and, for any shards whose loops
 // change, `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
-// public, under a content-hashed name (`site/media/<name>-<hash8>.mp4`), so a re-run with unchanged files uploads
-// nothing and a changed file gets a new URL (the Blob CDN caches a year). The poster is a small WebP in
+// under a content-hashed key (`site/media/<name>-<hash8>.mp4`) in the private R2 bucket wildshard-records, which the site's
+// Worker serves at `/media/v/<name>-<hash8>.mp4` (worker.ts; meta WWW-CLOUDFLARE-PLAN). A re-run with unchanged files
+// uploads nothing and a changed file gets a new URL (cached a year). Uploads go through `wrangler r2 object put`, so
+// wrangler's own login is the credential. The poster is a small WebP in
 // src/site/public/media/, served by the site itself.
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
   existsSync,
@@ -16,7 +19,6 @@ import {
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { homedir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 
 interface Trailer {
@@ -39,24 +41,7 @@ const POSTER = '/media/trailer-alpha-poster.webp' // Renamed when the alpha trai
 
 const manifestPath = resolve(import.meta.dirname, '..', 'media.json')
 
-function blobToken(): string {
-  const { BLOB_READ_WRITE_TOKEN: env } = process.env
-  if (env) {
-    return env
-  }
-  const file = join(homedir(), '.config', 'wildshard-drafts', 'blob.env')
-  if (existsSync(file)) {
-    const m = /BLOB_READ_WRITE_TOKEN="?([^"\n]+)"?/.exec(
-      readFileSync(file, 'utf8'),
-    )
-    if (m?.[1]) {
-      return m[1]
-    }
-  }
-  throw new Error(
-    'no Blob token: set BLOB_READ_WRITE_TOKEN or write ~/.config/wildshard-drafts/blob.env',
-  )
-}
+const BUCKET = 'wildshard-records'
 
 function hash8(path: string): string {
   return createHash('sha256')
@@ -82,36 +67,39 @@ function knownUrls(): string[] {
   return urls
 }
 
-async function publish(
-  dir: string,
-  file: string,
-  token: string,
-  known: string[],
-): Promise<string> {
+function publish(dir: string, file: string, known: string[]): string {
   const path = join(dir, file)
   if (!existsSync(path)) {
     throw new Error(`publish-media: missing ${path}`)
   }
-  const pathname = `site/media/${basename(file, '.mp4')}-${hash8(path)}.mp4`
-  const prior = known.find(u => u.endsWith(`/${pathname}`))
-  if (prior) {
-    console.info(`  = ${pathname}`)
-    return prior
+  const name = `${basename(file, '.mp4')}-${hash8(path)}.mp4`
+  const url = `/media/v/${name}`
+  if (known.includes(url)) {
+    console.info(`  = ${name}`)
+    return url
   }
-  const { put } = await import('@vercel/blob')
-  const res = await put(pathname, readFileSync(path), {
-    access: 'public',
-    token,
-    contentType: 'video/mp4',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    cacheControlMaxAge: 31_536_000,
-  })
-  console.info(`  + ${pathname} (${Math.round(statSync(path).size / 1024)} KB)`)
-  return res.url
+  execFileSync(
+    'wrangler',
+    [
+      'r2',
+      'object',
+      'put',
+      `${BUCKET}/site/media/${name}`,
+      '--file',
+      path,
+      '--content-type',
+      'video/mp4',
+      '--cache-control',
+      'public, max-age=31536000, immutable',
+      '--remote',
+    ],
+    { stdio: ['ignore', 'ignore', 'inherit'] },
+  )
+  console.info(`  + ${name} (${Math.round(statSync(path).size / 1024)} KB)`)
+  return url
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const arg = process.argv[2]
   if (!arg) {
     throw new Error(
@@ -119,7 +107,6 @@ async function main(): Promise<void> {
     )
   }
   const dir = resolve(arg)
-  const token = blobToken()
   const known = knownUrls()
 
   const slugs = readdirSync(dir)
@@ -129,14 +116,13 @@ async function main(): Promise<void> {
 
   const media: Media = {
     trailer: {
-      mp4: await publish(dir, 'trailer-1280.mp4', token, known),
+      mp4: publish(dir, 'trailer-1280.mp4', known),
       // The phone copy: 1080p since MS24 (a 720 px copy upscaled ~2x on a 3x phone); an older folder's 720 still works
-      mp4Phone: await publish(
+      mp4Phone: publish(
         dir,
         existsSync(join(dir, 'trailer-1080.mp4'))
           ? 'trailer-1080.mp4'
           : 'trailer-720.mp4',
-        token,
         known,
       ),
       poster: POSTER,
@@ -149,8 +135,8 @@ async function main(): Promise<void> {
   }
   for (const slug of slugs) {
     media.loops[slug] = {
-      card: await publish(dir, `${slug}-card.mp4`, token, known),
-      wide: await publish(dir, `${slug}-wide.mp4`, token, known),
+      card: publish(dir, `${slug}-card.mp4`, known),
+      wide: publish(dir, `${slug}-wide.mp4`, known),
     }
   }
   writeFileSync(manifestPath, `${JSON.stringify(media, null, 2)}\n`)
@@ -159,4 +145,4 @@ async function main(): Promise<void> {
   )
 }
 
-await main()
+main()
