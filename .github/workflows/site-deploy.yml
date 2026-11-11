@@ -64,3 +64,11 @@ jobs:
         run: |
           test -n "$VERCEL_BUILD_TOKEN" || { echo '::error::Missing VERCEL_BUILD_TOKEN'; exit 1; }
           bash src/site/tools/deploy.sh
+      # Every deployment is a full copy billed as storage and Vercel's retention does not clear them
+      # (meta VERCEL-SPEND-PLAN). Keeps live, aliased and the newest two; cleanup only warns.
+      - name: Prune superseded deployments
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          VERCEL_BUILD_TOKEN: ${{ secrets.VERCEL_BUILD_TOKEN }}
+        run: node scripts/prune-deployments.mjs --project wildshard-site --keep 2
