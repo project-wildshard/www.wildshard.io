@@ -29,7 +29,7 @@
 <script type="application/json" id="media"><!--gen:media--></script>
 <header class="page-top">
   <a class="home" href="/"><img src="/favicon.svg" width="22" height="22" alt="">{{Nav · home}}</a>
-  <a class="play" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Nav · play now}}</a>
+  <a class="play" href="%PLAY_URL%" target="_blank" rel="noopener">{{Nav · play now}}</a>
   <nav class="page-nav" aria-label="{{@Nav · label}}"><a href="/play/" aria-current="page">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a></nav>
 </header>
 <main class="wrap">
@@ -41,7 +41,9 @@
     </div>
     <div class="body">
       <ul class="grow">{{list:Play · verbs}}</ul>
-      <a class="door play bk pl-door" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Install · play button}}<small>{{Install · play button note}}</small></a>
+      <nav class="doors games pl-games" aria-label="{{@Games · label}}">
+        <!--gen:games-->
+      </nav>
       <p class="status">{{Hero · status}}</p>
     </div>
   </section>
@@ -59,42 +61,42 @@
       <article class="pl-shard" id="play-driftwood">
         <div class="pl-shot" data-loop="driftwood-isle"><img src="/media/wide-driftwood.webp" alt="{{@Driftwood Isle · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge open">{{Play · badge open}}</span><span class="pl-look">{{Play · Driftwood Isle look}}</span></div>
-        <h3>{{Driftwood Isle · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Driftwood Isle · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Driftwood Isle text}}</p>
         <ul class="pl-facts">{{list:Play · Driftwood Isle facts}}</ul>
       </article>
       <article class="pl-shard" id="play-pine">
         <div class="pl-shot" data-loop="pine-hollow"><img src="/media/wide-pine.webp" alt="{{@Pine Hollow · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge open">{{Play · badge early}}</span><span class="pl-look">{{Play · Pine Hollow look}}</span></div>
-        <h3>{{Pine Hollow · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Pine Hollow · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Pine Hollow text}}</p>
         <ul class="pl-facts">{{list:Play · Pine Hollow facts}}</ul>
       </article>
       <article class="pl-shard" id="play-nalati">
         <div class="pl-shot" data-loop="nalati-grasslands"><img src="/media/wide-nalati.webp" alt="{{@Nalati Grasslands · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge open">{{Play · badge early}}</span><span class="pl-look">{{Play · Nalati Grasslands look}}</span></div>
-        <h3>{{Nalati Grasslands · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Nalati Grasslands · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Nalati Grasslands text}}</p>
         <ul class="pl-facts">{{list:Play · Nalati Grasslands facts}}</ul>
       </article>
       <article class="pl-shard" id="play-dunes">
         <div class="pl-shot dunes" data-loop="sunscar-dunes"><img src="/media/card-dunes.webp" alt="{{@Signal Dunes · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Signal Dunes look}}</span></div>
-        <h3>{{Signal Dunes · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Signal Dunes · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Signal Dunes text}}</p>
         <ul class="pl-facts">{{list:Play · Signal Dunes facts}}</ul>
       </article>
       <article class="pl-shard" id="play-skyreach">
         <div class="pl-shot" data-loop="far-reach"><img src="/media/wide-skyreach.webp" alt="{{@Sky Reach · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Sky Reach look}}</span></div>
-        <h3>{{Sky Reach · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Sky Reach · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Sky Reach text}}</p>
         <ul class="pl-facts">{{list:Play · Sky Reach facts}}</ul>
       </article>
       <article class="pl-shard" id="play-ninedragon">
         <div class="pl-shot" data-loop="nine-dragon-stack"><img src="/media/wide-ninedragon.webp" alt="{{@Nine Dragon Stack · image description}}" loading="lazy" decoding="async"><span class="tag loop">{{Shards · loop tag}}</span></div>
         <div class="pl-tags"><span class="pl-badge">{{Play · badge experimental}}</span><span class="pl-look">{{Play · Nine Dragon Stack look}}</span></div>
-        <h3>{{Nine Dragon Stack · name}} <a href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
+        <h3>{{Nine Dragon Stack · name}} <a href="%PLAY_URL%" target="_blank" rel="noopener">{{Shards · play link}}</a></h3>
         <p class="pl-what">{{Play · Nine Dragon Stack text}}</p>
         <ul class="pl-facts">{{list:Play · Nine Dragon Stack facts}}</ul>
       </article>
@@ -187,7 +189,7 @@
     <p class="ask">{{Play · end prompt}}</p>
     <h2>{{Play · end title}}</h2>
     <p class="lede">{{Play · end text}}</p>
-    <a class="pl-go" href="https://wildshard-singleplayer.vercel.app" target="_blank" rel="noopener">{{Play · end button}}<small>{{Play · end button note}}</small></a>
+    <a class="pl-go" href="%PLAY_URL%" target="_blank" rel="noopener">{{Play · end button}}<small>{{Play · end button note}}</small></a>
     <a class="more-page pl-on" href="/build/">{{Play · build link}}</a>
   </div>
 </section>

@@ -99,6 +99,13 @@
   .door.play { --c: var(--cyan); color: var(--ink); }
   .door.play small { color: var(--mute); }
   .door.author { background: var(--act); color: var(--act-ink); box-shadow: 0 0 28px var(--act-glow); }
+  /* the three game links (J212): Play leads, Staging and Preview beside it, each saying which game it opens */
+  .doors.games { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .door.game { color: var(--ink); }
+  .door.game small { color: var(--mute); }
+  .door.game.play { background-color: var(--cyan-faint); border-color: var(--cyan); box-shadow: 0 0 22px rgba(143, 227, 255, .18); }
+  .door.game.staging, .door.game.preview { --c: var(--mute); }
+  .door.author-bar { flex-direction: row; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; gap: 4px 12px; min-height: 0; margin-top: 0; padding: 11px 12px; }
 
   /* sections: each answers a question you'd type */
   section { padding: 66px var(--g) 0; }
@@ -126,6 +133,11 @@
     .doors { margin-top: 12px; }
     .status { margin-top: 10px; padding-bottom: 20px; font-size: 10.5px; }
     .door { min-height: 58px; padding: 9px 11px; font-size: 19px; }
+    .doors.games { gap: 8px; }
+    .door.game { font-size: 17px; padding: 9px 9px; }
+    .door.game small { font-size: 9.5px; letter-spacing: .04em; }
+    .door.author-bar { font-size: 16px; padding: 10px 11px; margin-bottom: 22px; }
+    .masthead .status { padding-bottom: 12px; }
   }
   .trailer { margin: 0 var(--g); position: relative; }
   .trailer video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
@@ -291,6 +303,10 @@
     .status { margin-top: 18px; padding-bottom: 0; font-size: 13px; max-width: 560px; }
     .door { min-height: 92px; padding: 15px 16px; font-size: 27px; }
     .door small { font-size: 11.5px; }
+    .doors.games { max-width: 640px; }
+    .door.game { font-size: 25px; }
+    .door.author-bar { max-width: 640px; min-height: 0; margin-top: 18px; padding: 13px 16px; font-size: 20px; }
+    .masthead .status { max-width: 640px; }
 
     .trailer { max-width: 1280px; margin: 56px auto 0; }
 
@@ -604,7 +620,7 @@ footer { flex-wrap: wrap; }
 }
 /* ==== /play page ==== */
 #play-top { padding-top: 30px; }
-.pl-door { margin-top: 22px; max-width: 380px; }
+.pl-games { margin-top: 22px; max-width: 520px; }
 #play-top .status { padding-bottom: 0; }
 #play-top .grow li { font-size: 17.5px; padding: 10px 0; }
 #play-top .grow li::before { margin-top: 7px; }
@@ -697,7 +713,6 @@ footer { flex-wrap: wrap; }
   #play-top { padding-top: 90px; }
   #play-top .grow li { font-size: 23px; padding: 15px 0; }
   #play-top .grow li::before { margin-top: 10px; }
-  .pl-door { margin-top: 30px; max-width: 460px; min-height: 92px; font-size: 27px; }
   .pl-index { flex-direction: column; flex-wrap: nowrap; gap: 0; margin-top: 30px; border-left: 1px solid var(--cyan-line); }
   .pl-index a { border: 0; padding: 7px 16px; font-size: 12px; }
   .pl-index a:hover { color: var(--act); }

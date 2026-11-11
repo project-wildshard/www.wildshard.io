@@ -3,10 +3,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// The marketing site's build (MARKETING-SITE MS4, E465): its own root, its own public/, its own output. It builds from
-// this folder alone (P1-W1): `pnpm site:build` at the repo root.
-//   → dist/      pages: index.html (the home page), play/, build/ and mmo/ (the three sagas, MS29–MS31), map/ (the
-//                world-map concept, E506 MR4), 404.html
+// The marketing site's build (MARKETING-SITE MS4, E465), its own root, public/ and output, from this folder alone (P1-W1)
+//   → dist/      pages: index.html (home), play/, build/ and mmo/ (the sagas, MS29–MS31), map/ (E506 MR4), 404.html
 // Every word on every page comes from COPY.md (tools/copy.ts fills the {{…}} slots; Jake edits that file): a slot with
 // no entry, or an entry no page uses, stops the build. A {=name} inside an entry is a number from facts.json, committed
 // here (tools/facts.ts words it, tools/refresh-facts.ts writes it; E506 RD14). These blocks are filled from elsewhere:
@@ -18,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 //                         facts.json's grid (MR11, MR5); %SEAM% sizes /mmo's seam from the same facts
 //   <!--gen:claimgrid-->  home's waitlist radios and <!--gen:buildgrid--> /build's picture of them, from the same grid
 //                         (tools/claim-grid.ts); api-server refuses the same cells
+//   <!--gen:games-->      Play, Staging and Preview, and %PLAY_URL% on every Play button (tools/games.ts, J212)
 // It also emits /version.json, which tools/deploy.sh reads back. deploy.sh builds a clean export of this folder (no
 // .git), so it passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig } from 'vite'
@@ -26,6 +25,7 @@ import { viteTmpRoot } from '../../scripts/vite-tmp.mjs'
 import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
+import { fillGames } from './tools/games.ts'
 
 import type { FactCell } from './tools/facts.ts'
 import type { Plugin } from 'vite'
@@ -163,7 +163,7 @@ function gridMini(): string {
 
 /** The generated blocks that hold COPY.md slots of their own: expanded before the copy is filled, and checked */
 function expand(template: string): string {
-  let out = template
+  let out = fillGames(template)
   if (out.includes('<!--gen:grid-->')) {
     out = out.replace('<!--gen:grid-->', gridSvg())
   }

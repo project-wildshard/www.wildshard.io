@@ -76,13 +76,33 @@ The infinite MMO in your browser.
 
 Every shard of the world is built by a player. Explore it, fight in it, play it together.
 
-## Hero · play button
+## Games · label
 
-Play now ↗
+The game: three links
 
-## Hero · play button note
+## Games · Play
 
-in your browser
+Play ↗
+
+## Games · Play note
+
+the MMO, live world
+
+## Games · Staging
+
+Staging ↗
+
+## Games · Staging note
+
+the MMO, test world
+
+## Games · Preview
+
+Preview ↗
+
+## Games · Preview note
+
+solo, newest build
 
 ## Hero · author button
 
@@ -96,7 +116,7 @@ with Claude or any coding agent
 
 ## Hero · status
 
-**Alpha today:** seven shards, every one built from data alone. **Next:** one world, then multiplayer and uploads.
+**Now:** the MMO, in testing. **Roadmap:** the Friends grid → sign-in → the public grid, all 25 shards → uploading your own shard.
 
 ## Trailer · description
 
