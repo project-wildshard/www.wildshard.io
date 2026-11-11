@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # 1. Outgoing-commit checks: .githooks/check-push.mjs (reads git's ref
 #    lines on stdin). Bypasses: ALLOW_BIG=1, ALLOW_SECRET=1.
-# 2. Push lane (full `pnpm check`): .githooks/run-checks.mjs.
+# 2. AGENTS.md (J241): .githooks/agents-md.mjs, the same ref lines.
+# 3. Push lane (full `pnpm check`): .githooks/run-checks.mjs.
 #    Bypass: SKIP_CHECK=1.
 # Enable once per clone: git config core.hooksPath .githooks
 set -euo pipefail
 hooks="$(git rev-parse --show-toplevel)/.githooks"
-node "$hooks/check-push.mjs"
+refs="$(cat)"
+printf '%s\n' "$refs" | node "$hooks/check-push.mjs"
+printf '%s\n' "$refs" | node "$hooks/agents-md.mjs" push
 exec node "$hooks/run-checks.mjs" push

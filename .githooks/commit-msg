@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Commit-message rules: .githooks/check-commit-message.mjs.
+# 1. Commit-message rules: .githooks/check-commit-message.mjs.
+# 2. AGENTS.md shape, and agents edit it only below the marker (J241):
+#    .githooks/agents-md.mjs. Read here because only this hook sees the
+#    message (an Assisted-by trailer marks an AI commit).
 # Enable once per clone: git config core.hooksPath .githooks
 set -euo pipefail
-exec node "$(git rev-parse --show-toplevel)/.githooks/check-commit-message.mjs" "$1"
+hooks="$(git rev-parse --show-toplevel)/.githooks"
+node "$hooks/check-commit-message.mjs" "$1"
+exec node "$hooks/agents-md.mjs" commit "$1"

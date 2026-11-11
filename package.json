@@ -23,6 +23,7 @@
     "test": "node --test 'src/**/*.test.ts'",
     "test:e2e": "playwright test --config src/e2e/playwright.config.ts",
     "check:asks": "node src/scripts/asks.mjs check",
+    "check:agents": "node .githooks/agents-md.mjs lint",
     "md:wrap": "node src/scripts/md-wrap.mjs",
     "test:hooks": "node --test '.githooks/*.test.mjs'",
     "site:build": "vite build --config src/site/vite.config.ts",
@@ -30,7 +31,7 @@
     "site:media": "node src/site/tools/publish-media.ts",
     "site:facts": "node src/site/tools/refresh-facts.ts",
     "site:api-grid": "node src/site/tools/api-grid.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks && node --check scripts/chromium-keychain-check.mjs && node --test test/tooling/chrome-keychain.test.mjs"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks && pnpm check:agents && node --check scripts/chromium-keychain-check.mjs && node --test test/tooling/chrome-keychain.test.mjs"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",
