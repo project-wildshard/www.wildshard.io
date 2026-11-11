@@ -58,10 +58,11 @@ export async function withRetries(label, call, pause = (milliseconds) => new Pro
 async function main() {
   const { values } = parseArgs({ options: {
     project: { type: 'string' }, keep: { type: 'string' }, 'staged-grace-hours': { type: 'string' }, 'dry-run': { type: 'boolean' } } });
-  const token = process.env.VERCEL_BUILD_TOKEN || process.env.VERCEL_TOKEN;
+  // An env var set to "" falls through to the next, as with a secret that isn't set.
+  const token = [process.env.VERCEL_BUILD_TOKEN, process.env.VERCEL_TOKEN].find(Boolean);
   if (!token) throw new Error('VERCEL_BUILD_TOKEN or VERCEL_TOKEN is required');
-  const team = process.env.VERCEL_ORG_ID || TEAM;
-  const project = values.project || process.env.VERCEL_PROJECT_ID;
+  const team = [process.env.VERCEL_ORG_ID, TEAM].find(Boolean);
+  const project = [values.project, process.env.VERCEL_PROJECT_ID].find(Boolean);
   if (!project) throw new Error('--project or VERCEL_PROJECT_ID is required');
   const keep = values.keep === undefined ? KEEP_PROMOTED : Number(values.keep);
   const graceMs = values['staged-grace-hours'] === undefined ? STAGED_GRACE_MS : Number(values['staged-grace-hours']) * 3_600_000;
