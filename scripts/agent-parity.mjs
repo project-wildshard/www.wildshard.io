@@ -223,8 +223,19 @@ export function parseFrontmatter(text) {
     const nested = [];
     while (i + 1 < lines.length && (/^\s/.test(lines[i + 1]) || lines[i + 1] === '')) nested.push(lines[++i]);
     if (/^[|>][+-]?\d*$/.test(raw)) {
-      const body = nested.map((row) => row.trim()).filter(Boolean);
-      fields[key] = body.join(raw.startsWith('>') ? ' ' : '\n');
+      // Block scalar: strip the common indent, then literal (|) keeps lines and folded (>) joins
+      // them with spaces, a blank line being a newline; chomping (-, +, or clip) sets the end.
+      let end = nested.length;
+      while (end > 0 && nested[end - 1].trim() === '') end--;
+      const body = nested.slice(0, end);
+      const indent = Math.min(...body.filter((row) => row.trim()).map((row) => /^\s*/.exec(row)[0].length));
+      const rows = body.map((row) => (row.trim() === '' ? '' : row.slice(indent)));
+      let value = '';
+      if (raw.startsWith('|')) value = rows.join('\n');
+      else for (const row of rows) value += row === '' ? '\n' : `${value !== '' && !value.endsWith('\n') ? ' ' : ''}${row}`;
+      const chomp = raw.includes('-') ? 'strip' : raw.includes('+') ? 'keep' : 'clip';
+      if (value !== '' && chomp !== 'strip') value += '\n'.repeat(chomp === 'keep' ? nested.length - end + 1 : 1);
+      fields[key] = value;
     } else if (raw === '') {
       fields[key] = nested.some((row) => row.trim()) ? null : '';
     } else if (/^[[{&*!]/.test(raw) || /^(null|~)$/i.test(raw)) {
@@ -403,6 +414,24 @@ export function parseToml(text) {
     }
   };
   let section = [];
+  // [[array]] elements keep their place: a stored path names each element as `#<n>` after its
+  // array's key (MA10 a), so two [[hooks.PreToolUse]] groups stay two. `kinds` stays logical.
+  const arrays = new Map();
+  // Which positions of a stored path are element markers, so a quoted key that reads "#0" is never one.
+  const physical = (logical) => {
+    const path = [];
+    const elements = [];
+    logical.forEach((segment, n) => {
+      path.push(segment);
+      const id = logical.slice(0, n + 1).join('\0');
+      if (arrays.has(id)) {
+        elements.push(path.length);
+        path.push(`#${arrays.get(id)}`);
+      }
+    });
+    return { path, elements };
+  };
+  let stored = { path: [], elements: [] };
   try {
     for (;;) {
       skipBlank();
@@ -424,9 +453,14 @@ export function parseToml(text) {
         const kind = kinds.get(id);
         if (array ? kind !== undefined && kind !== 'array' : kind !== undefined && kind !== 'header') oops('duplicate table');
         if (array) for (const key of [...kinds.keys()]) if (key.startsWith(`${id}\0`)) kinds.delete(key); // a new element
+        if (array) {
+          for (const key of [...arrays.keys()]) if (key.startsWith(`${id}\0`)) arrays.delete(key); // its own nested arrays restart
+          arrays.set(id, (arrays.get(id) ?? -1) + 1);
+        }
         kinds.set(id, array ? 'array' : 'table');
         section = path;
-        entries.set(id, { path, value: null, raw: null });
+        stored = physical(path);
+        entries.set(stored.path.join('\0'), { path: stored.path, elements: stored.elements, kind: array ? 'array' : 'table', value: null, raw: null });
         continue;
       }
       const key = scanKey();
@@ -439,9 +473,10 @@ export function parseToml(text) {
       implied(path, 'dotted');
       if (kinds.has(id)) oops(`duplicate key ${path.join('.')}`);
       kinds.set(id, 'value');
-      const value = scanValue(path);
+      const at = [...stored.path, ...key];
+      const value = scanValue(at);
       endOfLine('a value');
-      entries.set(id, { path, value: value.string ?? null, raw: value.raw ?? null });
+      entries.set(at.join('\0'), { path: at, elements: stored.elements, kind: 'value', value: value.string ?? null, raw: value.raw ?? null });
     }
   } catch (error) {
     return fail(error.message);
@@ -563,7 +598,7 @@ export function invocation(command) {
       const shell = ['bash', 'sh', 'zsh'].includes(interpreter) && /^-[a-zA-Z]*c[a-zA-Z]*$/.test(flag);
       const node = interpreter === 'node' && /^(?:-[a-zA-Z]*[ep][a-zA-Z]*|--eval|--print|--eval=.*|--print=.*)$/.test(flag);
       const python = interpreter.startsWith('python') && /^-[a-zA-Z]*c[a-zA-Z]*$/.test(flag);
-      if (shell || node || python) return none(`runs inline code (${interpreter} ${flag})`);
+      if (shell || node || python) return none(`runs inline code (${interpreter} ${flag.split('=')[0]})`); // never a flag's value (J206)
       at++;
     }
   }
@@ -784,9 +819,57 @@ const describe = (entry) => {
 };
 const commandId = (command) => createHash('sha256').update(command).digest('hex').slice(0, 8);
 
-function auditHooks(root) {
+/**
+ * Codex hooks written in .codex/config.toml (`[[hooks.<Event>]]` groups with `[[hooks.<Event>.hooks]]`
+ * handlers), rebuilt into the .codex/hooks.json shape so they are compared like it (MA10 a).
+ * @returns {{ hooks: object|null, problems: string[] }}
+ */
+export function tomlHooks(entries) {
+  const out = {};
+  const problems = new Set();
+  const scalar = (entry) => entry.value ?? (entry.raw !== null && /^\d+(?:\.\d+)?$/u.test(entry.raw) ? Number(entry.raw) : entry.raw);
+  // An element marker only where the parser put one: a quoted key reading "#0" is a key (J206 review).
+  const marker = (entry, at) => ((entry.elements ?? []).includes(at) ? Number(entry.path[at].slice(1)) : undefined);
+  for (const entry of entries.values()) {
+    const [head, event, , field, , key] = entry.path;
+    if (head !== 'hooks') continue;
+    if (event === undefined) {
+      if (entry.kind === 'value') problems.add('.codex/config.toml: hooks is a value, not [[hooks.<Event>]] tables');
+      continue;
+    }
+    const group = marker(entry, 2);
+    if (group === undefined) {
+      problems.add(`.codex/config.toml: hooks.${event} is not written as [[hooks.${event}]] tables, so it can't be compared`);
+      continue;
+    }
+    const at = ((out[event] ??= [])[group] ??= { hooks: [] });
+    if (entry.path.length === 3) continue;
+    if (field !== 'hooks') {
+      if (entry.path.length === 4) at[field] = scalar(entry);
+      continue;
+    }
+    const slot = marker(entry, 4);
+    if (slot === undefined) {
+      problems.add(`.codex/config.toml: hooks.${event} lists its handlers inline; write them as [[hooks.${event}.hooks]] tables to be compared`);
+      continue;
+    }
+    const target = (at.hooks[slot] ??= {});
+    if (key !== undefined && entry.path.length === 6) target[key] = scalar(entry);
+  }
+  for (const groups of Object.values(out)) for (const group of groups) if (group) group.hooks = group.hooks.filter(Boolean);
+  for (const event of Object.keys(out)) out[event] = out[event].filter(Boolean);
+  return { hooks: Object.keys(out).length > 0 ? out : null, problems: [...problems] };
+}
+
+function auditHooks(root, toml = { entries: new Map(), error: null }) {
   const claude = readHooks(root, '.claude/settings.json', 'claude');
   const codex = readHooks(root, '.codex/hooks.json', 'codex');
+  if (!toml.error) {
+    const inline = tomlHooks(toml.entries);
+    const fromToml = hookEntries(inline.hooks, 'codex');
+    codex.entries.push(...fromToml.entries.map((entry) => ({ ...entry, from: '.codex/config.toml' })));
+    codex.problems.push(...inline.problems, ...fromToml.problems.map((problem) => `.codex/config.toml: ${problem}`));
+  }
   const items = [...claude.problems, ...codex.problems].map((problem) => item('hooks', problem.split(':')[0], 'broken', { note: problem }));
   const groups = new Map();
   const add = (name, tool, entry) => {
@@ -865,6 +948,126 @@ function auditHooks(root) {
   return items;
 }
 
+/** MA9's literal-token grammar (scripts/agent-policy.mjs): what both tools read the same way. */
+const POLICY_TOKEN = /^[A-Za-z0-9._/@%+=,-]+$/u;
+
+/**
+ * Claude's Bash denies as token lists (MA9's mapping): `Bash(<tokens>:*)` with plain tokens. Any other
+ * Bash deny (a wildcard, an exact command) has no one Codex prefix rule and is counted as unsupported;
+ * non-Bash denies (Read, Edit…) are no command rule at all.
+ * @returns {{ prefixes: Set<string>, unsupported: number }} prefixes as JSON token lists
+ */
+export function claudeDenyPrefixes(deny) {
+  const prefixes = new Set();
+  let unsupported = 0;
+  for (const entry of Array.isArray(deny) ? deny : []) {
+    if (typeof entry !== 'string' || !/^Bash\(/u.test(entry)) continue;
+    const tokens = /^Bash\(([^():]+):\*\)$/u.exec(entry)?.[1]?.split(' ');
+    if (tokens && tokens.every((token) => POLICY_TOKEN.test(token))) prefixes.add(JSON.stringify(tokens));
+    else unsupported++;
+  }
+  return { prefixes, unsupported };
+}
+
+/**
+ * Codex execpolicy calls in a rules file, read as Starlark source: comments and strings are skipped
+ * when finding `prefix_rule(`, keyword arguments may come in any order. Each call's arguments, or null
+ * when one isn't a double-quoted string, a list of them, or a nested list (alternatives).
+ */
+function starlarkCalls(text, name) {
+  const calls = [];
+  let i = 0;
+  const skipString = () => {
+    const quote = text[i];
+    for (i++; i < text.length && text[i] !== quote; i++) if (text[i] === '\\') i++;
+    i++;
+  };
+  while (i < text.length) {
+    const c = text[i];
+    if (c === '#') { while (i < text.length && text[i] !== '\n') i++; continue; }
+    if (c === '"' || c === "'") { skipString(); continue; }
+    if (text.startsWith(`${name}(`, i) && !/[A-Za-z0-9_]/u.test(text[i - 1] ?? '')) {
+      i += name.length + 1;
+      const begin = i;
+      let depth = 1;
+      while (i < text.length && depth > 0) {
+        if (text[i] === '#') { while (i < text.length && text[i] !== '\n') i++; continue; }
+        if (text[i] === '"' || text[i] === "'") { skipString(); continue; }
+        if ('([{'.includes(text[i])) depth++;
+        if (')]}'.includes(text[i])) depth--;
+        i++;
+      }
+      calls.push(text.slice(begin, i - 1).replace(/#[^\n]*/gu, ''));
+      continue;
+    }
+    i++;
+  }
+  return calls.map((body) => {
+    const args = {};
+    for (const part of body.split(/,(?=\s*[A-Za-z_]+\s*=)/u)) {
+      const kw = /^\s*([A-Za-z_]+)\s*=\s*([\s\S]*?)\s*,?\s*$/u.exec(part);
+      if (!kw) return null;
+      try {
+        args[kw[1]] = JSON.parse(kw[2]);
+      } catch {
+        return null;
+      }
+    }
+    return args;
+  });
+}
+
+/**
+ * The command prefixes Codex forbids in `.codex/rules/*.rules`: each `prefix_rule(pattern=[…],
+ * decision="forbidden")` with MA9's plain tokens. Alternatives, other syntax and unreadable files are
+ * counted, never dropped.
+ * @returns {{ prefixes: Set<string>, unsupported: number }} prefixes as JSON token lists
+ */
+export function codexForbiddenPrefixes(texts) {
+  const prefixes = new Set();
+  let unsupported = 0;
+  for (const text of texts) {
+    for (const args of starlarkCalls(text ?? '', 'prefix_rule')) {
+      if (args === null) { unsupported++; continue; }
+      if (args.decision !== 'forbidden') continue;
+      const tokens = args.pattern;
+      if (Array.isArray(tokens) && tokens.length > 0 && tokens.every((token) => typeof token === 'string' && POLICY_TOKEN.test(token))) prefixes.add(JSON.stringify(tokens));
+      else unsupported++;
+    }
+  }
+  return { prefixes, unsupported };
+}
+
+/** Claude `permissions.deny` against Codex's forbidden rules: the same prefixes, or drift with counts (never the rules' text). */
+function comparePermissions(root, settings) {
+  const claude = claudeDenyPrefixes(settings.permissions?.deny);
+  const rulesDir = join(root, '.codex/rules');
+  const reads = list(rulesDir).filter((name) => name.endsWith('.rules')).map((name) => ({ name, ...readText(join(rulesDir, name)) }));
+  const unreadable = reads.filter((file) => file.error);
+  if (unreadable.length > 0) return { status: 'broken', note: `unreadable .codex/rules file(s): ${unreadable.map((file) => file.name).join(', ')}` };
+  const codex = codexForbiddenPrefixes(reads.map((file) => file.text));
+  if (claude.prefixes.size === 0 && claude.unsupported === 0 && codex.prefixes.size === 0 && codex.unsupported === 0) return null;
+  const onlyClaude = [...claude.prefixes].filter((prefix) => !codex.prefixes.has(prefix)).length + claude.unsupported;
+  const onlyCodex = [...codex.prefixes].filter((prefix) => !claude.prefixes.has(prefix)).length + codex.unsupported;
+  if (onlyClaude === 0 && onlyCodex === 0) return { status: 'paired', note: `the same ${claude.prefixes.size} refused command prefix(es) in permissions.deny and .codex/rules` };
+  return { status: 'drift', note: `refused command prefixes differ: ${onlyClaude} only in Claude permissions.deny, ${onlyCodex} only in .codex/rules (one spec writes both: scripts/agent-policy.mjs)` };
+}
+
+/** Claude `env` against Codex `shell_environment_policy.set`: same names and string values, or drift naming keys only. */
+function compareEnv(settings, toml) {
+  const claude = isObject(settings.env) ? settings.env : {};
+  const codex = new Map([...toml.entries.values()].filter((entry) => entry.path[0] === 'shell_environment_policy' && entry.path[1] === 'set' && entry.path.length === 3).map((entry) => [entry.path[2], entry]));
+  const names = [...new Set([...Object.keys(claude), ...codex.keys()])].sort();
+  if (names.length === 0) return null;
+  const differ = names.filter((name) => {
+    const theirs = codex.get(name);
+    return !Object.hasOwn(claude, name) || typeof claude[name] !== 'string' || !theirs || theirs.raw !== null || theirs.value !== claude[name];
+  });
+  return differ.length === 0
+    ? { status: 'paired', note: `the same ${names.length} variable(s) in env and shell_environment_policy.set` }
+    : { status: 'drift', note: `env and shell_environment_policy.set differ for: ${differ.join(', ')}` };
+}
+
 function auditSettings(root, toml) {
   const items = [];
   const settingsRead = readText(join(root, '.claude/settings.json'));
@@ -877,17 +1080,18 @@ function auditSettings(root, toml) {
   if (toml.error) items.push(item('settings', '.codex/config.toml', 'broken', { note: toml.error }));
   const codexKeys = new Set(toml.error ? [] : [...toml.entries.values()].map((entry) => entry.path[0]));
   if (list(join(root, '.codex/rules')).some((name) => name.endsWith('.rules'))) codexKeys.add('rules');
-  if (codexKeys.has('hooks')) {
-    items.push(item('hooks', 'config.toml [hooks]', 'codex-only', { codex: '.codex/config.toml hooks', note: 'Codex hooks in config.toml are not compared; keep them in .codex/hooks.json' }));
-  }
+  // Hooks in config.toml are compared with the other hooks (auditHooks, MA10 a).
   const claimed = new Set(['hooks', 'mcp_servers']); // their own kinds
   for (const key of Object.keys(settings).filter((name) => !['hooks', '$schema', 'mcpServers'].includes(name))) {
     const counterparts = (SETTING_MAP[key] ?? []).filter((codexKey) => codexKeys.has(codexKey));
     counterparts.forEach((codexKey) => claimed.add(codexKey));
-    items.push(item('settings', key, counterparts.length ? 'paired' : 'claude-only', {
+    // MA10 (c): where both sides carry the same meaning in a comparable form, compare it.
+    const meaning = toml.error ? null : key === 'permissions' ? comparePermissions(root, settings) : key === 'env' ? compareEnv(settings, toml) : null;
+    if (meaning) ['rules', 'shell_environment_policy'].forEach((codexKey) => codexKeys.has(codexKey) && SETTING_MAP[key].includes(codexKey) && claimed.add(codexKey));
+    items.push(item('settings', key, meaning?.status ?? (counterparts.length ? 'paired' : 'claude-only'), {
       claude: `.claude/settings.json ${key}`,
       codex: counterparts.length ? `.codex/config.toml ${counterparts.join(', ')}` : null,
-      note: counterparts.length ? 'different formats; not compared' : SETTING_MAP[key] ? `Codex counterpart: ${SETTING_MAP[key].join(' / ')}` : 'no Codex counterpart',
+      note: meaning?.note ?? (counterparts.length ? 'different formats; not compared' : SETTING_MAP[key] ? `Codex counterpart: ${SETTING_MAP[key].join(' / ')}` : 'no Codex counterpart'),
     }));
   }
   for (const key of [...codexKeys].filter((codexKey) => !claimed.has(codexKey)).sort()) {
@@ -1087,7 +1291,7 @@ export function audit(rootDir, { kit = null } = {}) {
   for (const [kind, step] of [
     ['rules', () => auditRules(root, docLimit)],
     ['skills', () => auditSkills(root)],
-    ['hooks', () => auditHooks(root)],
+    ['hooks', () => auditHooks(root, toml)],
     ['settings', () => auditSettings(root, toml)],
     ['agents', () => auditCommandsAndAgents(root)],
     ['githooks', () => auditGitHooks(root)],
