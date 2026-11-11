@@ -1,18 +1,23 @@
-// Tests for the Claude Code PreToolUse guard .claude/hooks/guard-git-add.sh.
+// Tests for the PreToolUse guard guard-git-add.sh (.agents/hooks/, or
+// .claude/hooks/ before the agent layout).
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const GUARD = join(dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'hooks', 'guard-git-add.sh');
+// The agent layout (repo-kit agent-sync) keeps hook scripts in .agents/hooks/;
+// a repo not yet stamped keeps them in .claude/hooks/.
+const hookScript = (root, name) => ['.agents', '.claude'].map((dir) => join(root, dir, 'hooks', name)).find((path) => existsSync(path)) ?? join(root, '.claude', 'hooks', name);
+const GUARD = hookScript(join(dirname(fileURLToPath(import.meta.url)), '..'), 'guard-git-add.sh');
 const guard = (command) =>
   spawnSync('bash', [GUARD], { cwd: tmpdir(), input: JSON.stringify({ tool_name: 'Bash', tool_input: { command } }), encoding: 'utf8' });
 const blocks = (command) => {
   const result = guard(command);
   assert.equal(result.status, 2, `expected a block for: ${command}`);
-  assert.match(result.stderr, /BLOCKED by \.claude\/hooks\/guard-git-add\.sh/);
+  assert.match(result.stderr, /BLOCKED by \.(?:agents|claude)\/hooks\/guard-git-add\.sh/);
 };
 const allows = (command) => assert.equal(guard(command).status, 0, `expected to allow: ${command}`);
 

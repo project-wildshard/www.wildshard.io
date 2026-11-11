@@ -1,0 +1,17 @@
+{
+  "session_id": "b06a0b3f-d71f-4844-acc9-9ce0c9d0f0cd",
+  "transcript_path": "__TRANSCRIPT__",
+  "cwd": "__ROOT__",
+  "prompt_id": "e0088e3c-df27-4214-933a-24303d65ff0a",
+  "permission_mode": "acceptEdits",
+  "effort": {
+    "level": "high"
+  },
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git status --short",
+    "description": "Show short working tree status"
+  },
+  "tool_use_id": "toolu_0188AX1ZAoLfxMNTuv9wMrqY"
+}

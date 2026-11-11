@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-brief.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/session-brief.sh\""
           }
         ]
       }
@@ -16,18 +16,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-git-add.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard-git-add.sh\""
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/md-prose-width.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/md-prose-width.sh\""
           }
         ]
       }

@@ -19,7 +19,7 @@ in order; don't paraphrase or shortcut.
   only: no branches, no worktrees (D27; pre-commit enforces it).
   Nothing you do may snapshot the shared index: commit by pathspec
   only.
-  `.claude/hooks/guard-git-add.sh` blocks `git add -A/./-u`,
+  `.agents/hooks/guard-git-add.sh` blocks `git add -A/./-u`,
   `git commit -a` and a bare `git commit`.
 - **The hooks are the gate.** `.githooks/` (on when
   `git config core.hooksPath` prints `.githooks`) checks the message,
@@ -52,7 +52,7 @@ in order; don't paraphrase or shortcut.
      final `Assisted-by: Claude Code:<actual model>`. Never
      `Co-Authored-By:` for an AI. The commit-msg hook refuses the rest.
 2. **Gates green on HEAD.** The pre-commit lane ran on your staged
-   files. If you touched `.githooks/` or `.claude/hooks/`, the hook
+   files. If you touched `.githooks/` or `.agents/hooks/`, the hook
    suite ran too (`pnpm test:hooks` / `node --test
    .githooks/*.test.mjs` by hand). Red on your commit: fix it forward
    with a new pathspec commit (never `--amend` a pushed commit, never
@@ -98,7 +98,7 @@ in order; don't paraphrase or shortcut.
    instead of deleting.
 7. **Agents and worktrees.** Don't kill running subagents to exit.
    List every agent still alive (ListAgents; in herdr,
-   `bash .claude/hooks/herdr-peers.sh`) and what it holds. Main only
+   `bash .agents/hooks/herdr-peers.sh`) and what it holds. Main only
    (D27): if the brief's main-only section shows a branch or worktree
    you or your subagents made, land its work on `main`, `git worktree
    remove` it, and name the branch in the report for Jake to delete

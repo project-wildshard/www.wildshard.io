@@ -1,22 +1,27 @@
 // The git hooks name other live herdr agents (advisory, never blocking),
-// using .claude/hooks/herdr-peers.sh with a fake `herdr` on PATH.
+// using herdr-peers.sh with a fake `herdr` on PATH.
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
 
-const PEERS = join(dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'hooks', 'herdr-peers.sh');
+// The agent layout (repo-kit agent-sync) keeps hook scripts in .agents/hooks/;
+// a repo not yet stamped keeps them in .claude/hooks/.
+const hookScript = (root, name) => ['.agents', '.claude'].map((dir) => join(root, dir, 'hooks', name)).find((path) => existsSync(path)) ?? join(root, '.claude', 'hooks', name);
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const PEERS = hookScript(ROOT, 'herdr-peers.sh');
+const AT = relative(ROOT, PEERS);
 const bin = mkdtempSync(join(tmpdir(), 'repo-herdr-bin-'));
 after(() => rmSync(bin, { recursive: true, force: true }));
 
 const withHerdr = () => {
   const box = sandbox();
-  mkdirSync(join(box.root, '.claude', 'hooks'), { recursive: true });
-  cpSync(PEERS, join(box.root, '.claude', 'hooks', 'herdr-peers.sh'));
+  mkdirSync(dirname(join(box.root, AT)), { recursive: true });
+  cpSync(PEERS, join(box.root, AT));
   const root = realpathSync(box.root); // git reports the resolved path (/private/var/… on macOS)
   const agents = [
     { pane_id: 'w1:p1', agent_status: 'working', cwd: root, agent_session: { value: 'me' }, terminal_title_stripped: 'Me' },

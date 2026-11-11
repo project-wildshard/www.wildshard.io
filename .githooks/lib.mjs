@@ -80,13 +80,14 @@ export function report(title, problems) {
 }
 
 /**
- * Other herdr agents live in this repo, via .claude/hooks/herdr-peers.sh
- * (prints nothing outside herdr). Advisory only; SKIP_HERDR_PEERS=1 hides it.
+ * Other herdr agents live in this repo, via herdr-peers.sh in .agents/hooks/
+ * (.claude/hooks/ before the agent layout; prints nothing outside herdr).
+ * Advisory only; SKIP_HERDR_PEERS=1 hides it.
  * @returns {{ pane: string, status: string, goal: string, where: string }[]}
  */
 export function herdrPeers(env = process.env) {
-  const script = '.claude/hooks/herdr-peers.sh';
-  if (env.SKIP_HERDR_PEERS === '1' || !existsSync(script)) return [];
+  const script = ['.agents/hooks/herdr-peers.sh', '.claude/hooks/herdr-peers.sh'].find((path) => existsSync(path));
+  if (env.SKIP_HERDR_PEERS === '1' || !script) return [];
   const out = spawnSync('bash', [script], { encoding: 'utf8', timeout: 5000 }).stdout ?? '';
   return out.split('\n').filter(Boolean).map((line) => {
     const [pane = '?', status = '?', goal = '-', where = 'main'] = line.split('\t');

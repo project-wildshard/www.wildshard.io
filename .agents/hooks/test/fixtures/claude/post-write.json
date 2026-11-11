@@ -1,0 +1,26 @@
+{
+  "session_id": "b06a0b3f-d71f-4844-acc9-9ce0c9d0f0cd",
+  "transcript_path": "__TRANSCRIPT__",
+  "cwd": "__ROOT__",
+  "prompt_id": "e0088e3c-df27-4214-933a-24303d65ff0a",
+  "permission_mode": "acceptEdits",
+  "effort": {
+    "level": "high"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "__ROOT__/b.md",
+    "content": "x"
+  },
+  "tool_response": {
+    "type": "create",
+    "filePath": "__ROOT__/b.md",
+    "content": "x",
+    "structuredPatch": [],
+    "originalFile": null,
+    "userModified": false
+  },
+  "tool_use_id": "toolu_01TyNUQ6WUxbUN4gK4xVYQ4v",
+  "duration_ms": 1
+}

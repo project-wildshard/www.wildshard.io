@@ -1,0 +1,43 @@
+{
+  "session_id": "b06a0b3f-d71f-4844-acc9-9ce0c9d0f0cd",
+  "transcript_path": "__TRANSCRIPT__",
+  "cwd": "__ROOT__",
+  "prompt_id": "e0088e3c-df27-4214-933a-24303d65ff0a",
+  "permission_mode": "acceptEdits",
+  "effort": {
+    "level": "high"
+  },
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "__ROOT__/notes.md",
+    "old_string": "hello",
+    "new_string": "hello world",
+    "replace_all": false
+  },
+  "tool_response": {
+    "filePath": "__ROOT__/notes.md",
+    "oldString": "hello",
+    "newString": "hello world",
+    "originalFile": "# t\n\nhello\n",
+    "structuredPatch": [
+      {
+        "oldStart": 1,
+        "oldLines": 3,
+        "newStart": 1,
+        "newLines": 3,
+        "lines": [
+          " # t",
+          " ",
+          "-hello",
+          "+hello world"
+        ]
+      }
+    ],
+    "userModified": false,
+    "replaceAll": false,
+    "contentNotInModelContext": true
+  },
+  "tool_use_id": "toolu_011pSk3oBLy3NcEwLwFXiBNQ",
+  "duration_ms": 4
+}

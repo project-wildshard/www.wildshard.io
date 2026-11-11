@@ -1,9 +1,10 @@
-// Tests for src/scripts/md-wrap.mjs (72-column markdown prose) and the
-// PostToolUse advisory hook .claude/hooks/md-prose-width.sh.
+// Tests for src/scripts/md-wrap.mjs (72-column markdown prose). Its
+// PostToolUse hook is tested in md-prose-width.test.mjs (.claude/hooks/)
+// or, on the agent layout, .agents/hooks/test/hooks.test.mjs.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { WIDTH, breakable, findLong, reflow, width } from '../src/scripts/md-wrap.mjs';
@@ -63,7 +64,7 @@ describe('md-wrap reflow', () => {
   });
 });
 
-describe('md-wrap CLI and hook', () => {
+describe('md-wrap CLI', () => {
   test('--check --new-only reports only lines added since HEAD', () => {
     const box = sandbox();
     box.commit({ 'doc.md': `${long(20)}\n` }, ok('docs: add doc'));
@@ -72,21 +73,5 @@ describe('md-wrap CLI and hook', () => {
     assert.equal(run.status, 1);
     assert.match(run.stdout, /doc\.md:3:/);
     assert.doesNotMatch(run.stdout, /doc\.md:1:/);
-  });
-  test('the PostToolUse hook advises on new long lines and ignores other files', () => {
-    const box = sandbox();
-    mkdirSync(join(box.root, 'src', 'scripts'), { recursive: true });
-    const hook = (file) => spawnSync('bash', [join(ROOT, '.claude/hooks/md-prose-width.sh')], {
-      cwd: box.root, encoding: 'utf8', env: { ...process.env, CLAUDE_PROJECT_DIR: box.root },
-      input: JSON.stringify({ tool_name: 'Write', tool_input: { file_path: join(box.root, file) } }),
-    });
-    writeFileSync(join(box.root, 'new.md'), `${long(20)}\n`);
-    const advised = hook('new.md');
-    assert.equal(advised.status, 2);
-    assert.match(advised.stderr, /new\.md:1: \d+ chars[\s\S]*node src\/scripts\/md-wrap\.mjs/);
-    writeFileSync(join(box.root, 'fine.md'), 'short\n');
-    assert.equal(hook('fine.md').status, 0);
-    writeFileSync(join(box.root, 'code.ts'), `// ${long(30)}\n`);
-    assert.equal(hook('code.ts').status, 0);
   });
 });

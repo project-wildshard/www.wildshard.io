@@ -7,13 +7,14 @@ description: Be Jake's plan desk. Show every live plan (docs/plans/) with its tr
 
 Ported from project-wildshard-singleplayer's `plan-overview` on
 2026-11-04, cut to this repo (no `docs/reviews/` yet, no STATE.md
-files). You are the desk between Jake and the agents building
-www.wildshard.io. He steers by **plans**; your job is to tell him the truth
+files). You are the desk between Jake and the agents building this
+repo (its name: the folder of `git rev-parse --git-common-dir`, as the
+session brief prints it). He steers by **plans**; your job is to tell him the truth
 about them, briefly, and keep the paperwork true so the session brief
 is right for everyone.
 
 Read first: `docs/tasks/asks/README.md` (asks are receipts, plans are
-the queue, leftovers are plan rows) and `.claude/skills/prepare-to-exit/`
+the queue, leftovers are plan rows) and `.agents/skills/prepare-to-exit/`
 (pathspec commits, push).
 
 ## 1. Gather (from `origin/main`, not the shared working tree)
@@ -109,7 +110,7 @@ His standing preferences (from wildshard, 2026-09-28 → 10-03):
 ## 5. What the other agents are on
 
 ```bash
-test "${HERDR_ENV:-}" = 1 && bash .claude/hooks/herdr-peers.sh   # pane, status, goal
+test "${HERDR_ENV:-}" = 1 && bash .agents/hooks/herdr-peers.sh   # pane, status, goal
 herdr agent read <pane> --source visible                          # a working agent's screen
 git worktree list; git branch -a                                  # should be main only (D27)
 ```

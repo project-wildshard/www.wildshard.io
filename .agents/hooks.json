@@ -1,0 +1,21 @@
+{
+  "hooks": [
+    {
+      "event": "SessionStart",
+      "script": ".agents/hooks/session-brief.sh",
+      "status": "Reading the session brief"
+    },
+    {
+      "event": "PreToolUse",
+      "tools": "shell",
+      "script": ".agents/hooks/guard-git-add.sh",
+      "status": "Checking shared Git index safety"
+    },
+    {
+      "event": "PostToolUse",
+      "tools": "edit",
+      "script": ".agents/hooks/md-prose-width.sh",
+      "status": "Checking markdown prose width"
+    }
+  ]
+}

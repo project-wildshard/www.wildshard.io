@@ -8,7 +8,8 @@
 //   4. Journal: 30+ changed lines need a project/journal/*.md entry
 //      staged (D25; SKIP_JOURNAL=1).
 //   5. Staged ask files pass src/scripts/asks.mjs check.
-//   6. Touching .githooks/, .claude/hooks/ or src/scripts/ runs the hook suite.
+//   6. Touching .githooks/, .agents/hooks/ (or the old .claude/hooks/) or
+//      src/scripts/ runs the hook suite, the agent hook tests with it.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { blobSizes, checkBlob, git, herdrPeers, printPeers, report } from './lib.mjs';
@@ -106,9 +107,10 @@ if (process.env.SKIP_JOURNAL !== '1' && changedLines >= JOURNAL_MIN_LINES) {
   }
 }
 
-if (files.some((path) => /^(\.githooks|\.claude\/hooks|src\/scripts)\//.test(path))) {
-  const suite = readdirSync('.githooks').filter((name) => name.endsWith('.test.mjs')).map((name) => `.githooks/${name}`);
-  console.error('  - hooks changed: running node --test .githooks/*.test.mjs');
+if (files.some((path) => /^(\.githooks|\.agents\/hooks|\.claude\/hooks|src\/scripts)\//.test(path))) {
+  const testsIn = (dir) => (existsSync(dir) ? readdirSync(dir).filter((name) => name.endsWith('.test.mjs')).map((name) => `${dir}/${name}`) : []);
+  const suite = [...testsIn('.githooks'), ...testsIn('.agents/hooks/test')];
+  console.error('  - hooks changed: running node --test .githooks/*.test.mjs .agents/hooks/test/*.test.mjs');
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
   const tests = spawnSync(process.execPath, ['--test', '--test-reporter=dot', ...suite], { encoding: 'utf8', env });
   if (tests.status !== 0) {

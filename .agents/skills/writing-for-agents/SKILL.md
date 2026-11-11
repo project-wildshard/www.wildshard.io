@@ -127,6 +127,8 @@ only for a hard guardrail, paired with the positive.
   it.
 - Reference two user-invoked skills share lives in a model-invoked
   skill or a plain doc, since neither can call the other.
-- Skills live in leftover `src/repo-kit/files/.claude/skills/` and
-  sync to the org repos (`docs/repo-kit.md`). Singleplayer keeps its
-  own copy in `.claude/skills/`.
+- A skill is one directory in `.agents/skills/<name>/` (Codex reads
+  it there); `.claude/skills/<name>` is a symlink to it for Claude.
+  Kit skills come from repo-kit (`scripts/agent-sync.mjs`,
+  `docs/agent-parity.md`); never copy one by hand. Singleplayer keeps
+  its own skills.

@@ -1,22 +1,27 @@
 // The session brief's main-only alarm (D27): it names every extra
 // worktree, local branch and remote branch, and is quiet when the
-// repo is main only. Runs .claude/hooks/session-brief.sh in a sandbox.
+// repo is main only. Runs the session brief hook in a sandbox.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { cpSync, existsSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
 
-const BRIEF = join(dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'hooks', 'session-brief.sh');
+// The agent layout (repo-kit agent-sync) keeps hook scripts in .agents/hooks/;
+// a repo not yet stamped keeps them in .claude/hooks/.
+const hookScript = (root, name) => ['.agents', '.claude'].map((dir) => join(root, dir, 'hooks', name)).find((path) => existsSync(path)) ?? join(root, '.claude', 'hooks', name);
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const BRIEF = hookScript(ROOT, 'session-brief.sh');
+const AT = relative(ROOT, BRIEF);
 
 const setup = () => {
   const box = sandbox();
-  cpSync(BRIEF, join(box.root, '.claude', 'hooks', 'session-brief.sh'));
+  cpSync(BRIEF, join(box.root, AT));
   assert.equal(box.commit({ 'a.txt': 'a\n' }, ok('feat: add a')).status, 0);
   const brief = () => {
-    const result = spawnSync('bash', [join(box.root, '.claude', 'hooks', 'session-brief.sh')], { encoding: 'utf8', env: ENV });
+    const result = spawnSync('bash', [join(box.root, AT)], { encoding: 'utf8', env: ENV });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.split('-- main only')[1].split('\n-- ')[0];
   };

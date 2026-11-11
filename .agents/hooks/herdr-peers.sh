@@ -11,8 +11,8 @@
 # kami-kakushi's herdr-peers.sh, simplified for herdr 0.9: one
 # `herdr agent list` carries status, cwd, tokens and title.
 #
-# Self is excluded by Claude session id ($CLAUDE_CODE_SESSION_ID or
-# arg 2), falling back to $HERDR_PANE_ID. Arg 1: repo root (default:
+# Self is excluded by session id (Claude: $CLAUDE_CODE_SESSION_ID; either
+# tool: arg 2), falling back to $HERDR_PANE_ID. Arg 1: repo root (default:
 # the git toplevel).
 set -uo pipefail
 

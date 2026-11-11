@@ -61,7 +61,7 @@ line in place as it moves; never append to it.
 3. **Rows are buildable and checkable.** Each row has a done-when line
    a reviewer can verify. No "investigate X" rows without an output.
 4. **Name the seams (shared checkout).** Check `docs/plans/` for live
-   plans and `bash .claude/hooks/herdr-peers.sh` for other agents
+   plans and `bash .agents/hooks/herdr-peers.sh` for other agents
    (everyone is on `main`: no branches, no worktrees, D27). Say which
    files this plan owns and what must land before or after it.
 5. **Verification drives the real path.** Tests use real things: real git

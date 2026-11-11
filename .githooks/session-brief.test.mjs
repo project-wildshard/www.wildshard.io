@@ -1,15 +1,18 @@
-// Tests for the herdr section of .claude/hooks/session-brief.sh, with a
+// Tests for the herdr section of the session brief hook, with a
 // fake `herdr` on PATH that prints a canned `herdr agent list`.
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BRIEF = join(ROOT, '.claude', 'hooks', 'session-brief.sh');
+// The agent layout (repo-kit agent-sync) keeps hook scripts in .agents/hooks/;
+// a repo not yet stamped keeps them in .claude/hooks/.
+const hookScript = (root, name) => ['.agents', '.claude'].map((dir) => join(root, dir, 'hooks', name)).find((path) => existsSync(path)) ?? join(root, '.claude', 'hooks', name);
+const BRIEF = hookScript(ROOT, 'session-brief.sh');
 const bin = mkdtempSync(join(tmpdir(), 'repo-herdr-'));
 after(() => rmSync(bin, { recursive: true, force: true }));
 

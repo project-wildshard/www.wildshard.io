@@ -1,0 +1,14 @@
+{
+  "session_id": "01a1c8a0-33db-7521-8617-e1927bd16259",
+  "turn_id": "01a1c8a0-3cc0-7250-b775-fb8edd27e0d1",
+  "transcript_path": null,
+  "cwd": "__ROOT__",
+  "hook_event_name": "PreToolUse",
+  "model": "gpt-6.1-sol",
+  "permission_mode": "bypassPermissions",
+  "tool_name": "apply_patch",
+  "tool_input": {
+    "command": "*** Begin Patch\n*** Update File: __ROOT__/notes.md\n@@\n-hello\n+hello world\n*** Add File: __ROOT__/b.md\n+x\n*** End Patch"
+  },
+  "tool_use_id": "exec-fa060001-ec52-429c-953e-98631ce30ac4"
+}
