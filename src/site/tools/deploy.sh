@@ -7,7 +7,8 @@
 #   bash src/site/tools/deploy.sh --build-only    # build the export into src/site/dist and stop (no upload)
 #
 # The export holds only this folder (P1-W1): its pages, COPY.md, public/ and facts.json, the game's facts committed here.
-# It is unpacked under src/site/.deploy/ so `vite` resolves from the repo root's node_modules above it. CI runs it too
+# It is unpacked at tmp/site-deploy.XXXXXX, two levels below the repo root, so `vite` resolves from the root's
+# node_modules and vite.config.ts's `../../scripts/vite-tmp.mjs` finds the root's scripts/ (d7acaff). CI runs it too
 # (.github/workflows/site-deploy.yml, MS10) on every push that changes src/site/. There VERCEL_BUILD_TOKEN is the credential; locally the CLI's own login is.
 set -euo pipefail
 
@@ -20,8 +21,9 @@ if [ -n "$dirty" ]; then
   echo "$dirty" >&2
 fi
 
-mkdir -p "$site/.deploy"
-work="$(mktemp -d "$site/.deploy/build.XXXXXX")"
+repo="$(git rev-parse --show-toplevel)"
+mkdir -p "$repo/tmp"
+work="$(mktemp -d "$repo/tmp/site-deploy.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 git archive HEAD | tar -x -C "$work" # run from this folder, git archives only it, unprefixed
 test -f "$work/index.html" || { echo "deploy-site: the export of HEAD holds no index.html" >&2; exit 1; }
