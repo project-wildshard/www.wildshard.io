@@ -22,6 +22,12 @@
       "tools": "edit",
       "script": ".agents/hooks/md-prose-width.sh",
       "status": "Checking markdown prose width"
+    },
+    {
+      "event": "SubagentStop",
+      "script": ".agents/hooks/subagent-cleanup.mjs",
+      "status": "Stopping the finished lane's processes",
+      "timeout": 30
     }
   ]
 }

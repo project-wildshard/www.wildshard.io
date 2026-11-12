@@ -39,6 +39,18 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/subagent-cleanup.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Stopping the finished lane's processes"
+          }
+        ]
+      }
     ]
   }
 }

@@ -4,6 +4,17 @@
 // (Jake, 2026-11-10; meta docs/plans/MULTI-AGENT-TOOLING-PLAN.md.)
 //
 //   node scripts/agent-parity.mjs [--root <dir>] [--kit <repo-kit>] [--json] [--strict]
+//   node scripts/agent-parity.mjs --global [--root <home>] [--json] [--strict]
+//
+// --global audits the user-level layer instead (MA8): ~/.claude against
+// ~/.codex and ~/.agents. Rules: ~/.claude/CLAUDE.md must import (`@path`)
+// or be the file ~/.codex/AGENTS.md is. Skills: ~/.claude/skills against
+// ~/.agents/skills and ~/.codex/skills. Hooks: ~/.claude/settings.json against
+// ~/.codex/hooks.json, with scripts named by their path under home (`$HOME/`,
+// `~/` and the literal home path all count) and grouped by that path, since
+// per-tool adapters (herdr's) share a file name. Settings and MCP as in a repo,
+// env compared per variable. One-sided items are accepted in
+// ~/.agents/parity.json. Codex's trust store (`[hooks.state]`) is never a hook.
 //
 // --kit also compares each kit-owned piece (the kit's skills, .agents/hooks/,
 // the hook spec and these two scripts) with the kit's bytes: `drift` when
@@ -38,6 +49,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSyn
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { basename, isAbsolute, join, relative, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 export const PASSING = new Set(['same', 'paired', 'shared', 'accepted']);
@@ -696,6 +708,55 @@ function auditRules(root, docLimit) {
   return items;
 }
 
+/** The `@path` imports in a CLAUDE.md (one per line, outside code fences), resolved against `home` and `dir`. */
+export function claudeImports(text, home, dir) {
+  const out = [];
+  let fence = false;
+  for (const line of (text ?? '').split('\n')) {
+    if (/^\s*(`{3,}|~{3,})/.test(line)) fence = !fence;
+    const match = fence ? null : /^\s*@(\S+)\s*$/.exec(line);
+    if (!match) continue;
+    const target = match[1];
+    out.push(target.startsWith('~/') ? join(home, target.slice(2)) : isAbsolute(target) ? target : join(dir, target));
+  }
+  return out;
+}
+
+/** Global rules: Codex reads ~/.codex/AGENTS.md, Claude ~/.claude/CLAUDE.md; Claude must import (or be) Codex's file. */
+function auditGlobalRules(home, docLimit) {
+  const agentsPath = join(home, '.codex/AGENTS.md');
+  const claudePath = join(home, '.claude/CLAUDE.md');
+  const agentsRead = readText(agentsPath);
+  const claudeRead = readText(claudePath);
+  const name = '~/.codex/AGENTS.md';
+  const failed = [agentsRead, claudeRead].find((result) => result.error);
+  if (failed) return [item('rules', name, 'broken', { note: failed.error })];
+  const [agents, claude] = [agentsRead.text, claudeRead.text];
+  const sides = { claude: claude === null ? null : '.claude/CLAUDE.md', codex: agents === null ? null : '.codex/AGENTS.md' };
+  const items = [];
+  const shared = real(agentsPath);
+  const imports = claudeImports(claude, home, join(home, '.claude'));
+  const dangling = imports.filter((path) => real(path) === null);
+  if (agents === null && claude === null) items.push(item('rules', name, 'missing', { note: 'no ~/.codex/AGENTS.md or ~/.claude/CLAUDE.md' }));
+  else if (agents === null) items.push(item('rules', name, 'claude-only', { ...sides, note: 'Codex reads ~/.codex/AGENTS.md; link it to the shared rules file' }));
+  else if (claude === null) items.push(item('rules', name, 'codex-only', { ...sides, note: 'Claude Code reads ~/.claude/CLAUDE.md; import the shared rules file there' }));
+  else if (dangling.length) items.push(item('rules', name, 'broken', { ...sides, note: `CLAUDE.md imports a file that does not exist: ${dangling.map((path) => relative(home, path)).join(', ')}` }));
+  else if (real(claudePath) === shared) items.push(item('rules', name, 'same', { ...sides, note: 'one file' }));
+  else if (imports.some((path) => real(path) === shared)) items.push(item('rules', name, 'same', { ...sides, note: `CLAUDE.md imports ${relative(home, shared)}, the file ~/.codex/AGENTS.md is` }));
+  else if (claude === agents) items.push(item('rules', name, 'copy', { ...sides, note: 'two identical files; import one from CLAUDE.md' }));
+  else items.push(item('rules', name, 'drift', { ...sides, note: 'CLAUDE.md does not import the file ~/.codex/AGENTS.md is; Codex never sees the shared rules' }));
+  if (agents !== null && Buffer.byteLength(agents) > docLimit.bytes) {
+    items.push(item('rules', 'AGENTS.md size', 'broken', { codex: '.codex/AGENTS.md', note: `${Buffer.byteLength(agents)} bytes; Codex reads only the first ${docLimit.bytes} (${docLimit.source})` }));
+  }
+  if (existsSync(join(home, '.codex/AGENTS.override.md'))) {
+    items.push(item('rules', 'AGENTS.override.md', 'codex-only', { codex: '.codex/AGENTS.override.md', note: 'Codex reads it instead of AGENTS.md; Claude never does' }));
+  }
+  return items;
+}
+
+/** Claude Code's own synced-skill store under ~/.claude/skills: app state, not a skill. */
+const GLOBAL_APP_DIRS = new Set(['synced']);
+
 const skillDirs = (dir) => {
   const found = new Map();
   for (const name of list(dir)) {
@@ -745,7 +806,7 @@ function deadLinks(dir, file) {
  * `name` is the directory's name in Codex's hyphen-case, `description` is present and within Codex's cap,
  * and every relative link in the skill's top-level markdown files resolves.
  */
-function skillProblems(dir, name = basename(dir)) {
+function skillProblems(dir, name = basename(dir), global = false) {
   const { text, error } = readText(join(dir, 'SKILL.md'));
   if (error) return [error];
   if (text === null) return ['no SKILL.md'];
@@ -753,7 +814,8 @@ function skillProblems(dir, name = basename(dir)) {
   if (parseError) return [`SKILL.md ${parseError}`];
   const problems = [];
   if (!nonEmpty(fields.name)) problems.push('frontmatter name is missing or empty');
-  else if (fields.name.trim() !== name) problems.push(`frontmatter name "${fields.name.trim()}" is not the directory name "${name}"`);
+  // --global: a third-party installer (img2) may name the directory apart from the skill; both tools still load it.
+  else if (fields.name.trim() !== name && !global) problems.push(`frontmatter name "${fields.name.trim()}" is not the directory name "${name}"`);
   else if (!SKILL_NAME.test(name) || name.length > SKILL_NAME_MAX) problems.push(`name "${name}" is not hyphen-case within ${SKILL_NAME_MAX} characters`);
   if (!nonEmpty(fields.description)) problems.push('frontmatter description is missing or empty');
   else if (fields.description.trim().length > SKILL_DESCRIPTION_MAX) problems.push(`description is ${fields.description.trim().length} characters; the skill spec allows at most ${SKILL_DESCRIPTION_MAX}`);
@@ -761,9 +823,14 @@ function skillProblems(dir, name = basename(dir)) {
   return problems;
 }
 
-function auditSkills(root) {
+function auditSkills(root, global = false) {
   const claude = skillDirs(join(root, '.claude/skills'));
   const codex = skillDirs(join(root, '.agents/skills'));
+  if (global) {
+    // Codex also reads its own ~/.codex/skills (.system holds its bundled skills); installers write there.
+    for (const [name, dir] of skillDirs(join(root, '.codex/skills'))) if (name !== '.system' && !codex.has(name)) codex.set(name, dir);
+    for (const name of GLOBAL_APP_DIRS) claude.delete(name);
+  }
   const items = [];
   for (const name of [...new Set([...claude.keys(), ...codex.keys()])].sort()) {
     const a = claude.get(name);
@@ -778,7 +845,7 @@ function auditSkills(root) {
     let note;
     if (a && b && real(a.path) === real(b.path)) {
       status = 'same';
-      note = isLink(b.path) ? '.agents/skills links to .claude/skills' : isLink(a.path) ? '.claude/skills links to .agents/skills' : 'one directory';
+      note = global ? `one directory: ${relative(root, real(a.path))}` : isLink(b.path) ? '.agents/skills links to .claude/skills' : isLink(a.path) ? '.claude/skills links to .agents/skills' : 'one directory';
     } else if (a && b) {
       const [x, y] = [tryHash(a.path), tryHash(b.path)];
       if (x.error || y.error) {
@@ -791,7 +858,7 @@ function auditSkills(root) {
       status = a ? 'claude-only' : 'codex-only';
       note = a ? 'Codex looks in .agents/skills/' : 'Claude looks in .claude/skills/';
     }
-    const problems = [...new Set([a, b].filter(Boolean).flatMap((side) => skillProblems(side.path, name)))];
+    const problems = [...new Set([a, b].filter(Boolean).flatMap((side) => skillProblems(side.path, name, global)))];
     if (problems.length && status !== 'drift') {
       status = 'broken';
       note = problems.join('; ');
@@ -801,13 +868,29 @@ function auditSkills(root) {
   return items;
 }
 
-function readHooks(root, path, tool) {
+/**
+ * A user-level hook command with its home-rooted script written as a repo-root one (--global), so
+ * `invocation` reads `$HOME/x`, `${HOME}/x`, `~/x`, `<home>/x` and `'<home>/x'` alike as the script `x` under home.
+ */
+export function homeRooted(command, home) {
+  const literal = home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return command
+    .replace(new RegExp(`'(${literal}/[^'"$\\s]*)'`, 'g'), '"$1"')
+    .replace(new RegExp(`(^|[\\s"])(?:\\$HOME|\\$\\{HOME\\}|~|${literal})/`, 'g'), `$1${GIT_ROOT_FORM}/`);
+}
+
+const homeRootedHooks = (hooks, home) => Object.fromEntries(Object.entries(hooks).map(([event, groups]) => [event, !Array.isArray(groups) ? groups : groups.map((group) => (
+  !isObject(group) || !Array.isArray(group.hooks) ? group : { ...group, hooks: group.hooks.map((hook) => (isObject(hook) && typeof hook.command === 'string' ? { ...hook, command: homeRooted(hook.command, home) } : hook)) }
+))]));
+
+function readHooks(root, path, tool, global = false) {
   const { text, error } = readText(join(root, path));
   if (error) return { entries: [], problems: [error] };
   const parsed = parseJson(text);
   if (parsed.error) return { entries: [], problems: [`${path} does not parse: ${parsed.error}`] };
   if (parsed.value !== null && !isObject(parsed.value)) return { entries: [], problems: [`${path} is not a JSON object`] };
-  const { entries, problems } = hookEntries(parsed.value?.hooks, tool);
+  const hooks = global && isObject(parsed.value?.hooks) ? homeRootedHooks(parsed.value.hooks, root) : parsed.value?.hooks;
+  const { entries, problems } = hookEntries(hooks, tool);
   return { entries, problems: problems.map((problem) => `${path}: ${problem}`) };
 }
 
@@ -832,7 +915,7 @@ export function tomlHooks(entries) {
   const marker = (entry, at) => ((entry.elements ?? []).includes(at) ? Number(entry.path[at].slice(1)) : undefined);
   for (const entry of entries.values()) {
     const [head, event, , field, , key] = entry.path;
-    if (head !== 'hooks') continue;
+    if (head !== 'hooks' || event === 'state') continue; // [hooks.state."…"]: Codex's trust store, not a hook
     if (event === undefined) {
       if (entry.kind === 'value') problems.add('.codex/config.toml: hooks is a value, not [[hooks.<Event>]] tables');
       continue;
@@ -861,9 +944,9 @@ export function tomlHooks(entries) {
   return { hooks: Object.keys(out).length > 0 ? out : null, problems: [...problems] };
 }
 
-function auditHooks(root, toml = { entries: new Map(), error: null }) {
-  const claude = readHooks(root, '.claude/settings.json', 'claude');
-  const codex = readHooks(root, '.codex/hooks.json', 'codex');
+function auditHooks(root, toml = { entries: new Map(), error: null }, global = false) {
+  const claude = readHooks(root, '.claude/settings.json', 'claude', global);
+  const codex = readHooks(root, '.codex/hooks.json', 'codex', global);
   if (!toml.error) {
     const inline = tomlHooks(toml.entries);
     const fromToml = hookEntries(inline.hooks, 'codex');
@@ -879,7 +962,7 @@ function auditHooks(root, toml = { entries: new Map(), error: null }) {
   for (const [tool, { entries }] of [['claude', claude], ['codex', codex]]) {
     for (const entry of entries) {
       if (entry.type !== 'command') add(`${entry.event} ${entry.type} handler (${tool})`, tool, entry);
-      else if (entry.script) add(`${entry.event} ${basename(entry.script)}`, tool, entry);
+      else if (entry.script) add(`${entry.event} ${global ? entry.script : basename(entry.script)}`, tool, entry);
       else add(`${entry.event} inline:${commandId(entry.command)}`, tool, entry);
     }
   }
@@ -943,7 +1026,7 @@ function auditHooks(root, toml = { entries: new Map(), error: null }) {
       else push(x.hash === y.hash ? 'copy' : 'drift', `two scripts: ${scripts.join(', ')}`);
       continue;
     }
-    push('drift', `several scripts named ${name.split(' ')[1]}: ${scripts.join(', ')}`);
+    push('drift', `several scripts named ${name.slice(name.indexOf(' ') + 1)}: ${scripts.join(', ')}`);
   }
   return items;
 }
@@ -1039,10 +1122,11 @@ export function codexForbiddenPrefixes(texts) {
 }
 
 /** Claude `permissions.deny` against Codex's forbidden rules: the same prefixes, or drift with counts (never the rules' text). */
-function comparePermissions(root, settings) {
+function comparePermissions(root, settings, global = false) {
   const claude = claudeDenyPrefixes(settings.permissions?.deny);
   const rulesDir = join(root, '.codex/rules');
-  const reads = list(rulesDir).filter((name) => name.endsWith('.rules')).map((name) => ({ name, ...readText(join(rulesDir, name)) }));
+  // --global: ~/.codex/rules/default.rules is where Codex itself appends the commands you approved (app state).
+  const reads = list(rulesDir).filter((name) => name.endsWith('.rules') && !(global && name === 'default.rules')).map((name) => ({ name, ...readText(join(rulesDir, name)) }));
   const unreadable = reads.filter((file) => file.error);
   if (unreadable.length > 0) return { status: 'broken', note: `unreadable .codex/rules file(s): ${unreadable.map((file) => file.name).join(', ')}` };
   const codex = codexForbiddenPrefixes(reads.map((file) => file.text));
@@ -1068,7 +1152,21 @@ function compareEnv(settings, toml) {
     : { status: 'drift', note: `env and shell_environment_policy.set differ for: ${differ.join(', ')}` };
 }
 
-function auditSettings(root, toml) {
+/** --global: Claude `env` against Codex `shell_environment_policy.set` one variable at a time, so a tool's own variable can be accepted. */
+function envItems(settings, toml) {
+  const claude = isObject(settings.env) ? settings.env : {};
+  const codex = new Map([...toml.entries.values()].filter((entry) => entry.path[0] === 'shell_environment_policy' && entry.path[1] === 'set' && entry.path.length === 3).map((entry) => [entry.path[2], entry]));
+  return [...new Set([...Object.keys(claude), ...codex.keys()])].sort().map((name) => {
+    const theirs = codex.get(name);
+    const sides = { claude: Object.hasOwn(claude, name) ? '.claude/settings.json env' : null, codex: theirs ? '.codex/config.toml shell_environment_policy.set' : null };
+    if (!theirs) return item('settings', `env:${name}`, 'claude-only', { ...sides, note: 'not in shell_environment_policy.set' });
+    if (!Object.hasOwn(claude, name)) return item('settings', `env:${name}`, 'codex-only', { ...sides, note: 'not in Claude env' });
+    const same = typeof claude[name] === 'string' && theirs.raw === null && theirs.value === claude[name];
+    return item('settings', `env:${name}`, same ? 'paired' : 'drift', { ...sides, note: same ? 'same value' : 'values differ' });
+  });
+}
+
+function auditSettings(root, toml, global = false) {
   const items = [];
   const settingsRead = readText(join(root, '.claude/settings.json'));
   const settingsParsed = parseJson(settingsRead.text);
@@ -1083,10 +1181,15 @@ function auditSettings(root, toml) {
   // Hooks in config.toml are compared with the other hooks (auditHooks, MA10 a).
   const claimed = new Set(['hooks', 'mcp_servers']); // their own kinds
   for (const key of Object.keys(settings).filter((name) => !['hooks', '$schema', 'mcpServers'].includes(name))) {
+    if (global && key === 'env') {
+      items.push(...envItems(settings, toml));
+      if (codexKeys.has('shell_environment_policy')) claimed.add('shell_environment_policy');
+      continue;
+    }
     const counterparts = (SETTING_MAP[key] ?? []).filter((codexKey) => codexKeys.has(codexKey));
     counterparts.forEach((codexKey) => claimed.add(codexKey));
     // MA10 (c): where both sides carry the same meaning in a comparable form, compare it.
-    const meaning = toml.error ? null : key === 'permissions' ? comparePermissions(root, settings) : key === 'env' ? compareEnv(settings, toml) : null;
+    const meaning = toml.error ? null : key === 'permissions' ? comparePermissions(root, settings, global) : key === 'env' ? compareEnv(settings, toml) : null;
     if (meaning) ['rules', 'shell_environment_policy'].forEach((codexKey) => codexKeys.has(codexKey) && SETTING_MAP[key].includes(codexKey) && claimed.add(codexKey));
     items.push(item('settings', key, meaning?.status ?? (counterparts.length ? 'paired' : 'claude-only'), {
       claude: `.claude/settings.json ${key}`,
@@ -1280,8 +1383,9 @@ export function readExceptions(root) {
  * Every agent-tooling item in a repo, with its status. Never throws for repo content. With `kit` (a
  * repo-kit checkout), also each kit-owned piece against the kit's bytes (MA4).
  */
-export function audit(rootDir, { kit = null } = {}) {
+export function audit(rootDir, { kit = null, global = false } = {}) {
   const root = resolve(rootDir);
+  if (global) return applyExceptions(root, auditGlobal(root));
   const tomlRead = readText(join(root, '.codex/config.toml'));
   const toml = tomlRead.error ? { entries: new Map(), error: tomlRead.error } : tomlRead.text === null ? { entries: new Map(), error: null } : parseToml(tomlRead.text);
   const docRaw = toml.entries.get('project_doc_max_bytes')?.raw;
@@ -1302,8 +1406,7 @@ export function audit(rootDir, { kit = null } = {}) {
       items.push(item(kind, 'audit', 'broken', { note: `could not audit: ${error.code ?? ''} ${error.message}`.trim() }));
     }
   }
-  const { accept, owned, problems } = readExceptions(root);
-  for (const problem of problems) items.push(item('exceptions', EXCEPTIONS, 'broken', { note: problem }));
+  const { owned } = readExceptions(root);
   if (kit) {
     try {
       items.push(...auditKit(root, resolve(kit), owned));
@@ -1311,6 +1414,37 @@ export function audit(rootDir, { kit = null } = {}) {
       items.push(item('kit', 'audit', 'broken', { note: `could not compare with the kit: ${error.code ?? ''} ${error.message}`.trim() }));
     }
   }
+  return applyExceptions(root, items);
+}
+
+/** The user-level layer (--global): rules, skills, hooks, settings and MCP of ~/.claude against ~/.codex and ~/.agents. */
+function auditGlobal(home) {
+  const tomlRead = readText(join(home, '.codex/config.toml'));
+  const toml = tomlRead.error ? { entries: new Map(), error: tomlRead.error } : tomlRead.text === null ? { entries: new Map(), error: null } : parseToml(tomlRead.text);
+  const docRaw = toml.entries.get('project_doc_max_bytes')?.raw;
+  const docBytes = docRaw && /^\d[\d_]*$/.test(docRaw) ? Number(docRaw.replace(/_/g, '')) : NaN;
+  const docLimit = docBytes > 0 ? { bytes: docBytes, source: 'project_doc_max_bytes in ~/.codex/config.toml' } : { bytes: CODEX_DOC_BYTES, source: 'Codex\'s default project_doc_max_bytes' };
+  const items = [];
+  for (const [kind, step] of [
+    ['rules', () => auditGlobalRules(home, docLimit)],
+    ['skills', () => auditSkills(home, true)],
+    ['hooks', () => auditHooks(home, toml, true)],
+    ['settings', () => auditSettings(home, toml, true)],
+    ['agents', () => auditCommandsAndAgents(home)],
+  ]) {
+    try {
+      items.push(...step());
+    } catch (error) {
+      items.push(item(kind, 'audit', 'broken', { note: `could not audit: ${error.code ?? ''} ${error.message}`.trim() }));
+    }
+  }
+  return items;
+}
+
+/** One-sided items accepted with a reason in .agents/parity.json become `accepted`; a stale or empty acceptance is `broken`. */
+function applyExceptions(root, items) {
+  const { accept, problems } = readExceptions(root);
+  for (const problem of problems) items.push(item('exceptions', EXCEPTIONS, 'broken', { note: problem }));
   const used = new Set();
   for (const entry of items) {
     const id = `${entry.kind}:${entry.name}`;
@@ -1353,17 +1487,23 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   let json = false;
   let strict = false;
   let kit = null;
+  let global = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--json') json = true;
+    else if (args[i] === '--global') global = true;
     else if (args[i] === '--strict') strict = true;
     else if (args[i] === '--root' && args[i + 1]) root = args[++i];
     else if (args[i] === '--kit' && args[i + 1]) kit = args[++i];
     else {
-      console.error('usage: agent-parity.mjs [--root <dir>] [--kit <repo-kit>] [--json] [--strict]');
+      console.error('usage: agent-parity.mjs [--root <dir>] [--kit <repo-kit>] [--json] [--strict]\n       agent-parity.mjs --global [--root <home>] [--json] [--strict]');
       process.exit(2);
     }
   }
-  root ??= run(['rev-parse', '--show-toplevel'], process.cwd()) || process.cwd();
+  if (global && kit !== null) {
+    console.error('agent-parity: --global audits the user-level layer; --kit applies to a repo');
+    process.exit(2);
+  }
+  root ??= global ? homedir() : run(['rev-parse', '--show-toplevel'], process.cwd()) || process.cwd();
   if (!isDir(root)) {
     console.error(`agent-parity: no such directory: ${root}`);
     process.exit(2);
@@ -1372,7 +1512,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     console.error(`agent-parity: no such directory: ${kit}`);
     process.exit(2);
   }
-  const items = audit(root, { kit });
+  const items = audit(root, { kit, global });
   const refused = refusals(items);
   if (json) console.log(JSON.stringify({ root: resolve(root), counts: summarize(items), items }, null, 2));
   else console.log(format(items, resolve(root)));

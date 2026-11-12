@@ -35,6 +35,17 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/subagent-cleanup.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
