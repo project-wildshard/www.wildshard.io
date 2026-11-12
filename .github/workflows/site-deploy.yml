@@ -1,31 +1,72 @@
 name: site-deploy
 
-# The marketing site (MARKETING-SITE MS10, E465) redeploys itself whenever src/site/ changes (src/site/COPY.md is Jake's
-# copy). It uploads to the Cloudflare Worker wildshard-www, which owns wildshard.io and www (meta WWW-CLOUDFLARE-PLAN,
-# J271; it left Vercel 2026-11-11). Until the repo has a CLOUDFLARE_API_TOKEN secret (Workers Scripts Write on the
-# account), the deploy step only warns, and deploys go from a Mac: `bash src/site/tools/deploy.sh`.
+# The marketing site (MARKETING-SITE MS10, E465) redeploys itself when its build inputs change on main (src/site/COPY.md
+# is Jake's copy). It uploads to the Cloudflare Worker wildshard-www, which owns wildshard.io and www (meta
+# WWW-CLOUDFLARE-PLAN, J271; it left Vercel 2026-11-11). Without a CLOUDFLARE_API_TOKEN secret the deploy step only
+# warns, and deploys go from a Mac: `bash src/site/tools/deploy.sh`.
+#
+# Which pushes deploy (meta HOW-WE-BUILD WWW1): `paths` lets in src/site/ (minus tests, the README and the gate) and
+# package.json, then the `changes` job runs src/site/tools/deploy-gate.ts over the whole push, which keeps a
+# package.json change only when a field the build reads moved (node, pnpm, vite, the deploy script). Kit syncs, lint
+# config, the lockfile alone, scripts/ and this workflow (wrangler's pin included) never deploy; ship one with
+# `gh workflow run site-deploy.yml --ref main`.
+#
+# Main only: the job's `if`, which a branch's own copy of this file could drop, and the `production` environment,
+# whose deployment-branch policy (repo settings, not this file) admits main only. That second guard is whole only once
+# CLOUDFLARE_API_TOKEN is an environment secret: while it is a repo secret, a branch's copy could read it from a job
+# with no `environment:` (WWW1 left the move to Jake: the value can't be read back to copy it).
 on:
   push:
     branches: [main]
     paths:
       - 'src/site/**'
-      - '.github/workflows/site-deploy.yml'
+      - '!src/site/**/*.test.ts'
+      - '!src/site/README.md'
+      - '!src/site/tools/deploy-gate.ts'
       - 'package.json'
-      - 'pnpm-lock.yaml'
   workflow_dispatch:
-
-concurrency:
-  group: site-production
-  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
+  # deploy=true for a manual run; on a push, deploy-gate.ts's answer.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      deploy: ${{ steps.gate.outputs.deploy || 'true' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'push'
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: github.event_name == 'push'
+        with:
+          node-version-file: package.json
+      - id: gate
+        if: github.event_name == 'push'
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: node src/site/tools/deploy-gate.ts "$BEFORE" "$AFTER"
+
   deploy:
+    needs: changes
     # Production deploys come from main only: a workflow_dispatch on a
     # plan/<slug> branch (meta J240, J290) skips this job, never ships it.
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.deploy == 'true'
+    # The environment's branch policy admits main only, so a branch whose
+    # copy of this file drops the `if` above still cannot run this job.
+    environment: production
+    # On the deploy job, not the workflow: a queued run cancelled by a newer
+    # push whose gate said no would lose its site change. Each deploy ships
+    # its own HEAD, so the newest one queued holds every older change.
+    concurrency:
+      group: site-production
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
