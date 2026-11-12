@@ -69,18 +69,22 @@ if (files.some((path) => /^docs\/tasks\/asks\/[^/]+\.md$/.test(path)) && existsS
   if (spawnSync(process.execPath, [asksTool, 'check'], { stdio: 'inherit' }).status !== 0) process.exit(1);
 }
 
-// New plans (docs/plans/*.md, added in this commit) open with a Status
-// line that leads with a state: HARD. Their name follows
-// <model>-<YYYY-MM-DD>-<slug>.md: WARN. Editing or archiving an existing
-// plan never trips either. Skill: .claude/skills/write-plan/.
-const STATE = /^(?:\*\*)?Status:(?:\*\*)?\s*(?:`)?(draft|in progress|blocked|finished)\b/im;
+// New plans (docs/plans/*.md, added in this commit) open with a State
+// line that leads with a state: HARD. The States (meta's write-plan,
+// Jake 2026-11-07, "we go from draft to review to build"): draft,
+// ready for review, draft parked, in progress, held, done. The old
+// Status: line and its blocked / finished words are refused on a new
+// plan. Their name follows <model>-<YYYY-MM-DD>-<slug>.md: WARN.
+// Editing or archiving an existing plan never trips either.
+// Skill: .claude/skills/write-plan/.
+const STATE = /^(?:>[ \t]*)?(?:\*\*)?State:(?:\*\*)?[ \t]*`?(?:draft|ready for review|in progress|held|done)\b/im;
 const PLAN_NAME = /^docs\/plans\/[a-z][a-z0-9.]*-\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/;
 const added = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=A']).split('\0')
   .filter((path) => /^docs\/plans\/[^/]+\.md$/.test(path) && !path.endsWith('/README.md'));
 const stateless = added.filter((path) => !STATE.test(git(['show', `:${path}`])));
-if (report('commit blocked: a new plan needs a Status line that leads with its state', [
-  ...stateless.map((path) => `${path}: add e.g. "Status: draft 2026-11-04: <what it waits on>"`),
-  ...(stateless.length ? ['States: draft · in progress · blocked · finished (write-plan skill).'] : []),
+if (report('commit blocked: a new plan needs a State line that leads with its state', [
+  ...stateless.map((path) => `${path}: add e.g. "> **State:** ready for review, 2026-11-07."`),
+  ...(stateless.length ? ['States: draft · ready for review · draft, parked · in progress · held · done (write-plan skill).'] : []),
 ])) process.exit(1);
 for (const path of added.filter((path) => !PLAN_NAME.test(path))) {
   console.error(`  ~ new plan ${path}: name it <model>-<YYYY-MM-DD>-<slug>.md (e.g. opus-2026-11-04-queue-view.md)`);

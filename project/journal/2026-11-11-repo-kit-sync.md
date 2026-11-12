@@ -4,3 +4,6 @@
   the .agents hooks (the K3 herdr guard, the K4 brief) and the
   nine kit skills; owner skills untouched. Took the kit .githooks/lib.mjs,
   which the updated check-push.mjs needs.
+
+- Synced repo-kit at 54a9b9f (12 files, 855 lines):
+  chore(kit): sync repo-kit v2.0.0.
