@@ -1,6 +1,7 @@
 // Tests for the PreToolUse guard guard-git-add.sh (.agents/hooks/, or
 // .claude/hooks/ before the agent layout).
 import { test, describe } from 'node:test';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -53,4 +54,51 @@ describe('guard-git-add', () => {
     allows('SKIP_SWEEPGUARD=1 git commit -m "chore: whole index"');
     allows('echo "git add -A is banned"');
   });
+});
+
+// A merge commit takes no pathspec. It passes when it brings in only
+// upstream's changes (MERGE_HEAD set, every staged path one upstream
+// changed), found from the session's cwd, a `cd <dir>` or `git -C <dir>`.
+test('guard-git-add: a merge commit of upstream changes passes; extra staged paths do not', () => {
+  const scratch = join(dirname(fileURLToPath(import.meta.url)), '..', 'tmp');
+  mkdirSync(scratch, { recursive: true });
+  const repo = mkdtempSync(join(scratch, 'sweep-merge-'));
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+  try {
+    const git = (...args) => {
+      const result = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', ...args], { cwd: repo, encoding: 'utf8', env });
+      assert.equal(result.status, 0, result.stderr);
+    };
+    const put = (path, text) => writeFileSync(join(repo, path), text);
+    git('init', '-q', '-b', 'main');
+    git('config', 'user.name', 'Test');
+    git('config', 'user.email', 'test@example.com');
+    put('a.txt', '1\n');
+    put('b.txt', '1\n');
+    git('add', 'a.txt', 'b.txt');
+    git('commit', '-q', '-m', 'base');
+    git('checkout', '-q', '-b', 'upstream');
+    put('a.txt', '2\n');
+    git('commit', '-q', '-m', 'upstream', '--', 'a.txt');
+    git('checkout', '-q', 'main');
+    put('b.txt', '2\n');
+    git('commit', '-q', '-m', 'mine', '--', 'b.txt');
+    const run = (command, cwd) =>
+      spawnSync('bash', [GUARD], { cwd: tmpdir(), input: JSON.stringify({ tool_name: 'Bash', cwd, tool_input: { command } }), encoding: 'utf8', env });
+    assert.equal(run('git commit --no-edit', repo).status, 2, 'no merge in progress: a bare commit');
+    git('merge', '-q', '--no-ff', '--no-commit', 'upstream');
+    for (const [command, cwd] of [['git commit --no-edit', repo], [`cd ${repo} && git commit --no-edit`, tmpdir()], [`git -C ${repo} commit -q --no-edit`, tmpdir()]]) {
+      const result = run(command, cwd);
+      assert.equal(result.status, 0, `${command}\n${result.stderr}`);
+    }
+    assert.equal(run('git commit --no-edit', tmpdir()).status, 2, 'from a folder that is not the merging repo');
+    // A path upstream did not change, staged into the merge (another agent's file).
+    put('c.txt', 'not upstream\n');
+    git('add', 'c.txt');
+    const extra = run(`cd ${repo} && git commit --no-edit`, tmpdir());
+    assert.equal(extra.status, 2);
+    assert.match(extra.stderr, /upstream did not change: c\.txt/);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
 });

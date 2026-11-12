@@ -11,7 +11,8 @@
 // Every tool the repo's package.json or configs name must be installed: a missing one fails, never skips.
 // Ships byte-identical in every org repo beside scripts/worktree-ignore.mjs; run it with
 // `node --test test/tooling/worktree-guard.test.mjs`. Engine keeps its own, wider guard
-// (test/tooling/worktree-ignore.test.mjs: its watchers, its shardfile walk).
+// (test/tooling/worktree-ignore.test.mjs: its watchers, its shardfile walk), so in a repo on plan worktrees (J240,
+// scripts/land.mjs) that keeps such a guard this suite skips and says why; kit.mjs also pins it out for engine.
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {existsSync, globSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, rmdirSync, statSync, writeFileSync} from 'node:fs';
@@ -46,15 +47,24 @@ const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !ke
 const run = (command, args, extra = {}) => spawnSync(command, args, {cwd: ROOT, encoding: 'utf8', env: {...env, ...extra}, maxBuffer: 1 << 28, timeout: 120_000});
 /** The planted paths a tool's output names. @param {string} text */
 const seen = text => planted().filter(path => text.includes(path) || text.includes(join(ROOT, path)));
-/** @param {string} name */
-const bin = name => join(ROOT, 'node_modules/.bin', name);
-const scripts = /** @type {Record<string, string>} */ (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts ?? {});
+const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+/** A tool from node_modules/.bin, else from the repo's npm-bin-deps folder (NM8: `binDependenciesDir`, .bin-deps/). @param {string} name */
+const bin = name => [join(ROOT, 'node_modules/.bin', name), join(ROOT, pkg.binDependenciesDir ?? '.bin-deps', 'node_modules/.bin', name)]
+  .find(path => existsSync(path)) ?? join(ROOT, 'node_modules/.bin', name);
+const scripts = /** @type {Record<string, string>} */ (pkg.scripts ?? {});
+// The repo's worktree mode (J240): a repo that lands through plan worktrees carries the land tool, scripts/land.mjs.
+// One that also keeps its own, wider guard (engine: test/tooling/worktree-ignore.test.mjs) is guarded by that, not by
+// this copy: its own guard knows its watchers and tools, so this suite skips there and says why.
+const OWN_GUARD = 'test/tooling/worktree-ignore.test.mjs';
+const ownGuard = existsSync(join(ROOT, 'scripts/land.mjs')) && existsSync(join(ROOT, OWN_GUARD))
+  && `this repo uses plan worktrees (J240, scripts/land.mjs) and keeps its own guard, ${OWN_GUARD}`;
 const rootFiles = readdirSync(ROOT);
 /** Does the repo use `tool`: a package script runs it, or a root config of its name exists? @param {string} tool */
 const uses = tool => Object.values(scripts).some(script => new RegExp(`(?:^|[\\s/'"])${tool}(?:[\\s'"]|$)`, 'u').test(script))
   || rootFiles.some(name => name.startsWith(`${tool}.config.`));
 
 before(() => {
+  if (ownGuard) return;
   const parent = join(ROOT, WORKTREES);
   if (!existsSync(parent)) { mkdirSync(parent); madeParent = true; }
   // Only a real folder of this checkout: a linked .worktrees/ would send the plant, and its removal, elsewhere.
@@ -71,7 +81,7 @@ after(() => {
   if (madeParent) { try { rmdirSync(join(ROOT, WORKTREES)); } catch { /* Someone else's worktree is in it now. */ } }
 });
 
-describe('a planted plan worktree is invisible to the parent checkout', () => {
+describe('a planted plan worktree is invisible to the parent checkout', {skip: ownGuard}, () => {
   test('the ignore list names the root folder only', () => {
     assert.equal(isWorktreePath('.worktrees/plan/src/a.ts'), true);
     assert.equal(isWorktreePath('src/.worktrees/a.ts'), false);

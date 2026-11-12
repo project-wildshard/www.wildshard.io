@@ -15,3 +15,6 @@
 - Stamped the agent layer from repo-kit v2.1.1 (5 files, 213 lines):
   the herdr guard checks quoted command substitutions and passes
   printed text; look-loop names engine's real commands.
+
+- Synced repo-kit at b3bcce2 (3 files, 110 lines):
+  chore(kit): sync repo-kit v2.1.1.

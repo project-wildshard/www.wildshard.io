@@ -137,6 +137,10 @@ const FORMS = [
   (_agent, pane) => `herdr pane send-keys ${pane} Enter`,
   (_agent, pane) => `herdr pane run ${pane} "echo hi"; echo done`,
   (agent) => `bash -c "herdr agent prompt ${agent.replaceAll('"', "'")} hi"`,
+  // Command substitution runs inside double quotes, and inside single quotes handed to bash -c (K7 review MUST).
+  (agent) => `echo "sent: $(herdr agent prompt ${agent} hi)"`,
+  (agent) => `bash -c 'echo $(herdr agent prompt ${agent.replaceAll("'", '"')} hi)'`,
+  (agent) => `x="\`herdr agent send-keys ${agent.replaceAll('"', "'")} Enter\`"`,
 ];
 const commands = (agent, pane) => {
   const out = [];
@@ -216,6 +220,44 @@ describe('herdr question guard (K3)', () => {
       chmodSync(join(flat.root, 'src', 'scripts', name), 0o644);
       assert.equal(flat.hook("herdr pane send-text 'w1:p1' hi").status, 2, `${name} not executable`);
     }
+  });
+
+  test('a herdr write inside any command substitution the shell runs is refused (K7 review MUST)', async () => {
+    const b = box();
+    const runs = [
+      'echo "$(herdr agent prompt jake-q hi)"',
+      'echo "a $(echo "$(herdr agent prompt jake-q hi)")"',
+      'git commit -m "$(herdr agent prompt jake-q hi)" -- a',
+      `x="$(cd /tmp && herdr pane send-text 'w1:p3' hi)"`,
+      'echo "`herdr agent prompt jake-q hi`"',
+      'echo `herdr agent prompt jake-q hi`',
+      'bash -c "echo $(herdr agent prompt jake-q hi)"',
+      `bash -c 'echo $(herdr agent prompt jake-q hi)'`,
+      "bash -c 'echo `herdr agent prompt jake-q hi`'",
+      `sh -lc 'echo "$(herdr pane send-keys w1:p3 Enter)"'`,
+      String.raw`eval "echo \$(herdr agent prompt jake-q hi)"`,
+      `watch 'echo $(herdr agent prompt jake-q hi)'`,
+      'echo "$(printf %s "$(herdr agent prompt "jake-q" hi)")"',
+    ].flatMap((command) => tools().map((tool) => ({ command, tool })));
+    for (const result of await b.hooks(runs)) {
+      assert.equal(result.status, 2, `${result.tool}: ${result.command}\n${result.stderr}`);
+      assert.match(result.stderr, /showing a question|is blocked/, result.command);
+    }
+  });
+
+  test('text the shell only prints, never runs, passes (K7 review SHOULD)', async () => {
+    const b = box();
+    const runs = [
+      'echo "herdr agent prompt jake-q hi"',
+      'echo herdr agent prompt jake-q hi',
+      String.raw`printf '%s\n' 'herdr pane send-text w1:p3 hi'`,
+      'grep -n "herdr agent prompt jake-q" docs/x.md',
+      `echo '$(herdr agent prompt jake-q hi)'`,
+      "echo '`herdr agent prompt jake-q hi`'",
+      String.raw`echo "\$(herdr agent prompt jake-q hi)"`,
+      `bash -c 'echo "herdr agent prompt jake-q hi"'`,
+    ].flatMap((command) => tools().map((tool) => ({ command, tool })));
+    for (const result of await b.hooks(runs)) assert.equal(result.status, 0, `${result.tool}: ${result.command}\n${result.stderr}`);
   });
 
   test('reads, other herdr commands, mentions and the escape pass', () => {
