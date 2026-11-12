@@ -77,10 +77,12 @@ describe('payload adapter', () => {
     }
   });
   test('bad input reads as nothing, and the CLI never fails a session', () => {
-    for (const raw of ['', 'not json', '[]', '{"tool_name":"Read"}']) assert.deepEqual(readPayload(raw), { tool: '', command: '', paths: [], session: '' });
+    for (const raw of ['', 'not json', '[]', '{"tool_name":"Read"}']) assert.deepEqual(readPayload(raw), { tool: '', command: '', paths: [], session: '', cwd: '' });
     assert.equal(readPayload('{"tool_name":"Bash","tool_input":"x"}').command, '');
     const cli = spawnSync(process.execPath, [join(HOOKS, 'lib', 'payload.mjs'), 'command'], { input: 'garbage', encoding: 'utf8' });
     assert.deepEqual([cli.status, cli.stdout], [0, '']);
+    const cwd = spawnSync(process.execPath, [join(HOOKS, 'lib', 'payload.mjs'), 'cwd'], { input: JSON.stringify({ tool_name: 'Bash', cwd: '/repo', tool_input: { command: 'ls' } }), encoding: 'utf8' });
+    assert.deepEqual([cwd.status, cwd.stdout], [0, '/repo']);
   });
 });
 

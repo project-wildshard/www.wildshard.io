@@ -11,3 +11,7 @@
 - Stamped the agent layer from repo-kit v2.1.0 (2 files, 174 lines):
   the tenth kit skill, look-loop (Jake, 2026-11-11: the look loop
   into all the repositories); owner skills untouched.
+
+- Stamped the agent layer from repo-kit v2.1.1 (5 files, 213 lines):
+  the herdr guard checks quoted command substitutions and passes
+  printed text; look-loop names engine's real commands.

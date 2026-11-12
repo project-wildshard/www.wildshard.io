@@ -10,12 +10,16 @@
 #
 # Ported from kami-kakushi's guard-git-add-all.sh. Reads either tool's
 # hook JSON on stdin through lib/payload.mjs; exits 2 (block, reason on
-# stderr) or 0. Passes --amend, a merge in progress, and anything with
-# SKIP_SWEEPGUARD=1.
+# stderr) or 0. Passes --amend, a merge commit that brings in only
+# upstream changes (MERGE_HEAD set, nothing staged that upstream did not
+# change), and anything with SKIP_SWEEPGUARD=1.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cmd="$(node "$here/lib/payload.mjs" command 2>/dev/null)" || cmd=""
+input="$(cat)"
+cmd="$(printf '%s' "$input" | node "$here/lib/payload.mjs" command 2>/dev/null)" || cmd=""
+cwd=""
+case "$cmd" in *commit*) cwd="$(printf '%s' "$input" | node "$here/lib/payload.mjs" cwd 2>/dev/null)" || cwd="" ;; esac
 [ -n "$cmd" ] || exit 0
 
 flat="$(printf '%s' "$cmd" | tr '\n' ' ')"
@@ -61,7 +65,23 @@ segment="$(printf '%s' "$stripped" | grep -oE "${COMMIT}([[:space:]][^;&|]*)?" |
 if [ -n "$segment" ] \
   && ! printf '%s' "$segment" | grep -qE '[[:space:]]--amend([[:space:]]|$)' \
   && ! printf '%s' "$segment" | grep -qE '[[:space:]]--([[:space:]]|$)'; then
-  git_dir="$(git rev-parse --git-dir 2>/dev/null || echo .git)"
-  [ -e "$git_dir/MERGE_HEAD" ] || deny "bare git commit (no -- <pathspec>)"
+  # A merge commit takes no pathspec. It passes when it brings in only
+  # upstream's changes: MERGE_HEAD is set and every staged path is one
+  # upstream changed (merge-base..MERGE_HEAD), conflict fixes included.
+  # The repo is the one the commit runs in: the payload's cwd, then the
+  # last `cd <dir>` before the commit, then the commit's `git -C <dir>`.
+  at() { case "$2" in "~"*) printf '%s' "$HOME${2#\~}" ;; /*) printf '%s' "$2" ;; *) printf '%s' "$1/$2" ;; esac; }
+  dir="${cwd:-$PWD}"
+  before="${stripped%%"$segment"*}"
+  to="$(printf '%s' "$before" | grep -oE '(^|[;&|(])[[:space:]]*cd[[:space:]]+[^[:space:];&|()]+' | tail -1 | sed -E 's/^.*cd[[:space:]]+//')"
+  [ -z "$to" ] || dir="$(at "$dir" "$to")"
+  to="$(printf '%s' "$segment" | grep -oE 'git[[:space:]]+-C[[:space:]]+[^[:space:]]+' | head -1 | sed -E 's/^git[[:space:]]+-C[[:space:]]+//')"
+  [ -z "$to" ] || dir="$(at "$dir" "$to")"
+  git_dir="$(git -C "$dir" rev-parse --absolute-git-dir 2>/dev/null)" || git_dir=""
+  [ -n "$git_dir" ] && [ -e "$git_dir/MERGE_HEAD" ] || deny "bare git commit (no -- <pathspec>)"
+  staged="$(git -C "$dir" diff --cached --name-only HEAD 2>/dev/null)" || deny "a merge commit whose staged paths could not be read"
+  upstream="$(git -C "$dir" diff --name-only HEAD...MERGE_HEAD 2>/dev/null)" || deny "a merge commit whose upstream changes could not be read"
+  extra="$(comm -23 <(printf '%s\n' "$staged" | sort -u) <(printf '%s\n' "$upstream" | sort -u) | grep -v '^$' | head -5 | tr '\n' ' ')"
+  [ -z "$extra" ] || deny "a merge commit that also stages paths upstream did not change: ${extra% }"
 fi
 exit 0

@@ -13,12 +13,10 @@ description: Polish a zone's graphics against a mockup by measurement. One mocku
 
 Full method, rulers and pitfalls: engine `docs/look-loop.md`, ported
 from singleplayer `docs/design/LOOK-LOOP.md`. Read it the first time.
-The tools are engine's, run from the sibling checkout: in engine
-`ENGINE=$(pwd)`, elsewhere `ENGINE=$(cd ../engine && pwd)`.
-opus-lookloop is porting them into engine `scripts/look-loop/`; until
-its receipt lands, `palette-delta.py` and `fit-lut.py` sit at engine
-`scripts/`, the capture is shard-pine-hollow
-`scripts/pine-hollow-views.mjs`, and the target maker's name is open.
+The tools are engine's `scripts/look-loop/` (`views.mjs`,
+`targets.py`, `palette-delta.py`, `fit-lut.py`, `regions/`), run from
+the sibling checkout: in engine `ENGINE=$(pwd)`, elsewhere
+`ENGINE=$(cd ../engine && pwd)`. Each takes `--help`.
 
 ## The loop
 
@@ -35,23 +33,30 @@ its receipt lands, `palette-delta.py` and `fit-lut.py` sit at engine
    angle, a TOP-10, ΔE00 per material, fix, fit the LUT last, re-shoot
    from the same `cameras.json`. Stop when the owner signs off the 3×3.
 
-A round lives in `art/look-loop/<zone>/round-<n>/`: `cameras.json`,
-`mockup.jpg`, `capture-{1..9}.jpg`, `target-{1..9}.jpg`, the two
-sheets, `board.jpg` and a `README.md` with the build SHA, the gap list
-and what moved. JPEG only, sheets under 490 KB.
+A round lives in `$R`, `art/look-loop/<zone>/round-<n>/`:
+`cameras.json`, `mockup.jpg`, per anchor the captures
+`<anchor>/r<n>-capture-<k>-<id>.jpg` (views.mjs) and the targets
+`<anchor>/mockup-<k>-<id>.jpg` (targets.py), the sheets
+`r<n>-<anchor>-sheet.jpg` and `<anchor>/mockup-sheet.jpg`, `board.jpg`
+and a `README.md` with the build SHA, the gap list and what moved.
+JPEG only, sheets under 490 KB.
 
 ## Freeze the world
 
-Both frames of a before / after must be the same frame. Pin the time
-(`tod=0.4167&clock=1000000`), clear weather, hold the boss, calm the
-creatures and park any within 24 m. Shoot a clean build of HEAD, write
-its SHA in the README, and note anything that landed mid-round. Clouds
-and wind still move; say so. The first `tod` in a URL wins.
+Both frames of a before / after must be the same frame. Pin time and
+weather in `cameras.json` `settings`, Debug picks written before the
+load (`{"time": "midday", "weather": "clear"}`), never a URL switch.
+views.mjs calms the creatures and parks any within 24 m. Shoot a clean
+build of HEAD, write its SHA in the README, and note anything that
+landed mid-round. Clouds and wind still move; say so.
 
 ## The nine cameras
 
-`cameras.json` holds P, f and the ground height; the first run resolves
-the nine and writes them back, every later round re-shoots them exactly.
+`cameras.json` holds `query` (`chunk=<slug>&mute=1&skipintro=1&nolock=1&sw=0`),
+`settings`, `fp`, `god` (`topUp`, `diagUp`, `diagOut`, `lookAhead`;
+shorter for a small level) and `anchors` (`id`, `P`, `faceTo`). The
+first run resolves the nine and writes them back; every later round
+re-shoots them exactly. Example: engine `docs/look-loop.md`.
 
 | # | Shot | Camera | HUD, frame |
 |---|---|---|---|
@@ -70,7 +75,8 @@ would not fit, and write down why. God cameras are posed from a late
 hook with the camera's children hidden.
 
 ```bash
-node $ENGINE/scripts/look-loop/views.mjs --cameras=$R/cameras.json --url=$URL --out=$R --tag=r$N
+$ENGINE/scripts/browser-lane.sh --max 20 node $ENGINE/scripts/look-loop/views.mjs \
+  --cameras=$R/cameras.json --url=$URL --out=$R --tag=r$N [--anchor=<id>]
 ```
 
 **Two domes** when the mockup looks at a focal area 30–50 m away (a
@@ -81,8 +87,17 @@ grid, then upscaled per tile: editing its captures only enhances gaps.
 
 ## Prompting codex for the nine
 
-One `codex exec` image edit per capture, 4–6 in parallel, JPEG inputs
-(~300 KB), inputs `[capture, mockup]`, one style reference only:
+`targets.py` runs one `codex exec` image edit per capture, 5 in
+parallel, inputs `[capture, mockup]`, and writes `mockup-<k>-<id>.jpg`
+and `mockup-sheet.jpg`. An existing target is skipped: re-roll one by
+deleting it and passing `--only=<k>`. `--dry-run` prints the prompts.
+
+```bash
+python3 $ENGINE/scripts/look-loop/targets.py --captures $R/<anchor> --out $R/<anchor> \
+  --seed-mockup $R/mockup.jpg --tag r$N --game "<shard>" --keep "<landmarks>"
+```
+
+Its prompt has this shape (one style reference only):
 
 ```
 EDIT image 1, a real screenshot of <shard>; image 2 is the STYLE REFERENCE, do not copy its composition.
@@ -96,8 +111,8 @@ Not a user ask: write only the output PNG, touch no other file, not git.
 Read all nine before using them. Re-roll one that added or moved
 objects, drifted the HUD, garbled text or lit from the wrong side, and
 say which. A portrait target comes back 2:3: take layout from the
-capture, never the mockup. Poll the output and kill the run; never wait
-for codex to copy its own file.
+capture, never the mockup. targets.py polls codex's output and kills
+the run; never wait for codex to copy its own file.
 
 ## The board, the gap list, the TOP-10
 
@@ -123,14 +138,18 @@ Only once the form column is clean. Write `art/palette-regions.json`
 LUT must not learn it.
 
 ```bash
-python3 $ENGINE/scripts/look-loop/palette-delta.py --shard $SLUG --regions art/palette-regions.json $R "$R/capture-{n}.jpg"
-python3 $ENGINE/scripts/look-loop/fit-lut.py --shard $SLUG --regions art/palette-regions.json $R "$R/nolut-{n}.jpg" public/assets/lut/$SLUG.bin tmp/<lane>/pred
+python3 $ENGINE/scripts/look-loop/palette-delta.py --regions art/palette-regions.json \
+  $R/<anchor> "$R/<anchor>/r$N-capture-{n}-*.jpg"
+python3 $ENGINE/scripts/look-loop/fit-lut.py --regions art/palette-regions.json \
+  $R/<anchor> "$R/<anchor>/nolut-capture-{n}-*.jpg" $ENGINE/public/assets/lut/$SLUG.bin tmp/<lane>/pred
 ```
 
 ΔE00 is information, never a pass bar (Jake, E388: no invented
 numbers): it says which material is furthest off and whether a round
-moved it. Shoot the fit's frames with the learned LUT off (Settings ▸
-Debug, no URL switch), fit over every frame of every zone, refit each
+moved it. Shoot the fit's frames (`--tag=nolut`) on a build with no
+`public/assets/lut/<slug>.bin`: engine has no LUT-off switch, and a
+shard with no file gets no LUT pass. Fit over every frame of every
+zone, refit each
 round, and re-read the per-zone table: a refit can push one zone back.
 
 ## Stop rule, and what this is not

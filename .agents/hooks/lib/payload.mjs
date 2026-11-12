@@ -5,6 +5,7 @@
 //   node .agents/hooks/lib/payload.mjs command   the shell command, if any
 //   node .agents/hooks/lib/payload.mjs paths     edited files, one per line
 //   node .agents/hooks/lib/payload.mjs session   the session id
+//   node .agents/hooks/lib/payload.mjs cwd       the session's working folder
 //
 // Shapes, recorded from real sessions on 2026-11-10 (Claude Code, and
 // codex-cli 0.167.1); the fixtures are in .agents/hooks/test/fixtures/:
@@ -38,31 +39,32 @@ export function patchPaths(patch) {
 
 /**
  * What a hook needs from one payload, whichever tool sent it.
- * @returns {{ tool: 'shell'|'edit'|'', command: string, paths: string[], session: string }}
+ * @returns {{ tool: 'shell'|'edit'|'', command: string, paths: string[], session: string, cwd: string }}
  */
 export function readPayload(raw) {
   let payload;
   try {
     payload = JSON.parse(raw);
   } catch {
-    return { tool: '', command: '', paths: [], session: '' };
+    return { tool: '', command: '', paths: [], session: '', cwd: '' };
   }
-  if (!isObject(payload)) return { tool: '', command: '', paths: [], session: '' };
+  if (!isObject(payload)) return { tool: '', command: '', paths: [], session: '', cwd: '' };
   const input = isObject(payload.tool_input) ? payload.tool_input : {};
   const name = text(payload.tool_name);
-  const cwd = text(payload.cwd) || process.cwd();
+  const own = text(payload.cwd);
+  const cwd = own || process.cwd();
   const session = text(payload.session_id);
   const absolute = (path) => (isAbsolute(path) ? path : resolve(cwd, path));
-  if (name === 'Bash') return { tool: 'shell', command: text(input.command), paths: [], session };
+  if (name === 'Bash') return { tool: 'shell', command: text(input.command), paths: [], session, cwd: own };
   if (name === 'apply_patch') {
     const patch = text(input.command) || text(input.patch) || text(input.input);
-    return { tool: 'edit', command: '', paths: patchPaths(patch).map(absolute), session };
+    return { tool: 'edit', command: '', paths: patchPaths(patch).map(absolute), session, cwd: own };
   }
   if (CLAUDE_EDITS.has(name)) {
     const path = text(input.file_path) || text(input.notebook_path);
-    return { tool: 'edit', command: '', paths: path ? [absolute(path)] : [], session };
+    return { tool: 'edit', command: '', paths: path ? [absolute(path)] : [], session, cwd: own };
   }
-  return { tool: '', command: '', paths: [], session };
+  return { tool: '', command: '', paths: [], session, cwd: own };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
@@ -77,8 +79,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   if (field === 'command' && payload.command) process.stdout.write(payload.command);
   else if (field === 'paths' && payload.paths.length) process.stdout.write(`${payload.paths.join('\n')}\n`);
   else if (field === 'session' && payload.session) process.stdout.write(payload.session);
-  else if (!['command', 'paths', 'session'].includes(field ?? '')) {
-    process.stderr.write('usage: payload.mjs command|paths|session < hook.json\n');
+  else if (field === 'cwd' && payload.cwd) process.stdout.write(payload.cwd);
+  else if (!['command', 'paths', 'session', 'cwd'].includes(field ?? '')) {
+    process.stderr.write('usage: payload.mjs command|paths|session|cwd < hook.json\n');
     process.exit(2);
   }
 }
