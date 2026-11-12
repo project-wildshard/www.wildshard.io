@@ -72,7 +72,8 @@ append to it.
    a reviewer can verify. No "investigate X" rows without an output.
 4. **Name the seams (shared checkout).** Check `docs/plans/` for live
    plans and `bash .agents/hooks/herdr-peers.sh` for other agents
-   (everyone is on `main`: no branches, no worktrees, D27). Say which
+   (work is on `main`, or a whole or half plan in `.worktrees/<slug>`
+   on `plan/<slug>`, landed by `land`, J290; say which mode). Say which
    files this plan owns and what must land before or after it.
 5. **Verification drives the real path.** Tests use real things: real git
    repositories in temp dirs (never mocked git), `node:test` for logic,

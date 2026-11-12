@@ -14,8 +14,10 @@ in order; don't paraphrase or shortcut.
 ## What is different here
 
 - **One checkout, one index, several agents.** Other Claude sessions
-  (herdr panes) and their subagents edit this tree on `main`. Main
-  only: no branches, no worktrees (D27; pre-commit enforces it).
+  (herdr panes) and their subagents edit this tree on `main`. The
+  only other place work happens is a plan worktree, `.worktrees/<slug>`
+  on `plan/<slug>`, landed by `land` (J290); no other branches or
+  worktrees (D27 as relaxed by J240; pre-commit enforces it).
   Nothing you do may snapshot the shared index: commit by pathspec
   only.
   `.agents/hooks/guard-git-add.sh` blocks `git add -A/./-u`,
@@ -95,7 +97,10 @@ in order; don't paraphrase or shortcut.
    browser someone else owns. Then delete your scratch with literal
    paths (`rm -rf ./tmp/<task>`, your session scratchpad's big files);
    keep only small text the report links to. Never rename aside
-   instead of deleting.
+   instead of deleting. Make scratch with
+   `node scripts/scratch-dir.mjs <task> "<purpose>"` (it writes
+   `tmp/<task>/.owner`); a folder you must keep gets a one-line
+   `.keep` saying why.
 7. **Agents and worktrees.** Don't kill running subagents to exit.
    List every agent still alive (ListAgents; in herdr,
    `bash .agents/hooks/herdr-peers.sh`) and what it holds. Main only
