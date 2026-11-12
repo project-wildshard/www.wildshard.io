@@ -146,7 +146,8 @@ export function plan(payload, procs, base = laneScope()) {
   const underSession = session ? withDescendants(procs, [session]) : new Set();
   const reasons = new Map();
 
-  const escaped = (transcript?.background ?? []).map((command) => `eval '${command.replace(/'/g, `'\\''`)}'`);
+  // Claude Code writes each ' in the eval'd command as '"'"'; a POSIX quoter writes '\\''.
+  const escaped = (transcript?.background ?? []).flatMap((command) => [`'"'"'`, `'\\''`].map((quote) => `eval '${command.replace(/'/g, quote)}'`));
   for (const proc of procs.values()) {
     if (protectedPids.has(proc.pid) || !underSession.has(proc.pid)) continue;
     if (since && proc.start < since) continue;

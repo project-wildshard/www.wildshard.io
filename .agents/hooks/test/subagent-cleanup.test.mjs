@@ -106,12 +106,12 @@ test('SubagentStop kills the lane\'s own processes and nothing else', { skip: !d
     line(`cat ${dirs.otherLane}/out.log`), // reading another lane claims nothing
     line(`mkdir -p ${dirs.laneB} && cd ${dirs.laneB} && ./run`), // a repo with no .worktrees/
     line(`cd ${dirs.plainTmp} && ./run`), // tmp/ in a directory that is not a git repo is no lane root
-    line('sleep 302; :', { run_in_background: true }),
+    line("sleep 302; echo 'x'", { run_in_background: true }), // quoted: Claude evals it as '"'"'x'"'"'
   ].join('\n'));
 
   const inWorktree = child(dirs.worktree);
   const orphanInTmp = await orphan(dirs.laneTmp);
-  const shell = child(dirs.outside, 0, "true && eval 'sleep 302; :' < /dev/null");
+  const shell = child(dirs.outside, 0, `true && eval 'sleep 302; echo '"'"'x'"'"'' < /dev/null`);
   const outside = child(dirs.outside);
   const otherLane = child(dirs.otherLane);
   const inRepoB = child(dirs.laneB);
