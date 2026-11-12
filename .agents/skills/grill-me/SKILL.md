@@ -5,10 +5,12 @@ description: Interview Jake relentlessly about a plan, design, or topic, checkpo
 
 # Grill Me
 
-Ported from kami-kakushi's `grill-me` on 2026-11-04. Relentlessly
-interview Jake about every aspect of the topic until you reach shared
-understanding, walking down each branch of the decision tree and
-resolving dependencies one by one. The real goal is to **get what's in
+Ported from kami-kakushi's `grill-me` on 2026-11-04; its capture file
+and State wording are meta's (`project-wildshard-meta`
+`.agents/skills/grill-me/`, REPO-KIT K2). Relentlessly interview Jake
+about every aspect of the topic until you reach shared understanding,
+walking down each branch of the decision tree and resolving
+dependencies one by one. The real goal is to **get what's in
 his head into a durable, organized markdown file**: the file, not your
 context, is the source of truth (long interviews fill context;
 held-in-head answers get misremembered, conflated or dropped). Never
@@ -18,8 +20,7 @@ make him ask you to save progress.
 
 1. Create `project/brainstorms/<YYYY-MM-DD>-<topic-slug>.md` (and the
    folder if it's missing). `date +%F` if you don't know the date.
-2. Seed it with a header: title, date, the goal of the session, and an
-   empty "Open flags" section.
+2. Seed it with the header below and an empty "Open flags" section.
 3. Tell Jake where you're saving, in one line. Then ask Q1.
 
 ## The checkpoint rule (non-negotiable)
@@ -58,13 +59,17 @@ and confirmed BEFORE any prose says "logged" or "captured".
 ## Capture file structure
 
 ```
-# {Topic}: brainstorm notes
-Date: {date} · Goal: {one line}
+# Grill: {topic}
+
+> Written by: Claude
+
+> **State:** live brainstorm log, {date}. Goal: {one line}. Settled
+> answers are promoted to D-decisions in `docs/decisions.md`.
 
 ## Summary / key decisions      (running synthesis, updated as you go)
 
 ## Q&A log
-### Q1 — {topic}
+### Q1: {topic}
 - Asked: {question}
 - Captured: {facts, decisions, in his words where it matters}
 - Flags: {open item -> owner}
@@ -87,9 +92,11 @@ Date: {date} · Goal: {one line}
    items are debt, never silent.
 3. Work it implies becomes plan rows (the `write-plan` skill), never
    asks.
-4. A rule that should shape every future session: propose the line
-   for `AGENTS_SUGGEST.md` (AGENTS.md is Jake's to write).
-5. Commit one snapshot for the session (capture file, promoted edits,
-   a journal line in `project/journal/`) by pathspec.
+4. A rule that should shape every future session: write it into
+   `AGENTS.md`'s agent section, below the marker (J241); the part
+   above it is Jake's.
+5. Set the capture file's `**State:**` to `done, <date>`. Commit one
+   snapshot for the session (capture file, promoted edits, a journal
+   line in `project/journal/`) by pathspec, and push.
 6. Recap: what's captured, what got promoted, what's still PENDING,
    and the suggested next step.

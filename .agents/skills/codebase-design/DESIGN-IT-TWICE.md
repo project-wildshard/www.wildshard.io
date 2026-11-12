@@ -14,7 +14,7 @@ make them concrete. Then carry on to step 2 while he reads.
 ## 2. Spawn three subagents
 
 Three at most, in the background, each with a fresh context
-(`docs/process/SUBAGENTS.md`: no forks, caps in the brief, no
+(no forks, caps in the brief, no
 `set-label.sh`). Each brief carries the file paths, the coupling, the
 dependency category, what sits behind the seam, SKILL.md's Fit section
 and one constraint:

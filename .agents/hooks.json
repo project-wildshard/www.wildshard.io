@@ -12,6 +12,12 @@
       "status": "Checking shared Git index safety"
     },
     {
+      "event": "PreToolUse",
+      "tools": "shell",
+      "script": ".agents/hooks/guard-herdr-prompt.sh",
+      "status": "Checking herdr targets for an open question"
+    },
+    {
       "event": "PostToolUse",
       "tools": "edit",
       "script": ".agents/hooks/md-prose-width.sh",

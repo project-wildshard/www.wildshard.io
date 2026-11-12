@@ -1,14 +1,13 @@
 ---
 name: prepare-to-exit
-description: Checkpoint the session and prepare to exit — pathspec-commit only your paths with a journal entry, let the hooks gate HEAD, push, flip your ask files and make plan Status lines true, queue every leftover as a plan row, close what you started, clean scratch, report, then print the BYE / OOPS banner. User-invoked only.
+description: Checkpoint the session and prepare to exit — pathspec-commit only your paths with a journal entry, let the hooks gate HEAD, push, flip your ask files and make plan State lines true, queue every leftover as a plan row, close what you started, clean scratch, report, then print the BYE / OOPS banner. User-invoked only.
 disable-model-invocation: true
 ---
 
 # Prepare to exit
 
-Ported from project-wildshard-singleplayer's `prepare-to-exit` on
-2026-11-04 and cut down to this repo: no deploy, no push lock, no
-browser lane. AGENTS.md is canon; where this file and
+Ported on 2026-11-04 and cut down to one repo: no deploy, no push
+lock, no browser lane. AGENTS.md is canon; where this file and
 AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute
 in order; don't paraphrase or shortcut.
 
@@ -75,7 +74,7 @@ in order; don't paraphrase or shortcut.
    `folded into <X>`. A `done` ask whose push isn't on `origin/main`
    goes back to step 3. Ask files never move or get deleted.
    Every plan you moved (`docs/plans/*.md`)
-   has its rows ticked and its `Status:` line rewritten, not appended,
+   has its rows ticked and its `State:` line rewritten, not appended,
    to the current truth. A plan that finished moves to
    `project/archive/` in the same commit, links fixed; a plan with an
    open row is not finished.
@@ -114,7 +113,7 @@ in order; don't paraphrase or shortcut.
 9. **Report**, then the banner. The report names: commits (SHAs + one
    line each), gate results, what is left local (yours vs others'
    WIP), every live agent and worktree, every ask this session touched
-   and its Status, plans whose Status changed,
+   and its Status, plans whose State changed,
    leftovers and the plan rows that hold them, processes closed, and
    scratch left — so Jake knows whether it is safe to close.
 

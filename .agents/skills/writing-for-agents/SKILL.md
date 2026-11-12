@@ -9,10 +9,9 @@ Adapted from Matt Pocock's `writing-for-agents`
 (github.com/mattpocock/skills at `4ae2317`, MIT, see LICENSE here) on
 2026-11-05.
 
-`lint/`, `docs/process/`, `docs/ENGINE.md`, `docs/HOST-BAR.md`,
-`docs/SUBAGENT-BRIEF.md` and `docs/design/mmo/` paths are
-singleplayer's (`~/projects/games/wildshard-singleplayer`); "meta" is
-`~/projects/games/project-wildshard-meta`.
+Paths are this repo's own unless a repo is named. "Meta" is
+`~/projects/games/project-wildshard-meta`; "engine" is
+`~/projects/games/wildshard/engine`.
 
 One reference for a skill, a plan, a brief, a doc behind a pointer. A
 good document makes the agent take the same **process** every run.
@@ -20,33 +19,32 @@ good document makes the agent take the same **process** every run.
 ## How we write here
 
 - **Short.** `AGENTS.md`'s headings show the shape: a topic, a pointer
-  to the doc, and a few rules (`## Engine layers → docs/ENGINE.md`).
+  to the doc, and a few rules (`- Commands, layout: docs/dev.md`).
 - **Cite the decision instead of arguing it.** J-numbers are Jake's
-  cross-repo decisions (meta `docs/plans/multi-repo/MULTI-REPO-PLAN.md`),
-  D-numbers a repo's `docs/decisions.md`, G- and E-numbers
-  singleplayer's, and M1, R2, B1 are requirements
-  (`docs/design/mmo/MMO-REQUIREMENTS.md`). "Features frozen (J103,
-  J119)" is a whole rule.
+  cross-repo decisions (meta
+  `docs/plans/multi-repo/MULTI-REPO-PLAN.md`), D-numbers a repo's
+  `docs/decisions.md`, and M1, R2, B1 are the MMO requirements (meta
+  `docs/README.md` links them). "Features frozen (J103, J119)" is a
+  whole rule.
 - **Quote Jake when his wording is the rule**, with the date: (Jake,
   2026-11-05: *"…"*). Keep every quote exact; a paraphrase carries no
   authority.
 - **Open a doc with its state**: `> Written by: Claude`, then
-  `> **State:** draft, 2026-11-05.` Plans in org repos use the
-  `Status:` line `write-plan` describes.
-- **Cite other repos by repo, path and commit.** Lanes move
-  singleplayer hourly, so a fact read there carries its SHA. Mark
+  `> **State:** draft, 2026-11-05.` Plans use the `State:` line
+  `write-plan` describes.
+- **Cite other repos by repo, path and commit.** Lanes move every
+  repo hourly, so a fact read there carries its SHA. Mark
   `*(estimate)*` for anything unmeasured and `*(inference)*` for your
   reading of code.
 - **A brief or a plan row ends on a done-when line.** A lane brief
-  also says `Owns:` and `Must not touch:`
-  (meta `docs/plans/multi-repo/LANES-AFTER-SORT.md`), and carries its stop
-  caps (`docs/process/SUBAGENTS.md`).
-- **`AGENTS.md` and `README.md` are Jake's.** Propose steering for
-  `AGENTS_SUGGEST.md`. Leave `CLAUDE.md` as `@AGENTS.md`.
+  also says `Owns:` and `Must not touch:`, and carries its stop caps:
+  one row, under 1 hour and 300 turns (Jake, 2026-11-11).
+- **`README.md` and `AGENTS.md` above its marker are Jake's.**
+  Agents write steering below the marker (J241). Leave `CLAUDE.md` as
+  `@AGENTS.md`.
 - **MMO facts stay in their docs.** Point at them; a copied budget or
   a copied rate goes stale.
-- **Wrap** org repo markdown at 72 (`src/scripts/md-wrap.mjs`) and
-  singleplayer's at about 120.
+- **Wrap** markdown at 72 (`src/scripts/md-wrap.mjs`).
 
 ## Pointers
 
@@ -88,8 +86,8 @@ Every step ends on a condition that separates done from not done.
 
 - **Clear**: "understanding reached" invites **premature completion**.
   Sharpen the bound first.
-- **Demanding**: "every modified file tagged in
-  `lint/engine-sides.json`" forces work that "update the tags" does
+- **Demanding**: "every changed hook has a case in
+  `.githooks/*.test.mjs`" forces work that "test the hooks" does
   not. Checkable and exhaustive is the strongest form.
 
 ## Leading words
@@ -101,15 +99,15 @@ already knows; ours also carry repo meaning: *law*, *seam*, *port*,
 sentence that could collapse into one.
 
 **Negation** backfires: a ban puts the banned thing in the agent's
-mind. State the target ("commit with `scripts/commit.sh`"). Keep a ban
+mind. State the target ("commit by pathspec"). Keep a ban
 only for a hard guardrail, paired with the positive.
 
 ## Pruning
 
 - **One source of truth.** Each meaning lives in one place. The plan
   owns the decision, `STATE.md` the status, the commit the detail.
-- **The environment is a source of truth too.** A document that
-  restates `package.json` or `lint/` is a cache that goes stale. Write
+- **The environment is a source of truth too.** A document that restates
+  `package.json` or the lint config is a cache that goes stale. Write
   down what looking cannot find: the reason, the gotcha, Jake's words.
 - **Relevance.** Without pruning, documents collect **sediment**:
   retired locks and renamed paths nobody dares remove.
@@ -130,5 +128,4 @@ only for a hard guardrail, paired with the positive.
 - A skill is one directory in `.agents/skills/<name>/` (Codex reads
   it there); `.claude/skills/<name>` is a symlink to it for Claude.
   Kit skills come from repo-kit (`scripts/agent-sync.mjs`,
-  `docs/agent-parity.md`); never copy one by hand. Singleplayer keeps
-  its own skills.
+  `docs/agent-parity.md`); never copy one by hand.

@@ -22,6 +22,9 @@ const SECRETS = [
 export const git = (args, options = {}) =>
   execFileSync('git', args, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, ...options });
 
+// A new target ref proves nothing about which objects that remote has. Other remotes must not exempt its history.
+export const outgoingRange = (local, remote) => remote && !/^0+$/u.test(remote) ? [`${remote}..${local}`] : [local];
+
 /** Sizes for many blob ids in one `git cat-file` call. */
 export function blobSizes(objects) {
   const unique = [...new Set(objects)];

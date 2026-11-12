@@ -207,7 +207,7 @@ describe('session-brief.sh: same brief from both tools', () => {
     mkdirSync(join(root, 'scripts'));
     writeFileSync(join(root, 'scripts', 'worktree.mjs'), '');
     const allowed = mainOnly(root);
-    assert.match(allowed, /plan worktree .*\.worktrees\/foo/);
+    assert.match(allowed, /plan worktrees \(1\): \.worktrees\/foo/);
     assert.match(allowed, /\(clean: main only\)/);
     assert.doesNotMatch(allowed, /!!/);
     assert.equal(git(root, ['worktree', 'add', '-q', '--detach', join(root, 'tmp-wt')]).status, 0);

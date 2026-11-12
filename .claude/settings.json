@@ -17,6 +17,10 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard-git-add.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard-herdr-prompt.sh\""
           }
         ]
       }

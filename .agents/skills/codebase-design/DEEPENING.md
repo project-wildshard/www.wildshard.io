@@ -41,6 +41,6 @@ The category decides how the deepened module is tested at its seam.
   fixtures are history: keep their bytes (`41fe96961e`), and let them
   prove the new module matches the old, as the 40,000-tick traces did
   for E4.1.
-- A deepening that moves files retags them in
-  `lint/engine-sides.json`, and any `lint/` count it touches may only
+- A deepening that moves files keeps the side checks green (engine's
+  `src/scripts/check-sides.mjs`), and any count it touches may only
   fall.

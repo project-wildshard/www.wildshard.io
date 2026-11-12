@@ -63,7 +63,7 @@ const HANDLER_FIELDS = {
   codex: { type: (value) => value === 'command', command: nonEmptyString, commandWindows: nonEmptyString, timeout: positiveInt, async: (value) => typeof value === 'boolean', statusMessage: nonEmptyString, additionalContextLimit: positiveInt },
 };
 /** The kit's own hook scripts before MA2, removed by --from. */
-const LEGACY_HOOKS = ['session-brief.sh', 'guard-git-add.sh', 'md-prose-width.sh', 'herdr-peers.sh'];
+const LEGACY_HOOKS = ['session-brief.sh', 'guard-git-add.sh', 'md-prose-width.sh', 'herdr-peers.sh', 'guard-herdr-prompt.sh'];
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const lexists = (path) => {

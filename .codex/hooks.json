@@ -19,6 +19,11 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-git-add.sh\"",
             "statusMessage": "Checking shared Git index safety"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-herdr-prompt.sh\"",
+            "statusMessage": "Checking herdr targets for an open question"
           }
         ]
       }

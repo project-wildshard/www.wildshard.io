@@ -10,10 +10,9 @@ Adapted from Matt Pocock's `improve-codebase-architecture`
 (github.com/mattpocock/skills at `4ae2317`, MIT, see LICENSE here) on
 2026-11-05.
 
-`lint/`, `docs/process/`, `docs/ENGINE.md`, `docs/HOST-BAR.md`,
-`docs/SUBAGENT-BRIEF.md` and `docs/design/mmo/` paths are
-singleplayer's (`~/projects/games/wildshard-singleplayer`); "meta" is
-`~/projects/games/project-wildshard-meta`.
+Paths are this repo's own unless a repo is named. "Meta" is
+`~/projects/games/project-wildshard-meta`; "engine" is
+`~/projects/games/wildshard/engine`.
 
 Find **deepening opportunities**: shallow modules that could become
 deep ones, for testability, agent navigation and frame cost. This run
@@ -28,12 +27,9 @@ candidate, and check every candidate against its **Fit** section.
 Use our nouns, and leave settled decisions settled. Read the parts
 that touch the area:
 
-- org repos: `docs/design.md`, `docs/decisions.md`, `docs/plans/`;
-- singleplayer: `docs/design/mmo/GLOSSARY.md`, `docs/ENGINE.md`,
-  `docs/HOST-BAR.md`, `docs/plans/decisions.md`;
-- meta repo `docs/plans/multi-repo/`: `MULTI-REPO-PLAN.md` (J-numbers),
-  `STATE.md`, `P1-IN-TREE.md`, `LANES-AFTER-SORT.md`,
-  `E5-REPLICATION.md`.
+- this repo: `docs/design.md`, `docs/decisions.md`, `docs/plans/`;
+- meta: `docs/vision/GLOSSARY.md`, and in `docs/plans/multi-repo/`
+  `MULTI-REPO-PLAN.md` (J-numbers) and `STATE.md`.
 
 ## 2. Scope
 
@@ -44,17 +40,14 @@ before you look.
   thing easy?" is the best form of it.
 - Otherwise find the hot spots:
   `git log --since=2.weeks --name-only --format= -- src | grep -v /generators/ | cut -d/ -f1-4 | sort | uniq -c | sort -rn | head -20`.
-- In singleplayer also read the debt the tools already count:
-  `node scripts/check-engine-sides.mjs --report`, and the
-  `mixed: true` tags in `lint/engine-sides.json`.
 - Drop what is already queued or owned. A P1 row or a lane's `Owns:`
   line is that lane's work, and features are frozen (J103, J119).
   Mention an overlap instead of proposing it.
 
 ## 3. Explore
 
-Spawn one Explore subagent with a fresh context and the scope above
-(caps in `docs/process/SUBAGENTS.md`). Have it note friction, and
+Spawn one Explore subagent with a fresh context and the scope above.
+Have it note friction, and
 answer:
 
 - Where does one concept mean bouncing between many small modules?
@@ -85,7 +78,7 @@ scripts, in the session scratchpad.
    Wins:     locality, leverage, which tests get simpler
    Category: in-process, local-substitutable, port, or mock
    Fit:      which ratchet falls; lint, budgets and hot-path cost
-   Lands:    which repo, and where in the J124 order
+   Lands:    which repo
 ```
 
 Add a small before and after sketch where the shape is the point. End
@@ -105,18 +98,14 @@ One candidate per session. Walk the decision tree with Jake: the
 constraints, the shape of the module, what sits behind the seam, which
 tests survive, what the phone pays.
 
-- Org repos: use the `grill-me` skill.
-- Singleplayer has no `grill-me`: ask one question at a time with the
-  question tool, option 1 "Skip for now", with your recommendation
-  (`AGENTS.md`).
+Use the `grill-me` skill.
 
 As decisions settle:
 
 - A decision goes in the repo's `docs/decisions.md` as a D-number;
   a cross-repo one goes to Jake as a J-number in `MULTI-REPO-PLAN.md`.
-- Work becomes a plan row: `write-plan` in an org repo, meta
-  `docs/plans/multi-repo/` for singleplayer, which takes no plan files. The
-  refactor runs later, in its own session.
+- Work becomes a plan row (`write-plan`). The refactor runs later, in
+  its own session.
 - A rejection with a lasting reason: offer to record it, so the next
   run skips it. Skip reasons like "not now".
 - To compare interfaces, use `codebase-design`'s

@@ -21,50 +21,57 @@ if [ -z "$session" ] && [ ! -t 0 ]; then
   session="$(node "$here/lib/payload.mjs" session 2>/dev/null)"
 fi
 
+# The brief lands in every session's context, so it stays within 40
+# lines (REPO-KIT K4, J273): 5 asks, 5 plans, 4 journal lines, 3 of
+# the rest. A cut section says "first N of M" in its header.
+# show TITLE MAX EMPTY BODY: a section header, then at most MAX lines of
+# BODY, or EMPTY when BODY is empty.
+show() {
+  local n
+  if [ -z "$4" ]; then printf -- '-- %s --\n  %s\n' "$1" "$3"; return; fi
+  n="$(printf '%s\n' "$4" | wc -l | tr -d ' ')"
+  if [ "$n" -gt "$2" ]; then printf -- '-- %s, first %s of %s --\n' "$1" "$2" "$n"; else printf -- '-- %s --\n' "$1"; fi
+  printf '%s\n' "$4" | head -n "$2"
+}
+
 echo "== $repo session brief (.agents/hooks/session-brief.sh) =="
 if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
   echo "!! git hooks are OFF in this clone. Run: git config core.hooksPath .githooks"
 fi
 
-echo
-echo "-- other agents in this repo (herdr) --"
 if [ "${HERDR_ENV:-}" != 1 ]; then
-  echo "  (not running inside herdr)"
+  show "other agents in this repo (herdr)" 3 "(not running inside herdr)" ""
 else
-  peers="$(bash "$here/herdr-peers.sh" "" "$session")"  # "": the canonical checkout
-  if [ -n "$peers" ]; then
-    printf '%s\n' "$peers" | while IFS="$(printf '\t')" read -r pane status goal where; do
-      [ "$goal" = "-" ] && goal="(no goal set)"
-      echo "  $pane  $status  $goal  [$where]"
-    done
-    echo "  They share this checkout and its index: commit only your own paths."
-  else
-    echo "  (none: you're the only agent here)"
-  fi
+  peers="$(bash "$here/herdr-peers.sh" "" "$session" | while IFS="$(printf '\t')" read -r pane status goal where; do
+    [ "$goal" = "-" ] && goal="(no goal set)"
+    echo "  $pane  $status  $goal  [$where]"
+  done)"  # "": the canonical checkout
+  show "other agents in this repo (herdr)" 3 "(none: you're the only agent here)" "$peers"
+  [ -n "$peers" ] && echo "  They share this checkout and its index: commit only your own paths."
 fi
 
-echo
-echo "-- asks still open (docs/tasks/asks/: receipts; the queue is docs/plans/) --"
 if [ -f src/scripts/asks.mjs ]; then
-  node src/scripts/asks.mjs brief 2>/dev/null || echo "  (src/scripts/asks.mjs brief failed: read docs/tasks/asks/ directly)"
+  asks="$(node src/scripts/asks.mjs brief 2>/dev/null || echo "  (src/scripts/asks.mjs brief failed: read docs/tasks/asks/ directly)")"
 else
-  echo "  (no ask tooling)"
+  asks="  (no ask tooling)"
 fi
+show "asks still open (docs/tasks/asks/: receipts; the queue is docs/plans/)" 5 "(none)" "$asks"
 
-echo
-echo "-- live plans (docs/plans/) --"
-found=0
+# -- live plans --
+plans=""
 for plan in docs/plans/*.md; do
   [ -f "$plan" ] || continue
   [ "$(basename "$plan")" = README.md ] && continue
-  found=1
-  status="$(grep -m1 -E '^Status:' "$plan" | cut -c1-110)"
-  echo "  $plan${status:+  ($status)}"
+  # The plan's State line (K2: draft, ready for review, draft parked,
+  # in progress, held, done), plain, bold or quoted; a plan from before
+  # K2 shows its old Status line instead.
+  state="$(grep -m1 -E '^(> *)?(\*\*)?State:' "$plan" || grep -m1 -E '^(> *)?(\*\*)?Status:' "$plan")"
+  state="$(printf '%s' "$state" | sed -E 's/^> *//; s/\*\*//g' | cut -c1-110)"
+  plans+="  $plan${state:+  ($state)}"$'\n'
 done
-[ "$found" = 1 ] || echo "  (none)"
+show "live plans (docs/plans/)" 5 "(none)" "${plans%$'\n'}"
 
-echo
-echo "-- latest journal --"
+# -- latest journal --
 # The journal file the newest commit touched (per-topic names don't sort
 # by recency; 2026-11-04.md sorts after every 2026-11-04-<topic>.md).
 latest="$(git log -1 --format= --name-only --diff-filter=AM -- 'project/journal/[0-9]*.md' 2>/dev/null | head -1)"
@@ -72,13 +79,12 @@ latest="$(git log -1 --format= --name-only --diff-filter=AM -- 'project/journal/
 # shellcheck disable=SC2012
 [ -n "$latest" ] && [ -f "$latest" ] || latest="$(ls -t project/journal/[0-9]*.md 2>/dev/null | head -1)"
 if [ -n "$latest" ]; then
-  echo "  $latest (last lines):"
-  tail -6 "$latest" | sed 's/^/    /'
+  echo "-- latest journal: $latest (last lines) --"
+  tail -4 "$latest" | sed 's/^/    /'
 else
-  echo "  (none)"
+  show "latest journal" 4 "(none)" ""
 fi
 
-echo
 # A repo with the plan-worktree tool (scripts/worktree.mjs; engine since
 # J240, the rest at WORKTREE-LAND-STANDARD WL4) also allows
 # .worktrees/<slug> on plan/<slug>; any other repo stays main only.
@@ -87,8 +93,10 @@ plan_branch='^branch plan/[a-z0-9][a-z0-9._-]*$'
 plan_remote='^remote [^/]+/plan/[a-z0-9][a-z0-9._-]*$'
 if [ -f scripts/worktree.mjs ]; then
   echo "-- main only, plus plan worktrees: .worktrees/<slug> on plan/<slug> (D27, J221, J240) --"
-  plans="$(git worktree list 2>/dev/null | tail -n +2 | grep -E "$plan_wt" || true)"
-  if [ -n "$plans" ]; then printf '%s\n' "$plans" | sed 's/^/  plan worktree /'; fi
+  wts="$(git worktree list 2>/dev/null | tail -n +2 | grep -E "$plan_wt" | sed -E 's#^.*/(\.worktrees/[^ ]+) .*#\1#' || true)"
+  if [ -n "$wts" ]; then
+    echo "  plan worktrees ($(printf '%s\n' "$wts" | wc -l | tr -d ' ')): $(printf '%s\n' "$wts" | tr '\n' ' ')" | cut -c1-150
+  fi
 else
   echo "-- main only: no branches, no worktrees (D27) --"
   plan_wt='^$'; plan_branch='^$'; plan_remote='^$'
@@ -99,23 +107,13 @@ strays="$(
   git for-each-ref --format='remote %(refname:short)' refs/remotes 2>/dev/null | grep -vxE 'remote [^/]+(/HEAD|/main)?' | grep -vE "$plan_remote"
 )"
 if [ -n "$strays" ]; then
-  printf '%s\n' "$strays" | sed 's/^/  !! /'
-  echo "  !! Not main-only. Land any work on main (git cherry main <branch>),"
-  echo "  !! remove the worktree, and ask Jake to delete the branch."
+  printf '%s\n' "$strays" | head -3 | sed 's/^/  !! /'
+  echo "  !! Not main-only ($(printf '%s\n' "$strays" | wc -l | tr -d ' ') in all): land work on main (git cherry main <branch>), remove the worktree, ask Jake to delete the branch."
 else
   echo "  (clean: main only)"
 fi
 
-echo
-echo "-- uncommitted in this checkout (may be another agent's: don't sweep it) --"
-dirty="$(git status --short 2>/dev/null | head -12)"
-if [ -n "$dirty" ]; then printf '%s\n' "$dirty" | sed 's/^/  /'; else echo "  (clean)"; fi
-
-echo
-echo "-- recent commits --"
-git log --oneline -8 2>/dev/null | sed 's/^/  /'
-
-echo
-echo "Commit by pathspec (git commit -m ... -- paths) with a journal entry;"
-echo "hooks enforce the rest. Rules: docs/dev.md."
+show "uncommitted in this checkout (may be another agent's: don't sweep it)" 3 "(clean)" "$(git status --short 2>/dev/null | sed 's/^/  /')"
+show "recent commits" 3 "(none)" "$(git log --oneline -3 2>/dev/null | sed 's/^/  /')"
+echo "Commit by pathspec (git commit -m ... -- paths) with a journal entry; hooks enforce the rest. Rules: docs/dev.md."
 exit 0

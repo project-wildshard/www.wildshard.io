@@ -9,10 +9,9 @@ Adapted from Matt Pocock's `codebase-design`
 (github.com/mattpocock/skills at `4ae2317`, MIT, see LICENSE here) on
 2026-11-05.
 
-`lint/`, `docs/process/`, `docs/ENGINE.md`, `docs/HOST-BAR.md`,
-`docs/SUBAGENT-BRIEF.md` and `docs/design/mmo/` paths are
-singleplayer's (`~/projects/games/wildshard-singleplayer`); "meta" is
-`~/projects/games/project-wildshard-meta`.
+Paths are this repo's own unless a repo is named. "Meta" is
+`~/projects/games/project-wildshard-meta`; "engine" is
+`~/projects/games/wildshard/engine`.
 
 This is a **reference**. It starts no survey and redesigns nothing: to
 find what to change, Jake runs `improve-codebase-architecture`.
@@ -53,21 +52,19 @@ meanings.
 - **The interface is the test surface.** Tests cross the seam callers
   cross. Wanting to test past it means the module is the wrong shape.
 - **One adapter is a hypothetical seam; two make it real.** At a
-  platform host the bar is higher: two real users
-  (`docs/HOST-BAR.md`).
+  platform host the bar is higher: two real users.
 - **Budgets beat abstractions.** On a hot path the phone wins (below).
 
 ## Our seams
 
-Copy their shape before cutting a new one. Paths are singleplayer's
-until the engine moves (P3, J124).
+Copy their shape before cutting a new one. Paths are engine's.
 
 | Seam | Depth | Adapters |
 |---|---|---|
-| `Transport`, `src/engine/shared/net/transport.ts` | Bytes on two channels; the game never knows what carries them | `WorkerLoopback`, `ConditionedTransport`, `WebSocketTransport` at E7 |
-| `NetRoom`, `src/engine/server/net/room.ts` | Replication for a room; holds no socket and no save | Fed by `NetWorld` and `NetPlayer` |
-| `SimHost`, `src/engine/server/sim.ts` | The headless authority; steps commands, N players | Runs in the worker, in Node tests, per grid cell |
-| `stepPlayerMotion`, `src/engine/shared/player/motion.ts` | One motion law; `MotionWorld` is its port | `SimHost` and the predicting client |
+| `Transport`, `src/shared/engine/net/transport.ts` | Bytes on two channels; the game never knows what carries them | `WorkerLoopback`, `ConditionedTransport`, `WebSocketTransport` at E7 |
+| `NetRoom`, `src/server/engine/net/room.ts` | Replication for a room; holds no socket and no save | Fed by `NetWorld` and `NetPlayer` |
+| `SimHost`, `src/server/engine/sim.ts` | The headless authority; steps commands, N players | Runs in the worker, in Node tests, per grid cell |
+| `stepPlayerMotion`, `src/shared/engine/player/motion.ts` | One motion law; `MotionWorld` is its port | `SimHost` and the predicting client |
 | `objectStoreContract`, api-server `src/test/helpers/` | One promise for object storage | The local store and the R2 store |
 | The shardfile, repo `shardfile` | The one cross-repo format (J3); packs stay engine-internal (J22) | `engine`'s cook, `api-server`'s validator (J27) |
 
@@ -79,14 +76,12 @@ exactly (J54), so a wire change is one change on both sides.
 A design that breaks these is the wrong design. Check each one.
 
 - **Sides.** A module sits on one side of `shared/`, `client/`,
-  `server/`, `cook/` (J1, J2, meta `docs/plans/multi-repo/MULTI-REPO-PLAN.md`
-  §5). Law both sides need is one `shared/` module with an adapter on
-  each side. `shared/`, `server/` and `cook/` have no DOM and no
-  renderer. In singleplayer `lint/engine-sides.json` tags every file
-  and `lint/engine-side-edges.json` may only fall; `engine` has
-  `src/scripts/check-sides.mjs`.
-- **Layers.** In singleplayer imports run down `engine → game → sdk →
-  commons → shards`, and a shard never imports a shard (`AGENTS.md`).
+  `server/`, `cook/` (J1, J2, meta
+  `docs/plans/multi-repo/MULTI-REPO-PLAN.md` §5). Law both sides need is
+  one `shared/` module with an adapter on each side. `shared/`,
+  `server/` and `cook/` have no DOM and no renderer. Engine's
+  `src/scripts/check-sides.mjs` checks the sides.
+- **Layers.** A shard imports engine, never another shard.
 - **No barrels.** A deep module is never an `index.ts`. Its interface
   is the module that defines the binding, listed in the package's
   `exports`; `wildshard/no-reexport` refuses `export … from`.
@@ -98,7 +93,7 @@ A design that breaks these is the wrong design. Check each one.
 - **Fixed step.** Sim logic reads the 60 Hz tick and seeded RNG, never
   a wall clock; snapshots go at 30 Hz (J40). Traces must replay bit
   for bit.
-- **Hot paths.** Budgets are `MMO-REQUIREMENTS.md` B1 and J121: the
+- **Hot paths.** Budgets are requirement B1 and J121: the
   phone's 1.0 GB in world, a page at about 24–30 fps in Low Power
   Mode, a worker at 60 Hz. In per-tick and per-frame code, deepen by
   merging, never by adding call layers. No closures, result objects or
@@ -107,7 +102,7 @@ A design that breaks these is the wrong design. Check each one.
   the design, then measure it (J121 readings, not a Mac).
 - **Shards are untrusted (R1, R2).** A seam for shards passes the host
   bar: data-only, no shard branch in the engine. Behaviour is
-  AssemblyScript behind `docs/SCRIPT-ABI.md`.
+  AssemblyScript behind engine's script ABI.
 - **No first-party shortcuts (J86).** First-party shards take the same
   path third parties take. A seam only ours can use fails.
 

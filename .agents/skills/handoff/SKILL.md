@@ -36,7 +36,7 @@ Include:
   alone.
 - **Other agents** still working in the repo
   (`bash .agents/hooks/herdr-peers.sh`) and what they hold. Any
-  branch or worktree is a D27 violation: name it.
+  branch or worktree the brief flags as stray (D27): name it.
 - **Decisions Jake made** in this conversation that aren't written down
   yet (then also record them: `docs/decisions.md`).
 - **Suggested skills** the next agent should invoke (e.g.
