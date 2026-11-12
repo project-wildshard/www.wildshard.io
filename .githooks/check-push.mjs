@@ -3,17 +3,21 @@
 // carry a token or a huge file off the machine. Reads git's ref lines
 // on stdin: <local ref> <local sha> <remote ref> <remote sha>.
 import { readFileSync } from 'node:fs';
-import { blobSizes, checkBlob, git, herdrPeers, outgoingRange, printPeers, report } from './lib.mjs';
+import { advertisedTips, blobSizes, checkBlob, git, herdrPeers, outgoingRange, printPeers, report } from './lib.mjs';
 
 printPeers(herdrPeers(), 'share this repo: a red check below may be their WIP, not yours');
 
 const ZERO = /^0+$/;
+// Git passes the actual push URL ($2). Only what that destination advertises
+// now narrows a new ref's range; asked once, and only when a new ref is pushed.
+let advertised = null;
+const tips = () => (advertised ??= advertisedTips(process.argv[2] ?? ''));
 const refs = readFileSync(0, 'utf8').split('\n').filter(Boolean).map((line) => line.split(' '));
 
 const commits = new Set();
 for (const [, local, , remote] of refs) {
   if (!local || ZERO.test(local)) continue; // deleting a remote ref
-  const range = outgoingRange(local, remote);
+  const range = outgoingRange(local, remote, !remote || ZERO.test(remote) ? tips() : []);
   for (const sha of git(['rev-list', ...range]).split('\n').filter(Boolean)) commits.add(sha);
 }
 

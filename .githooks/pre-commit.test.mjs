@@ -2,7 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { cpSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
 
 describe('pre-commit hook', () => {
@@ -22,7 +22,7 @@ describe('pre-commit hook', () => {
     const { git, commit } = sandbox();
     commit({ 'a.txt': 'a\n' }, MSG);
     git(['switch', '-q', '-c', 'feature']);
-    blocked(commit({ 'b.txt': 'b\n' }, MSG), /main only[\s\S]*HEAD is branch "feature", not main/);
+    blocked(commit({ 'b.txt': 'b\n' }, MSG), /canonical checkout[\s\S]*HEAD is branch "feature", not main/);
     assert.equal(commit({ 'b.txt': 'b\n' }, MSG, { env: { ALLOW_BRANCH: '1' } }).status, 0);
   });
   test('refuses a commit on a detached HEAD', () => {
@@ -44,6 +44,72 @@ describe('pre-commit hook', () => {
     const result = run(['commit', '-q', '-m', MSG]);
     assert.notEqual(result.status, 0, 'commit should have been blocked');
     assert.match(result.stderr, /linked worktree/);
+  });
+  // J221/J240 (DEV-SPEED DS6): <repo>/.worktrees/<slug> on plan/<slug> may commit.
+  const planWorktree = (slug, branch) => {
+    const { root, git, commit } = sandbox();
+    commit({ 'a.txt': 'a\n' }, MSG);
+    const wt = join(root, '.worktrees', slug);
+    git(['worktree', 'add', '-q', '-b', branch, wt]);
+    cpSync(join(root, '.githooks'), join(wt, '.githooks'), { recursive: true }); // tracked in the real repo
+    const run = (args, env = {}) => spawnSync('git', args, { cwd: wt, encoding: 'utf8', env: { ...ENV, ...env } });
+    const write = (path, text) => { writeFileSync(join(wt, path), text); run(['add', path]); };
+    return { root, git, wt, run, write };
+  };
+  test('a plan worktree commits on its own plan branch', () => {
+    const { run, write } = planWorktree('foo', 'plan/foo');
+    write('b.txt', 'b\n');
+    const result = run(['commit', '-q', '-m', MSG]);
+    assert.equal(result.status, 0, result.stderr);
+  });
+  test('a plan worktree refuses another branch or a detached HEAD', () => {
+    const { run, write } = planWorktree('foo', 'plan/bar');
+    write('b.txt', 'b\n');
+    blocked(run(['commit', '-q', '-m', MSG]), /HEAD is branch "plan\/bar", not plan\/foo/);
+    run(['switch', '-q', '--detach']);
+    write('c.txt', 'c\n');
+    blocked(run(['commit', '-q', '-m', MSG]), /HEAD is detached, not plan\/foo/);
+  });
+  test('the canonical checkout refuses a plan branch, unless ALLOW_BRANCH=1', () => {
+    const { git, commit } = sandbox();
+    commit({ 'a.txt': 'a\n' }, MSG);
+    git(['switch', '-q', '-c', 'plan/foo']);
+    blocked(commit({ 'b.txt': 'b\n' }, MSG), /HEAD is branch "plan\/foo", not main/);
+  });
+  test('a rebase inside a plan worktree must be of its own plan branch', () => {
+    const { run, write, wt } = planWorktree('foo', 'plan/foo');
+    write('b.txt', 'b\n');
+    assert.equal(run(['commit', '-q', '-m', MSG]).status, 0);
+    run(['branch', 'plan/bar']);
+    // A rebase of plan/bar stopped for edit inside .worktrees/foo may not commit there.
+    const rebasing = run(['rebase', '-q', '--exec', 'false', 'HEAD~1', 'plan/bar'], { GIT_EDITOR: 'true' });
+    assert.notEqual(rebasing.status, 0, 'the exec step stops the rebase');
+    writeFileSync(join(wt, 'c.txt'), 'c\n');
+    run(['add', 'c.txt']);
+    blocked(run(['commit', '-q', '-m', MSG]), /a rebase of refs\/heads\/plan\/bar, not plan\/foo/);
+    run(['rebase', '--abort']);
+  });
+  test('a separate Git dir never makes its parent folder a canonical checkout', () => {
+    const { root, git, commit } = sandbox();
+    commit({ 'a.txt': 'a\n' }, MSG);
+    // Move the Git dir out of the checkout: <root>/.git becomes a gitfile.
+    const store = `${root}-store`;
+    roots.push(store);
+    git(['init', '-q', `--separate-git-dir=${store}`]);
+    // A worktree placed under the store's parent folder is not the canonical checkout's .worktrees/.
+    const fake = join(dirname(store), '.worktrees', 'foo');
+    roots.push(join(dirname(store), '.worktrees'));
+    git(['worktree', 'add', '-q', '-b', 'plan/foo', fake]);
+    cpSync(join(root, '.githooks'), join(fake, '.githooks'), { recursive: true });
+    writeFileSync(join(fake, 'b.txt'), 'b\n');
+    const run = (args) => spawnSync('git', args, { cwd: fake, encoding: 'utf8', env: ENV });
+    run(['add', 'b.txt']);
+    blocked(run(['commit', '-q', '-m', MSG]), /is not <repo>\/\.worktrees\/<slug>/);
+  });
+  test('a worktree nested deeper than .worktrees/<slug> is refused', () => {
+    const { run, write } = planWorktree('foo/deeper', 'plan/foo');
+    write('b.txt', 'b\n');
+    blocked(run(['commit', '-q', '-m', MSG]), /is not <repo>\/\.worktrees\/<slug>/);
   });
   const lines = (n) => Array.from({ length: n }, (_, i) => `line ${i}\n`).join('');
   test('a commit under 30 changed lines needs no journal entry', () => {

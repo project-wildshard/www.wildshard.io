@@ -1,0 +1,14 @@
+export type FlakyConfig = { quarantine: string; artifacts: string; packedStep: string; owner: string };
+export type LandConfig = { workflows: readonly string[]; gh: string; install: readonly string[] | null; flaky: FlakyConfig | null };
+export const LAND_DEFAULTS: Readonly<LandConfig>;
+export const LAND_WORKFLOWS: readonly string[];
+export function loadLandConfig(root: string): LandConfig;
+export function githubSlug(remote: string): string | null;
+export function parseArgs(argv: string[]): { pollSeconds: number; timeoutMinutes: number; appearMinutes: number; rounds: number; keep: boolean };
+export function shaVerdict(data: unknown, sha: string, workflows?: readonly string[]): { state: 'pending' | 'green' | 'red'; runs: Record<string, { id: number; status: string; conclusion: string | null; branch: string; url: string; attempt: number }>; summary: string };
+export function failedJobs(data: unknown): { blocking: string[]; nonblocking: string[] };
+export function mainPushArgs(sha: string): string[];
+export function land(argv: string[], cwd?: string, env?: NodeJS.ProcessEnv): Promise<number>;
+export function flakyFiles(directory: string, jobNames: readonly string[]): string[] | null;
+export function strikePlans(book: string, file: string, now: number): string[];
+export function quarantineFile(path: string, file: string, owner: string, reason: string, now: number): boolean;

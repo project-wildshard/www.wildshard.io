@@ -3,7 +3,8 @@
 // shell / module syntax. Always the blob git will store, never the
 // working-tree copy (another agent may be editing it).
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { join } from 'node:path';
 
 export const MAX_BYTES = 1024 * 1024;
 
@@ -23,7 +24,56 @@ export const git = (args, options = {}) =>
   execFileSync('git', args, { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, ...options });
 
 // A new target ref proves nothing about which objects that remote has. Other remotes must not exempt its history.
-export const outgoingRange = (local, remote) => remote && !/^0+$/u.test(remote) ? [`${remote}..${local}`] : [local];
+// Local tracking refs can be stale. What the destination itself advertises right
+// now can exempt history (J240: a first plan/<slug> push sends only the plan's
+// commits): pass the tips `git ls-remote <push URL>` returned, present locally.
+export const outgoingRange = (local, remote, advertised = []) => remote && !/^0+$/u.test(remote) ? [`${remote}..${local}`]
+  : advertised.length ? [local, '--not', ...advertised] : [local];
+
+/** Heads the push destination advertises that this repo has, or [] on any doubt.
+ * @param {string} url the hook's actual push URL ($2) */
+export function advertisedTips(url) {
+  if (!url) return [];
+  try {
+    const out = execFileSync('git', ['ls-remote', '--heads', '--', url, 'refs/heads/main'], { encoding: 'utf8', timeout: 15_000, stdio: ['ignore', 'pipe', 'ignore'] });
+    return out.trim().split('\n').map((row) => row.split('\t')[0] ?? '').filter((sha) => /^[0-9a-f]{40}$/u.test(sha))
+      .filter((sha) => spawnSync('git', ['cat-file', '-e', `${sha}^{commit}`]).status === 0);
+  } catch {
+    return [];
+  }
+}
+
+/** The plan slug of a linked worktree at `<main worktree>/.worktrees/<slug>`, else null.
+ * The main worktree is Git's own first `worktree list` entry, and it must be a
+ * non-bare checkout whose Git dir is this common dir: a separate Git dir never
+ * makes its parent folder a canonical checkout.
+ * @param {string} top the worktree's top level @param {string} common its absolute common Git dir */
+export function planWorktreeSlug(top, common) {
+  try {
+    const first = git(['worktree', 'list', '--porcelain']).split('\n\n')[0] ?? '';
+    const canonical = /^worktree (.+)$/mu.exec(first)?.[1];
+    if (!canonical || /^bare$/mu.test(first)) return null;
+    // A hook exports GIT_DIR/GIT_INDEX_FILE for its own worktree; ask the main one cleanly.
+    const clean = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+    const own = git(['-C', canonical, 'rev-parse', '--path-format=absolute', '--absolute-git-dir'], { env: clean }).trim();
+    if (realpathSync(own) !== realpathSync(common)) return null;
+    const prefix = `${realpathSync(canonical)}/.worktrees/`, real = realpathSync(top);
+    const match = /^([a-z0-9][a-z0-9._-]*)$/u.exec(real.startsWith(prefix) ? real.slice(prefix.length) : '');
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** The branch a rebase in progress will update (refs/heads/...), or null.
+ * @param {string} dir a rebase-merge or rebase-apply directory */
+export function rebaseHeadName(dir) {
+  try {
+    return readFileSync(join(dir, 'head-name'), 'utf8').trim() || null;
+  } catch {
+    return null;
+  }
+}
 
 /** Sizes for many blob ids in one `git cat-file` call. */
 export function blobSizes(objects) {

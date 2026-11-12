@@ -1,6 +1,7 @@
 // pre-commit: check what THIS commit will contain (the index git is
 // about to write, including the private index of a pathspec commit).
-//   0. HEAD is main in the main checkout (D27; ALLOW_BRANCH=1).
+//   0. HEAD is main in the canonical checkout, plan/<slug> in
+//      .worktrees/<slug> (D27, J221, J240; ALLOW_BRANCH=1).
 //   1. Print the staged set, so a file swept in from another agent's
 //      work in this shared checkout is loud.
 //   2. `git diff --cached --check`: whitespace errors, conflict markers.
@@ -12,23 +13,33 @@
 //      src/scripts/ runs the hook suite, the agent hook tests with it.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
-import { blobSizes, checkBlob, git, herdrPeers, printPeers, report } from './lib.mjs';
+import { blobSizes, checkBlob, git, herdrPeers, planWorktreeSlug, printPeers, rebaseHeadName, report } from './lib.mjs';
 
-// 0. Main only (D27): every agent commits on `main` in the main checkout.
-//    No branches, no worktrees. A rebase onto main (detached HEAD) is
-//    fine. Bypass: ALLOW_BRANCH=1.
+// 0. Main only (D27), relaxed by J221/J240 (DEV-SPEED DS6): the canonical
+//    checkout commits on `main` only; a linked worktree commits only when
+//    it lives at `<canonical>/.worktrees/<slug>` on branch `plan/<slug>`.
+//    A rebase (detached HEAD) is fine in either. Bypass: ALLOW_BRANCH=1.
 if (process.env.ALLOW_BRANCH !== '1') {
   const branch = spawnSync('git', ['symbolic-ref', '--quiet', '--short', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
-  const rebasing = ['rebase-merge', 'rebase-apply'].some((dir) => existsSync(git(['rev-parse', '--git-path', dir]).trim()));
-  const linked = git(['rev-parse', '--absolute-git-dir']).trim() !== git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim();
-  const problems = [
-    ...(linked ? [`this is a linked worktree (${git(['rev-parse', '--show-toplevel']).trim()}); commit in the main checkout`] : []),
-    ...(branch !== 'main' && !rebasing ? [`HEAD is ${branch ? `branch "${branch}"` : 'detached'}, not main`] : []),
-  ];
-  if (report('commit blocked: main only, no branches, no worktrees (D27)', problems.length ? [
+  const rebaseDir = ['rebase-merge', 'rebase-apply'].map((dir) => git(['rev-parse', '--git-path', dir]).trim()).find((dir) => existsSync(dir));
+  const rebasing = rebaseDir !== undefined;
+  const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir']).trim();
+  const linked = git(['rev-parse', '--absolute-git-dir']).trim() !== common;
+  const top = git(['rev-parse', '--show-toplevel']).trim();
+  const problems = [];
+  if (linked) {
+    const slug = planWorktreeSlug(top, common);
+    if (slug === null) problems.push(`this linked worktree (${top}) is not <repo>/.worktrees/<slug>; make one with git worktree add -b plan/<slug> .worktrees/<slug> origin/main`);
+    else if (rebasing ? rebaseHeadName(rebaseDir) !== `refs/heads/plan/${slug}` : branch !== `plan/${slug}`) {
+      const what = rebasing ? `a rebase of ${rebaseHeadName(rebaseDir) ?? 'a detached HEAD'}` : branch ? `branch "${branch}"` : 'detached';
+      problems.push(`HEAD is ${what}, not plan/${slug} (this worktree's plan branch)`);
+    }
+  } else if (branch !== 'main' && !rebasing) {
+    problems.push(`HEAD is ${branch ? `branch "${branch}"` : 'detached'}, not main; plan work belongs in <repo>/.worktrees/<slug> on plan/<slug>`);
+  }
+  if (report('commit blocked: main in the canonical checkout, plan/<slug> in .worktrees/<slug> (D27, J221, J240)', problems.length ? [
     ...problems,
-    'Commit straight on main in the shared checkout, by pathspec.',
-    'Moving work off a branch: land it on main, then Jake deletes the branch.',
+    'The canonical checkout commits straight on main, by pathspec.',
   ] : [])) process.exit(1);
 }
 

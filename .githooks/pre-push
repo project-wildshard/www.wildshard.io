@@ -8,6 +8,9 @@
 set -euo pipefail
 hooks="$(git rev-parse --show-toplevel)/.githooks"
 refs="$(cat)"
-printf '%s\n' "$refs" | node "$hooks/check-push.mjs"
+# $2 is the push URL: a new ref (a first plan/<slug> push, J240) is
+# scanned only for the commits that destination lacks.
+printf '%s\n' "$refs" | node "$hooks/check-push.mjs" "$2"
 printf '%s\n' "$refs" | node "$hooks/agents-md.mjs" push
+export WS_PUSH_REFS="$refs"
 exec node "$hooks/run-checks.mjs" push

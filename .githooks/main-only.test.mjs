@@ -4,7 +4,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
@@ -48,5 +48,18 @@ describe('session brief: main only', () => {
     assert.match(out, /!! branch feature/);
     assert.match(out, /!! remote origin\/old-work/);
     assert.match(out, /ask Jake to delete the branch/);
+  });
+  test('plan worktrees and plan branches are not strays (J240)', () => {
+    const { root, git, brief } = setup();
+    // The kit brief allows plan worktrees only where the worktree tool is.
+    mkdirSync(join(root, 'scripts'), { recursive: true });
+    writeFileSync(join(root, 'scripts', 'worktree.mjs'), '');
+    git(['update-ref', 'refs/remotes/origin/main', 'HEAD']);
+    git(['update-ref', 'refs/remotes/origin/plan/foo', 'HEAD']);
+    git(['worktree', 'add', '-q', '-b', 'plan/foo', join(root, '.worktrees', 'foo')]);
+    const out = brief();
+    assert.match(out, /plan worktrees \(1\): \.worktrees\/foo/);
+    assert.match(out, /\(clean: main only\)/);
+    assert.doesNotMatch(out, /!!/);
   });
 });
