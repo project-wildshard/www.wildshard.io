@@ -36,7 +36,7 @@
     "site:media": "node src/site/tools/publish-media.ts",
     "site:facts": "node src/site/tools/refresh-facts.ts",
     "site:api-grid": "node src/site/tools/api-grid.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks && pnpm check:agents && pnpm check:agent-sync && pnpm test:agent-hooks && pnpm check:parity && node --check scripts/chromium-keychain-check.mjs && node --test test/tooling/chrome-keychain.test.mjs && node scripts/vercel-prune-check.mjs"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm check:asks && pnpm check:agents && pnpm check:agent-sync && pnpm test:agent-hooks && pnpm check:parity && node --check scripts/chromium-keychain-check.mjs && node --test test/tooling/chrome-keychain.test.mjs test/tooling/worktree-guard.test.mjs && node scripts/vercel-prune-check.mjs"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",

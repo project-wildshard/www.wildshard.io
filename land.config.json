@@ -1,0 +1,4 @@
+{
+  "about": "www.wildshard.io's land settings (meta WORKTREE-LAND-STANDARD WL4; keys in scripts/land.mjs). www is public, so its hosted Actions run: land waits for the exact plan/<slug> SHA's `ci` push run (its one `check` job: pnpm check, the hook tests, the site build and the e2e). Only `ci` is named: site-deploy is the production deploy, runs on main only and never on plan/**. pnpm's frozen install after a dependency rebase; no TS10 flaky quarantine.",
+  "workflows": ["ci"]
+}

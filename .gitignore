@@ -8,5 +8,7 @@ blob-report/
 .DS_Store
 .env
 .env.*
-# No worktrees here (D27); ignored so a stray one never gets committed.
+# Stray Claude Code worktrees are ignored so one never gets committed.
 .claude/worktrees/
+# Plan worktrees live at .worktrees/<slug> on plan/<slug> (J221, J240, DEV-SPEED DS11).
+/.worktrees/
