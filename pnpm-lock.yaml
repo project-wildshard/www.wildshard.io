@@ -28,8 +28,8 @@ importers:
         specifier: 24.3.1
         version: 24.3.1
       '@wildshard/format':
-        specifier: github:project-wildshard/shardfile#v0.3.1
-        version: git+ssh://git@github.com/project-wildshard/shardfile.git#9991748d559b1f33ea95e591478618c9494ee759(typescript@7.0.2)
+        specifier: github:project-wildshard/shard-format#v0.3.1
+        version: https://codeload.github.com/project-wildshard/shard-format/tar.gz/9991748d559b1f33ea95e591478618c9494ee759(typescript@7.0.2)
       esbuild:
         specifier: 0.28.2
         version: 0.28.2
@@ -227,8 +227,8 @@ packages:
     cpu: [x64]
     os: [linux]
 
-  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#9991748d559b1f33ea95e591478618c9494ee759':
-    resolution: {commit: 9991748d559b1f33ea95e591478618c9494ee759, repo: git@github.com:project-wildshard/shardfile.git, type: git}
+  '@wildshard/format@https://codeload.github.com/project-wildshard/shard-format/tar.gz/9991748d559b1f33ea95e591478618c9494ee759':
+    resolution: {gitHosted: true, integrity: sha512-Odp0NYT6HmIP0BLX2ae641eT4gGE0iTSQXjtSW8TeNinMcFVcbC0dshqmsT0gROKGukBD/Telp7KdQAhZM0cYQ==, tarball: https://codeload.github.com/project-wildshard/shard-format/tar.gz/9991748d559b1f33ea95e591478618c9494ee759}
     version: 0.3.1
     engines: {node: '>=24.18.0'}
     hasBin: true
@@ -660,7 +660,7 @@ snapshots:
   '@typescript/typescript-linux-x64@7.0.2':
     optional: true
 
-  '@wildshard/format@git+ssh://git@github.com/project-wildshard/shardfile.git#9991748d559b1f33ea95e591478618c9494ee759(typescript@7.0.2)':
+  '@wildshard/format@https://codeload.github.com/project-wildshard/shard-format/tar.gz/9991748d559b1f33ea95e591478618c9494ee759(typescript@7.0.2)':
     dependencies:
       meshoptimizer: 1.2.0
       valibot: 1.5.0(typescript@7.0.2)

@@ -47,7 +47,7 @@
   "devDependencies": {
     "@playwright/test": "1.60.0",
     "@types/node": "24.3.1",
-    "@wildshard/format": "github:project-wildshard/shardfile#v0.3.1",
+    "@wildshard/format": "github:project-wildshard/shard-format#v0.3.1",
     "esbuild": "0.28.2",
     "oxfmt": "0.74.0",
     "oxlint": "1.89.0",
