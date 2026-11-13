@@ -1,4 +1,6 @@
 // Conservative source guard for Chromium launchers, without a parser dependency.
+import { KEYCHAIN_ARGS } from './chromium-keychain.mjs';
+
 const childMethods = ['spawn', 'spawnSync', 'execFile', 'execFileSync', 'exec', 'execSync'];
 const browserBinary = /chrom(?:e|ium)|executablePath\s*\(/iu;
 
@@ -11,7 +13,7 @@ function shellProblems(/** @type {string} */ text) {
     if (!command || command[1].startsWith('#') || command[1].includes('=')) return [];
     const program = command[1].replace(/\$\{?(\w+)\}?/gu, (_all, name) => variables.get(name) ?? name);
     if (!browserBinary.test(program)) return [];
-    return ['--use-mock-keychain', '--password-store=basic'].every(flag => command[2].includes(flag)) ? [] : ['bare Chromium shell executable'];
+    return KEYCHAIN_ARGS.every(flag => command[2].includes(flag)) ? [] : ['bare Chromium shell executable'];
   });
 }
 
@@ -95,7 +97,7 @@ export function keychainProblems(/** @type {string} */ text) {
     return value;
   };
   const safe = (/** @type {string} */ value) => /\.\.\.\s*KEYCHAIN_ARGS\b/u.test(expand(value))
-    || ['--use-mock-keychain', '--password-store=basic'].every(flag => expand(value).includes(flag));
+    || KEYCHAIN_ARGS.every(flag => expand(value).includes(flag));
   const names = [...childMethods];
   const namespaces = new Set([...text.matchAll(/import\s+\*\s+as\s+(\w+)\s+from\s+['"](?:node:)?child_process['"]/gu)].map(match => match[1]));
   for (const match of text.matchAll(/import\s+(\w+)\s+from\s+['"](?:node:)?child_process['"]/gu)) namespaces.add(match[1]);

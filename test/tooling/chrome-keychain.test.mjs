@@ -18,7 +18,7 @@ const files = [...new Set(paths)]
   .map(file => ({ file, text: readFileSync(join(process.cwd(), file), 'utf8') }));
 
 test('Chromium launch files spread the shared keychain flags', () => {
-  assert.deepEqual(KEYCHAIN_ARGS, ['--use-mock-keychain', '--password-store=basic']);
+  assert.deepEqual(KEYCHAIN_ARGS, ['--use-mock-keychain', '--password-store=basic', '--mute-audio']);
   const bare = files.flatMap(({ file, text }) => keychainProblems(text).map(problem => `${file}: ${problem}`));
   assert.deepEqual(bare, [], 'Import and spread scripts/chromium-keychain.mjs KEYCHAIN_ARGS at every Chromium launch');
 });
@@ -33,7 +33,11 @@ test('raw executable aliases and every child-process API are checked', () => {
     }
   }
   assert.ok(keychainProblems("exec('/cache/chromium-1254/chrome --headless');").length > 0);
-  assert.deepEqual(keychainProblems("exec('/cache/chromium-1254/chrome --use-mock-keychain --password-store=basic --headless');"), []);
+  assert.deepEqual(keychainProblems("exec('/cache/chromium-1254/chrome --use-mock-keychain --password-store=basic --mute-audio --headless');"), []);
+  // Jake, 2026-11-13: a literal launch that keeps the keychain flags but forgets the mute is still refused.
+  assert.ok(keychainProblems("exec('/cache/chromium-1254/chrome --use-mock-keychain --password-store=basic --headless');").length > 0);
+  assert.ok(keychainProblems("import { chromium } from 'playwright'; chromium.launch({args: ['--use-mock-keychain', '--password-store=basic']});").length > 0);
+  assert.deepEqual(keychainProblems("import { chromium } from 'playwright'; chromium.launch({args: ['--use-mock-keychain', '--password-store=basic', '--mute-audio']});"), []);
   assert.ok(keychainProblems("import { execFile as run } from 'node:child_process'; run('/cache/chromium-1254/chrome', []);").length > 0);
   for (const call of [
     "import cp from 'node:child_process'; cp.execFile",
@@ -55,7 +59,8 @@ test('raw executable aliases and every child-process API are checked', () => {
   assert.ok(keychainProblems("import { chromium } from 'playwright'; const pattern = /['\"]/u; chromium.launch({});").length > 0);
   const shell = '#!/bin/bash\nBROWSER="/cache/chromium-1254/chrome"\nexec "$BROWSER"';
   assert.ok(keychainProblems(shell + ' --headless\n').length > 0);
-  assert.deepEqual(keychainProblems(shell + ' --headless --use-mock-keychain --password-store=basic\n'), []);
+  assert.deepEqual(keychainProblems(shell + ' --headless --use-mock-keychain --password-store=basic --mute-audio\n'), []);
+  assert.ok(keychainProblems(shell + ' --headless --use-mock-keychain --password-store=basic\n').length > 0);
 });
 
 test('no source drops Playwright default arguments', () => {
