@@ -6,7 +6,7 @@
 // commit in a shared checkout: the hooks then read git's private index.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { WIDTH, findLong } from '../src/scripts/md-wrap.mjs';
+import { WIDTH, findLong } from '../kit/scripts/md-wrap.mjs';
 import { ok, sandbox } from './test-helpers.mjs';
 
 const MSG = ok('docs(plans): add a plan');
@@ -91,7 +91,7 @@ describe('plan gate neighbours under pathspec commits', () => {
   });
   test('a malformed staged ask is refused beside a good plan', (t) => {
     const box = sandbox();
-    if (!box.git(['ls-files', '--others', '--', 'src/scripts/asks.mjs']).stdout.trim()) return t.skip('no ask tooling in this repo');
+    if (!box.git(['ls-files', '--others', '--', 'kit/scripts/asks.mjs']).stdout.trim()) return t.skip('no ask tooling in this repo');
     const result = pathspecCommit(box, {
       'docs/plans/opus-2026-11-04-a.md': plan('> **State:** draft, 2026-11-07.'),
       'docs/tasks/asks/A1.md': '# A1\n\nno status, no ask\n',

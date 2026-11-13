@@ -1,10 +1,10 @@
-// Tests for the ask tooling: src/scripts/asks.mjs and src/scripts/ask-new.sh.
+// Tests for the ask tooling: kit/scripts/asks.mjs and kit/scripts/ask-new.sh.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { checkAsk, parseAsk } from '../src/scripts/asks.mjs';
+import { checkAsk, parseAsk } from '../kit/scripts/asks.mjs';
 import { ok, sandbox } from './test-helpers.mjs';
 
 const ask = (id, status, words = '"do the thing"') => `# ${id}\n\n**Status:** ${status}\n**Ask:** ${words}\n`;
@@ -44,7 +44,7 @@ describe('ask rules', () => {
 describe('ask-new.sh and the pre-commit check', () => {
   test('claims A1, A2, … and writes a valid file', () => {
     const { root } = sandbox();
-    const claim = (words) => spawnSync('bash', ['src/scripts/ask-new.sh', words], { cwd: root, encoding: 'utf8' });
+    const claim = (words) => spawnSync('bash', ['kit/scripts/ask-new.sh', words], { cwd: root, encoding: 'utf8' });
     assert.equal(claim('"first"').stdout.trim(), 'docs/tasks/asks/A1.md');
     assert.equal(claim('"second"').stdout.trim(), 'docs/tasks/asks/A2.md');
     const text = readFileSync(join(root, 'docs/tasks/asks/A2.md'), 'utf8');

@@ -1,4 +1,4 @@
-// AGENTS.md shape and edit rule (J241; docs/agents-md.md).
+// AGENTS.md shape and edit rule (J241; docs/agents-md.md where the repo has it).
 //
 // Every repo's AGENTS.md has Jake's section on top, one marker line,
 // then the agent-written section, which opens with `## Agent-written`.
@@ -153,7 +153,10 @@ function report(title, problems) {
   if (!problems.length) return false;
   console.error(`\n  X ${title}:\n`);
   for (const problem of problems) console.error('    ' + problem.replace(/\n/g, '\n      '));
-  console.error('\n    The rule and the human path: docs/agents-md.md (J241).\n');
+  // A repo without the doc (meta, singleplayer) gets the rule itself, not a path that is not there.
+  console.error(existsSync('docs/agents-md.md')
+    ? '\n    The rule and the human path: docs/agents-md.md (J241).\n'
+    : '\n    The rule (J241): agents edit AGENTS.md only below the marker line; Jake edits anything (a commit with no\n    Assisted-by trailer, SKIP_ATTRIB=1).\n');
   return true;
 }
 

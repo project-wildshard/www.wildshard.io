@@ -1,8 +1,8 @@
 // md-wrap.mjs — markdown prose wraps at 72 characters (Jake's norm;
 // ported from kami-kakushi's md-wrap, written fresh for greenroom).
 //
-//   node src/scripts/md-wrap.mjs <file...>                    reflow long prose in place
-//   node src/scripts/md-wrap.mjs --check [--new-only] <file...>  list long prose lines (exit 1)
+//   node kit/scripts/md-wrap.mjs <file...>                    reflow long prose in place
+//   node kit/scripts/md-wrap.mjs --check [--new-only] <file...>  list long prose lines (exit 1)
 //
 // --new-only reports only lines added vs HEAD (an untracked file counts
 // whole), so touching one line of an old doc doesn't flag its history.
@@ -202,7 +202,7 @@ function main(argv) {
   const newOnly = argv.includes('--new-only')
   const files = argv.filter(arg => !arg.startsWith('--'))
   if (!files.length) {
-    console.error('usage: node src/scripts/md-wrap.mjs [--check [--new-only]] <file.md...>')
+    console.error('usage: node kit/scripts/md-wrap.mjs [--check [--new-only]] <file.md...>')
     return 2
   }
   let status = 0

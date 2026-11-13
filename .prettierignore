@@ -1,0 +1,9 @@
+# Site pages, styles and data ship as bytes or are written by a tool
+# (oxfmt reads this; kit/.oxfmtrc.json patterns only reach kit/, J329).
+src/site/**/*.html
+src/site/**/*.css
+src/site/facts.json
+src/site/media.json
+src/site/public/**
+src/**/*.md
+src/dist/**

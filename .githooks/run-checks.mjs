@@ -40,7 +40,7 @@ if (process.env.SKIP_CHECK === '1') {
   console.error(`  - SKIP_CHECK=1: ${lane} lane skipped (CI still runs it)`);
   process.exit(0);
 }
-// The package is at the repo root; its configs live in src/.
+// The package is at the repo root; its kit configs live in kit/ (J329).
 const pkgDir = root;
 const pkgPath = join(pkgDir, 'package.json');
 const scripts = existsSync(pkgPath) ? (JSON.parse(readFileSync(pkgPath, 'utf8')).scripts ?? {}) : {};
@@ -48,10 +48,10 @@ const scripts = existsSync(pkgPath) ? (JSON.parse(readFileSync(pkgPath, 'utf8'))
 /** @type {{ name: string, args: string[] }[]} */
 const jobs = [];
 if (lane === 'commit') {
-  // Staged code under src/, passed relative to the repo root (the
-  // package root). Code outside src/ (.githooks, docs) has its own checks.
+  // Staged code under src/ and kit/ (J329), passed relative to the
+  // repo root (the package root). Code outside them (.githooks, docs) has its own checks.
   const staged = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR']).split('\0').filter(Boolean)
-    .filter((path) => path.startsWith('src/'));
+    .filter((path) => /^(?:src|kit)\//u.test(path));
   const lint = staged.filter((path) => LINTABLE.test(path));
   const format = staged.filter((path) => FORMATTABLE.test(path));
   if (scripts.lint && lint.length) jobs.push({ name: 'lint', args: ['lint', ...lint] });

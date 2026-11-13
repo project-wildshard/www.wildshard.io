@@ -48,11 +48,11 @@ while IFS= read -r file; do
   case "$rel" in
     node_modules/*|*/node_modules/*|.worktrees/*|project/archive/*|tmp/*) continue ;;
   esac
-  [ -f "$file" ] && [ -f "$root/src/scripts/md-wrap.mjs" ] || continue
-  out="$(cd "$root" && node src/scripts/md-wrap.mjs --check --new-only "$rel" 2>&1)" && continue
+  [ -f "$file" ] && [ -f "$root/kit/scripts/md-wrap.mjs" ] || continue
+  out="$(cd "$root" && node kit/scripts/md-wrap.mjs --check --new-only "$rel" 2>&1)" && continue
   report="$report$out
 "
-  fixes="$fixes  node src/scripts/md-wrap.mjs \"$rel\"
+  fixes="$fixes  node kit/scripts/md-wrap.mjs \"$rel\"
 "
 done <<EOF
 $paths

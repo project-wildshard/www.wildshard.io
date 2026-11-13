@@ -50,8 +50,8 @@ else
   [ -n "$peers" ] && echo "  They share this checkout and its index: commit only your own paths."
 fi
 
-if [ -f src/scripts/asks.mjs ]; then
-  asks="$(node src/scripts/asks.mjs brief 2>/dev/null || echo "  (src/scripts/asks.mjs brief failed: read docs/tasks/asks/ directly)")"
+if [ -f kit/scripts/asks.mjs ]; then
+  asks="$(node kit/scripts/asks.mjs brief 2>/dev/null || echo "  (kit/scripts/asks.mjs brief failed: read docs/tasks/asks/ directly)")"
 else
   asks="  (no ask tooling)"
 fi

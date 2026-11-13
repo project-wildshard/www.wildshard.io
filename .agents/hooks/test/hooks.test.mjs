@@ -33,7 +33,7 @@ function sandbox() {
   boxes.push(root);
   git(root, ['init', '-q', '-b', 'main']);
   cpSync(HOOKS, join(root, '.agents', 'hooks'), { recursive: true, filter: (path) => !path.includes(`${join('hooks', 'test')}`) });
-  if (existsSync(join(REPO, 'src/scripts/md-wrap.mjs'))) cpSync(join(REPO, 'src/scripts/md-wrap.mjs'), join(root, 'src/scripts/md-wrap.mjs'));
+  if (existsSync(join(REPO, 'kit/scripts/md-wrap.mjs'))) cpSync(join(REPO, 'kit/scripts/md-wrap.mjs'), join(root, 'kit/scripts/md-wrap.mjs'));
   writeFileSync(join(root, 'notes.md'), '# t\n\nhello\n');
   git(root, ['add', '-A']);
   git(root, ['-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'init']);
@@ -111,7 +111,7 @@ describe('guard-git-add.sh: same verdict from both tools', () => {
   });
 });
 
-describe('md-prose-width.sh: same advice from both tools', { skip: !existsSync(join(REPO, 'src/scripts/md-wrap.mjs')) && 'no src/scripts/md-wrap.mjs here' }, () => {
+describe('md-prose-width.sh: same advice from both tools', { skip: !existsSync(join(REPO, 'kit/scripts/md-wrap.mjs')) && 'no kit/scripts/md-wrap.mjs here' }, () => {
   const long = (n) => `${'word '.repeat(n).trim()}`;
   const codexPatch = (root, files) => {
     const payload = fixture('codex', 'post-apply-patch', root);
@@ -129,7 +129,7 @@ describe('md-prose-width.sh: same advice from both tools', { skip: !existsSync(j
     const claude = run(root, 'md-prose-width.sh', claudeEdit(root, 'notes.md'));
     const codex = run(root, 'md-prose-width.sh', codexPatch(root, ['notes.md']));
     assert.equal(claude.status, 2, claude.stderr);
-    assert.match(claude.stderr, /notes\.md:4: \d+ chars[\s\S]*node src\/scripts\/md-wrap\.mjs "notes\.md"/);
+    assert.match(claude.stderr, /notes\.md:4: \d+ chars[\s\S]*node kit\/scripts\/md-wrap\.mjs "notes\.md"/);
     assert.deepEqual(codex, claude);
   });
   test('Claude Write and Codex Add File, recorded payloads as sent', () => {

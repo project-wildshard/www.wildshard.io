@@ -25,7 +25,7 @@ for f in $(git ls-tree --name-only origin/main docs/plans/ | grep '\.md$'); do
   git show "origin/main:$f" | grep -m1 -E '^(> *)?(\*\*)?(State|Status):' | cut -c1-400
 done
 git ls-tree --name-only origin/main project/archive/ 2>/dev/null | tail -15
-node src/scripts/asks.mjs brief            # open asks, expired claims, picks for Jake
+node kit/scripts/asks.mjs brief            # open asks, expired claims, picks for Jake
 ```
 
 Other living docs with a `State:` line (`docs/prd.md`, the
@@ -93,7 +93,7 @@ His standing preferences (from wildshard, 2026-09-28 → 10-03):
 
 ## 4. Archive a plan (done, or on his word)
 
-1. On his word: `src/scripts/ask-new.sh "<his words>"` unless it is part
+1. On his word: `kit/scripts/ask-new.sh "<his words>"` unless it is part
    of an ask you already hold.
 2. `git mv docs/plans/<name>.md project/archive/$(date +%F)-<name>.md`.
 3. Rewrite its State line: `> **State:** done, <date>[, archived on

@@ -35,6 +35,7 @@
 // every replaced byte, and nothing outside these paths is touched.
 // Exit 0 ok, 1 stale, invalid or refused, 2 usage.
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, renameSync, rmSync, rmdirSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -283,6 +284,18 @@ export function kitFiles(kit) {
 export const kitSkills = (kit) => (isRealDir(join(kit, SKILLS)) ? readdirSync(join(kit, SKILLS)).filter((name) => isRealDir(join(kit, SKILLS, name))).sort() : []);
 
 const gitOut = (root, args) => spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
+/** A file's git blob id, as `git hash-object` gives it. */
+const blobId = (bytes) => createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+/**
+ * MA10 (e): every blob the kit's history held at any of `paths` (its current path and, for a moved file, the
+ * repo's old path), so a copy the stamp replaces reads as an older kit copy, not a local edit. Empty when the
+ * kit is not a git checkout.
+ */
+function kitBlobs(kit, paths) {
+  const log = gitOut(kit, ['--literal-pathspecs', 'log', '--format=', '--raw', '--no-abbrev', '--no-renames', 'HEAD', '--', ...paths]);
+  if (log.status !== 0) return new Set();
+  return new Set(log.stdout.split('\n').flatMap((line) => line.startsWith(':') ? line.split(' ').slice(2, 4) : []).filter((id) => !/^0+$/u.test(id)));
+}
 
 /** The first symlink at or above `rel` inside root, component by component, or null. */
 function linkOnPath(root, rel) {
@@ -362,7 +375,7 @@ const realOr = (path) => {
  * Stamp the kit's agent layout into a repo. Everything is checked before anything is written: the kit,
  * the repo's specs and manifests, every registration the new manifests would drop, symlinks on every
  * path it writes or removes, and uncommitted, untracked or ignored files under those paths.
- * @returns {{ changed: string[], replaced: string[], problems: string[] }}
+ * @returns {{ changed: string[], replaced: string[], older?: string[], problems: string[] }}
  */
 export function stamp(kitDir, rootDir) {
   const kit = resolve(kitDir);
@@ -428,11 +441,16 @@ export function stamp(kitDir, rootDir) {
   if (problems.length) return refuse(problems);
 
   const changed = new Set();
-  // Copies the stamp replaces whose bytes differ from the kit's: git keeps the old bytes; the caller reviews them.
+  // Copies the stamp replaces whose bytes differ from the kit's: git keeps the old bytes. One the kit's history
+  // held is an older kit copy (`older`); any other is a local edit the caller reviews (`replaced`).
   const replaced = [];
+  const older = [];
+  const differs = (path, kitPath) => {
+    (kitBlobs(kit, [...new Set([kitPath, path])]).has(blobId(readFileSync(join(root, path)))) ? older : replaced).push(path);
+  };
   for (const path of legacy) {
     const want = join(kit, '.agents/hooks', path.slice('.claude/hooks/'.length));
-    if (!existsSync(want) || !readFileSync(join(root, path)).equals(readFileSync(want))) replaced.push(path);
+    if (!existsSync(want) || !readFileSync(join(root, path)).equals(readFileSync(want))) differs(path, `.agents/hooks/${path.slice('.claude/hooks/'.length)}`);
     rmSync(join(root, path));
     changed.add(path);
   }
@@ -440,7 +458,7 @@ export function stamp(kitDir, rootDir) {
   for (const name of oldKitSkills) {
     const path = `${CLAUDE_SKILLS}/${name}`;
     for (const file of entriesUnder(root, path)) {
-      if (!readFileSync(join(root, file)).equals(readFileSync(join(kit, SKILLS, name, relative(path, file))))) replaced.push(file);
+      if (!readFileSync(join(root, file)).equals(readFileSync(join(kit, SKILLS, name, relative(path, file))))) differs(file, `${SKILLS}/${name}/${relative(path, file)}`);
       changed.add(file);
     }
     rmSync(join(root, path), { recursive: true });
@@ -460,7 +478,7 @@ export function stamp(kitDir, rootDir) {
     const mode = statSync(from).mode & 0o777;
     const same = existsSync(to) && readFileSync(to).equals(bytes);
     if (!same || (statSync(to).mode & 0o777) !== mode) {
-      if (existsSync(to) && !same) replaced.push(path);
+      if (existsSync(to) && !same) differs(path, path);
       mkdirSync(dirname(to), { recursive: true });
       writeFileSync(to, bytes);
       chmodSync(to, mode);
@@ -468,10 +486,10 @@ export function stamp(kitDir, rootDir) {
     }
   }
   const next = plan(root);
-  if (next.problems.length) return { changed: [...changed].sort(), replaced, problems: next.problems };
+  if (next.problems.length) return { changed: [...changed].sort(), replaced, older, problems: next.problems };
   apply(root, next.actions);
   for (const action of next.actions) changed.add(action.path);
-  return { changed: [...changed].sort(), replaced: [...new Set(replaced)].sort(), problems: [] };
+  return { changed: [...changed].sort(), replaced: [...new Set(replaced)].sort(), older: [...new Set(older)].sort(), problems: [] };
 }
 
 // ---------------------------------------------------------------- main
@@ -497,8 +515,9 @@ function main(argv) {
   }
   root = resolve(root);
   if (from) {
-    const { changed, replaced, problems } = stamp(resolve(from), root);
+    const { changed, replaced, older = [], problems } = stamp(resolve(from), root);
     for (const path of changed) process.stdout.write(`stamped ${path}\n`);
+    for (const path of older) process.stdout.write(`updated ${path}: it was an older kit copy (its blob is in the kit's history)\n`);
     for (const path of replaced) process.stdout.write(`replaced ${path}: its bytes differed from the kit's; check git diff for a local edit\n`);
     for (const problem of problems) process.stderr.write(`agent-sync: ${problem}\n`);
     return problems.length ? 1 : 0;

@@ -149,6 +149,14 @@ describe('the hooks, in sandbox repos', () => {
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /AGENTS\.md \/ CLAUDE\.md shape[\s\S]*must be "## Agent-written"/);
   });
+  test('commit: a refusal names docs/agents-md.md only in a repo that has it', () => {
+    const bare = seeded().commit({ 'CLAUDE.md': '@AGENTS.md\nExtra rules.\n' }, AI);
+    assert.doesNotMatch(bare.stderr, /docs\/agents-md\.md/);
+    assert.match(bare.stderr, /The rule \(J241\): agents edit AGENTS\.md only below the marker line/);
+    const box = seeded();
+    assert.equal(box.commit({ 'docs/agents-md.md': '# AGENTS.md rule\n' }, AI).status, 0);
+    assert.match(box.commit({ 'CLAUDE.md': '@AGENTS.md\nExtra rules.\n' }, AI).stderr, /The rule and the human path: docs\/agents-md\.md \(J241\)/);
+  });
   test('commit: a CLAUDE.md with more than @AGENTS.md is refused', () => {
     const result = seeded().commit({ 'CLAUDE.md': '@AGENTS.md\nExtra rules.\n' }, AI);
     assert.notEqual(result.status, 0);

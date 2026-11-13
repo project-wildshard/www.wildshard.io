@@ -69,7 +69,7 @@ in order; don't paraphrase or shortcut.
 4. **Asks and plans tell the truth** (rules:
    `docs/tasks/asks/README.md`). Every request for work Jake made this
    session has its `docs/tasks/asks/<ID>.md` (claimed with
-   `src/scripts/ask-new.sh "<his words>"`), and its `**Status:**` is true:
+   `kit/scripts/ask-new.sh "<his words>"`), and its `**Status:**` is true:
    `done (<date>): <SHAs>` once it is on `origin/main`,
    `in flight (<date>, <owner>)`, `needs pick (<date>)` naming exactly
    what he must choose, `dropped (<date>): <his words>`, or

@@ -113,7 +113,7 @@ describe('session brief: line cap', () => {
     git('init', '-q', '-b', 'main');
     const hooks = relative(ROOT, dirname(BRIEF));
     cpSync(dirname(BRIEF), join(repo, hooks), { recursive: true });
-    write('src/scripts/asks.mjs', readFileSync(join(ROOT, 'src', 'scripts', 'asks.mjs'), 'utf8'));
+    write('kit/scripts/asks.mjs', readFileSync(join(ROOT, 'kit', 'scripts', 'asks.mjs'), 'utf8'));
     for (let i = 1; i <= 8; i++) write(`docs/tasks/asks/A${i}.md`, `# A${i}\n\n**Status:** open (2026-11-11)\n**Ask:** ask ${i}\n`);
     for (let i = 1; i <= 9; i++) write(`docs/plans/opus-2026-11-11-p${i}.md`, `# P${i}\n\n> **State:** in progress, 2026-11-11.\n`);
     write('project/journal/2026-11-11.md', `${Array.from({ length: 10 }, (_, i) => `journal line ${i + 1}`).join('\n')}\n`);

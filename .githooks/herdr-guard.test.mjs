@@ -1,6 +1,6 @@
 // The herdr question guard (meta REPO-KIT-PLAN K3): this repo's installed
 // PreToolUse hook, run by the very command its .claude/settings.json (and
-// .codex/hooks.json, if any) wires, and its src/scripts/ helpers, against
+// .codex/hooks.json, if any) wires, and its kit/scripts/ helpers, against
 // a fake `herdr` on PATH. No real pane is read or written.
 import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -86,8 +86,8 @@ function box({ state = { panes: PANES } } = {}) {
     mkdirSync(dirname(join(root, script)), { recursive: true });
     cpSync(join(REPO, script), join(root, script));
   }
-  mkdirSync(join(root, 'src', 'scripts'), { recursive: true });
-  for (const name of HELPERS) cpSync(join(REPO, 'src', 'scripts', name), join(root, 'src', 'scripts', name));
+  mkdirSync(join(root, 'kit', 'scripts'), { recursive: true });
+  for (const name of HELPERS) cpSync(join(REPO, 'kit', 'scripts', name), join(root, 'kit', 'scripts', name));
   mkdirSync(join(root, 'bin'));
   writeFileSync(join(root, 'bin', 'herdr'), FAKE);
   chmodSync(join(root, 'bin', 'herdr'), 0o755);
@@ -122,7 +122,7 @@ function box({ state = { panes: PANES } } = {}) {
     for (let k = 0; k < runs.length; k += 8) out.push(...(await Promise.all(runs.slice(k, k + 8).map(one))));
     return out;
   };
-  const script = (name, args, extra = {}) => spawnSync(join(root, 'src', 'scripts', name), args, { cwd: root, encoding: 'utf8', env: { ...env, ...extra } });
+  const script = (name, args, extra = {}) => spawnSync(join(root, 'kit', 'scripts', name), args, { cwd: root, encoding: 'utf8', env: { ...env, ...extra } });
   const writes = () => readFileSync(join(root, 'writes.log'), 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
   return { root, env, hook, hooks, script, writes };
 }
@@ -157,7 +157,7 @@ describe('herdr question guard (K3)', () => {
   test('is installed and wired in settings', () => {
     assert.ok(COMMANDS.claude, '.claude/settings.json runs no guard-herdr-prompt.sh on Bash');
     for (const command of Object.values(COMMANDS)) assert.ok(existsSync(join(REPO, scriptOf(command))), command);
-    for (const name of HELPERS) assert.ok(existsSync(join(REPO, 'src', 'scripts', name)), name);
+    for (const name of HELPERS) assert.ok(existsSync(join(REPO, 'kit', 'scripts', name)), name);
   });
 
   test('an open question blocks every form, quoted or not', async () => {
@@ -210,14 +210,14 @@ describe('herdr question guard (K3)', () => {
   test('a missing or non-executable helper refuses writes', () => {
     for (const name of HELPERS) {
       const gone = box();
-      rmSync(join(gone.root, 'src', 'scripts', name));
+      rmSync(join(gone.root, 'kit', 'scripts', name));
       for (const tool of tools()) {
         const result = gone.hook('herdr agent prompt lane-a hi', tool);
         assert.equal(result.status, 2, `${tool} without ${name}`);
         assert.match(result.stderr, new RegExp(`${name} is missing or not executable`));
       }
       const flat = box();
-      chmodSync(join(flat.root, 'src', 'scripts', name), 0o644);
+      chmodSync(join(flat.root, 'kit', 'scripts', name), 0o644);
       assert.equal(flat.hook("herdr pane send-text 'w1:p1' hi").status, 2, `${name} not executable`);
     }
   });
@@ -294,7 +294,7 @@ describe('herdr question guard (K3)', () => {
       assert.equal(result.status, 3, args.join(' '));
       assert.match(result.stderr, /not sent: (blocked|unavailable): /, args.join(' '));
     }
-    rmSync(join(b.root, 'src', 'scripts', 'herdr-question-open.sh'));
+    rmSync(join(b.root, 'kit', 'scripts', 'herdr-question-open.sh'));
     const missing = b.script('herdr-prompt.sh', ['lane-a', 'hi']);
     assert.equal(missing.status, 3);
     assert.match(missing.stderr, /missing or not executable/);

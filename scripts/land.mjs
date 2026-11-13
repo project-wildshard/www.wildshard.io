@@ -89,6 +89,22 @@ export function loadLandConfig(root){
 const git=(cwd,args,env=process.env)=>execFileSync('git',args,{cwd,env,encoding:'utf8',stdio:['ignore','pipe','pipe'],maxBuffer:64<<20}).trim();
 /** @param {string} cwd @param {string[]} args @param {NodeJS.ProcessEnv} [env] */
 const tryGit=(cwd,args,env=process.env)=>spawnSync('git',args,{cwd,env,encoding:'utf8',maxBuffer:64<<20});
+/** A ref lock another git process holds or just moved: worktrees share refs, so two lands fetching main at once race
+ * for refs/remotes/origin/main ("cannot lock ref ...: is at X but expected Y", engine run 43332891983), and any git
+ * may hold packed-refs.lock for a moment. Only these are retried; every other git failure stops as before. */
+export const REF_LOCK=/cannot lock ref|Unable to create '[^']*\.lock': File exists/u;
+const LOCK_WAITS_MS=[200,400,800,1600];
+/** tryGit, tried again after a short backoff while git's only complaint is a ref lock (REF_LOCK). Only for git
+ * commands safe to repeat: a fetch or a ref update, never a push.
+ * @param {string} cwd @param {string[]} args @param {NodeJS.ProcessEnv} env @param {(why:string)=>void} [onRetry] */
+export function tryGitLocked(cwd,args,env,onRetry){
+ for(let attempt=0;;attempt++){
+  const result=tryGit(cwd,args,env),wait=LOCK_WAITS_MS[attempt];
+  if(result.status===0||wait===undefined||!REF_LOCK.test(String(result.stderr)))return result;
+  onRetry?.(`git ${args[0]??''} lost a ref lock (${String(result.stderr).trim().split('\n')[0]??''}); retrying in ${String(wait)} ms`);
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,wait+Math.floor(Math.random()*wait/2));
+ }
+}
 /** @param {string} cwd @param {string} ancestor @param {string} descendant */
 const isAncestor=(cwd,ancestor,descendant)=>tryGit(cwd,['merge-base','--is-ancestor',ancestor,descendant]).status===0;
 /** @param {string} cwd @param {string} from @param {string} to */
@@ -295,6 +311,9 @@ class Landing{
   /** @type {string|null} */this.landedSha=null;
  }
 
+ /** @type {(why:string)=>void} */
+ retry=why=>{this.say('retry',why);};
+
  /** @param {string} state @param {string} detail */
  say(state,detail){process.stdout.write(`land ${new Date().toISOString().slice(11,19)} ${state.padEnd(9)} ${detail}\n`);}
 
@@ -345,7 +364,7 @@ class Landing{
  head(){return git(this.root,['rev-parse','HEAD']);}
 
  fetchMain(){
-  const fetched=tryGit(this.root,['fetch','--quiet','origin','+refs/heads/main:refs/remotes/origin/main']);
+  const fetched=tryGitLocked(this.root,['fetch','--quiet','origin','+refs/heads/main:refs/remotes/origin/main'],process.env,this.retry);
   if(fetched.status!==0)throw new StopError(`git fetch origin main failed: ${fetched.stderr.trim()}`);
   return git(this.root,['rev-parse','refs/remotes/origin/main']);
  }
@@ -449,7 +468,13 @@ class Landing{
  pushPlan(sha){
   const ref=`refs/heads/${this.branch}`,tracking=`refs/remotes/origin/${this.branch}`;
   if(git(this.root,['rev-parse',ref])!==sha)throw new StopError(`${this.branch} is not at ${short(sha)}; run land again`);
-  if(tryGit(this.root,['fetch','--quiet','origin',`+${ref}:${tracking}`]).status!==0)tryGit(this.root,['update-ref','-d',tracking]);
+  const fetched=tryGitLocked(this.root,['fetch','--quiet','origin',`+${ref}:${tracking}`],process.env,this.retry);
+  if(fetched.status!==0){
+   // Only a branch origin lacks clears the tracking ref (a lease on "absent"); any other failure, the network or a
+   // lock still held after the retries, stops here instead of passing for someone else's push.
+   if(!/couldn't find remote ref/u.test(fetched.stderr))throw new StopError(`git fetch origin ${this.branch} failed: ${fetched.stderr.trim()}`);
+   tryGitLocked(this.root,['update-ref','-d',tracking],process.env,this.retry);
+  }
   const tip=tryGit(this.root,['rev-parse','--verify','--quiet',`${tracking}^{commit}`]).stdout.trim()||null;
   if(tip===sha){this.say('pushed',`${this.branch} already at ${short(sha)}`);this.planTip=sha;return;}
   const rewrite=tip!==null&&!isAncestor(this.root,tip,sha);
@@ -702,7 +727,8 @@ class Landing{
   let canonical='',outcome='';
   try{
    canonical=canonicalRoot(this.root);
-   git(canonical,['fetch','--quiet','origin','main']);
+   const fetched=tryGitLocked(canonical,['fetch','--quiet','origin','main'],process.env,this.retry);
+   if(fetched.status!==0)throw new Error(`git fetch origin main failed: ${fetched.stderr.trim()}`);
    outcome=followMain(canonical,git(canonical,['rev-parse','origin/main']).trim());
   }catch(error){outcome=`could not check it (${error instanceof Error?error.message.split('\n')[0]:String(error)})`;}
   if(/fast-forwarded|current$/u.test(outcome)){this.say('canonical',outcome);return;}
@@ -756,7 +782,7 @@ class Landing{
    if(stopped.length>0)parts.push(`stopped ${String(stopped.length)} process(es) still running there (pid ${stopped.join(', ')})`);
    const removed=tryGit(canonical,['worktree','remove',this.root]);
    if(removed.status===0){
-    tryGit(canonical,['update-ref','-d',`refs/heads/${this.branch}`,head]);
+    tryGitLocked(canonical,['update-ref','-d',`refs/heads/${this.branch}`,head],process.env,this.retry);
     parts.push(`worktree and ${this.branch} removed; continue from ${canonical}`);
    }else parts.push(`worktree kept (${removed.stderr.trim().split('\n').at(-1)??'git worktree remove refused'})`);
   }

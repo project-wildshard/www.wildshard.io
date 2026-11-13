@@ -1,4 +1,4 @@
-// Tests for src/scripts/md-wrap.mjs (72-column markdown prose). Its
+// Tests for kit/scripts/md-wrap.mjs (72-column markdown prose). Its
 // PostToolUse hook is tested in md-prose-width.test.mjs (.claude/hooks/)
 // or, on the agent layout, .agents/hooks/test/hooks.test.mjs.
 import { test, describe } from 'node:test';
@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WIDTH, breakable, findLong, reflow, width } from '../src/scripts/md-wrap.mjs';
+import { WIDTH, breakable, findLong, reflow, width } from '../kit/scripts/md-wrap.mjs';
 import { ok, sandbox } from './test-helpers.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -69,7 +69,7 @@ describe('md-wrap CLI', () => {
     const box = sandbox();
     box.commit({ 'doc.md': `${long(20)}\n` }, ok('docs: add doc'));
     writeFileSync(join(box.root, 'doc.md'), `${long(20)}\nshort\n${long(21)}\n`);
-    const run = spawnSync(process.execPath, [join(ROOT, 'src/scripts/md-wrap.mjs'), '--check', '--new-only', 'doc.md'], { cwd: box.root, encoding: 'utf8' });
+    const run = spawnSync(process.execPath, [join(ROOT, 'kit/scripts/md-wrap.mjs'), '--check', '--new-only', 'doc.md'], { cwd: box.root, encoding: 'utf8' });
     assert.equal(run.status, 1);
     assert.match(run.stdout, /doc\.md:3:/);
     assert.doesNotMatch(run.stdout, /doc\.md:1:/);

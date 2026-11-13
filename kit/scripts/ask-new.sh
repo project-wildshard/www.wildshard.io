@@ -3,14 +3,14 @@
 # (one file per request for work from Jake; rules in
 # docs/tasks/asks/README.md). Ported from project-wildshard-singleplayer.
 #
-#   src/scripts/ask-new.sh "<Jake's words>" [series letter, default A]
+#   kit/scripts/ask-new.sh "<Jake's words>" [series letter, default A]
 #
 # The file IS the claim: it is created with noclobber (O_EXCL), so two
 # agents asking at the same moment get two different ids. Prints the new
 # file's path. Fill in the rest with Edit, then commit it by pathspec.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
-ask="${1:?usage: src/scripts/ask-new.sh \"<the request, in Jake words>\" [series letter]}"
+ask="${1:?usage: kit/scripts/ask-new.sh \"<the request, in Jake words>\" [series letter]}"
 series="${2:-A}"
 dir=docs/tasks/asks
 mkdir -p "$dir"

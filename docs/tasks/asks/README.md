@@ -1,14 +1,14 @@
 # Asks
 
 Ported from project-wildshard-singleplayer's `docs/process/ASKS.md`
-(Jake's E423 rules) on 2026-11-04. `src/scripts/asks.mjs` enforces them in
+(Jake's E423 rules) on 2026-11-04. `kit/scripts/asks.mjs` enforces them in
 `.githooks/pre-commit` and prints open asks in the session brief.
 
 ## An ask is a receipt; plans are the queue
 
 - **An ask file records a request for work from Jake**: a change or a
   deliverable. Create it before you start:
-  `f=$(src/scripts/ask-new.sh "<Jake's words>")`, and use the id it
+  `f=$(kit/scripts/ask-new.sh "<Jake's words>")`, and use the id it
   prints. A question answered in chat gets no file. Steering inside a
   running job is appended to that job's ask.
 - **It closes when the work lands.** Follow-up work is a **row in a

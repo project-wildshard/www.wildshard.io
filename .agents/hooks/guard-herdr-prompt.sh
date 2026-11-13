@@ -5,11 +5,11 @@
 # refuses (exit 2, reason on stderr) a command holding
 #   herdr agent prompt|send-keys <target> ...
 #   herdr pane send-text|send-keys|run <pane> ...
-# unless src/scripts/herdr-question-open.sh calls every target "clear".
+# unless kit/scripts/herdr-question-open.sh calls every target "clear".
 # Targets are read with shell quoting, so 'x', "x" and x are the same
 # target; a target that does not resolve, a failed status or screen
 # read, or a missing or non-executable helper refuses too. Writes from
-# a script go through src/scripts/herdr-prompt.sh, which asks the same
+# a script go through kit/scripts/herdr-prompt.sh, which asks the same
 # helper. Escape (rare): SKIP_HERDR_GUARD=1 in the command.
 #
 # The command is read as bash runs it: every command substitution the
@@ -18,7 +18,7 @@
 # itself run (bash -c '...', eval, watch). Text a command only prints
 # (echo "herdr agent prompt ...", grep, printf) is not a write.
 #
-# The helpers sit at $CLAUDE_PROJECT_DIR/src/scripts/; Codex sets no
+# The helpers sit at $CLAUDE_PROJECT_DIR/kit/scripts/; Codex sets no
 # CLAUDE_PROJECT_DIR and runs this from the repo, so git finds it.
 set -uo pipefail
 
@@ -144,10 +144,10 @@ writes="$(printf '%s' "$input" | node -e "$parser" 2>/dev/null)" || deny "the co
 [ -n "$writes" ] || exit 0
 
 root="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-check="$root/src/scripts/herdr-question-open.sh"
+check="$root/kit/scripts/herdr-question-open.sh"
 for helper in herdr-question-open.sh herdr-prompt.sh; do
-  [ -f "$root/src/scripts/$helper" ] && [ -x "$root/src/scripts/$helper" ] \
-    || deny "src/scripts/$helper is missing or not executable in $root, so no herdr write can be checked"
+  [ -f "$root/kit/scripts/$helper" ] && [ -x "$root/kit/scripts/$helper" ] \
+    || deny "kit/scripts/$helper is missing or not executable in $root, so no herdr write can be checked"
 done
 
 while IFS=$'\t' read -r what target; do

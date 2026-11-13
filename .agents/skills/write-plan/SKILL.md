@@ -21,7 +21,7 @@ executor and to Jake, without trampling parallel work.
 - A trivial change → just do it.
 - A plan that spans several org repos → meta's `docs/plans/`, not here.
 - Jake asked for it → file the ask first:
-  `f=$(src/scripts/ask-new.sh "<his words>")`, and cite the id in the plan.
+  `f=$(kit/scripts/ask-new.sh "<his words>")`, and cite the id in the plan.
 
 ## 1. Name and skeleton
 

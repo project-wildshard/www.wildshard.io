@@ -20,7 +20,7 @@ waitlist form posts to `api.wildshard.io/api/waitlist`.
 The repo-kit scaffold sits beside it:
 
 - `src/cli/`: the CLI (`--version`, `--help`; commands arrive with the import).
-- `src/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
+- `kit/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
 - `src/server/`: the Hono app (`GET /api/health`) and `serve.ts`.
 - `src/shared/`: zod schemas used on both sides of the wire.
 - `src/web/`: the Preact web app, with its own `tsconfig.json` (DOM lib).

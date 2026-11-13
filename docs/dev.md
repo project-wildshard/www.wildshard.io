@@ -28,7 +28,7 @@ Run from the repo root.
 - `pnpm lint:fix` / `pnpm format`: the hooks only check; these fix.
 - `node src/cli/main.ts --help`: the CLI without installing it. `serve [--port n]` starts the server (default 4404).
 - `pnpm md:wrap`: rewraps Markdown prose to ~72 columns.
-- `src/scripts/ask-new.sh "<Jake's words>"`: opens an ask (`docs/tasks/asks/README.md`).
+- `kit/scripts/ask-new.sh "<Jake's words>"`: opens an ask (`docs/tasks/asks/README.md`).
 
 ## Layout
 
@@ -38,7 +38,7 @@ The root stays thin: README.md and AGENTS.md (humans only), CLAUDE.md
 goes in `tmp/<task>/` and is deleted when done.
 
 - `src/cli/`: the CLI (`--version`, `--help`; commands arrive with the import).
-- `src/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
+- `kit/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
 - `src/server/`: the Hono app (`GET /api/health`) and `serve.ts`.
 - `src/shared/`: zod schemas used on both sides of the wire.
 - `src/web/`: the Preact web app, with its own `tsconfig.json` (DOM lib).
@@ -54,7 +54,7 @@ goes in `tmp/<task>/` and is deleted when done.
 ## Code rules
 
 - TypeScript only, imports with explicit `.ts`/`.tsx` extensions.
-- Every function has an explicit return type. `src/.oxlintrc.json` denies
+- Every function has an explicit return type. `kit/.oxlintrc.json` denies
   every category (D28); disable a rule only with a one-line reason beside it.
 - Pin dependencies exactly (`.npmrc` has `save-exact=true`).
 - Public Wildshard packages come from npm (meta J315). Use pnpm to

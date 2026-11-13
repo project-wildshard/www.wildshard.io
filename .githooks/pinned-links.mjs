@@ -117,7 +117,7 @@ export function guardPinnedLinks(root, lane) {
   console.error(`\n  ${verdict}: local checks are not testing the pinned install CI uses.`);
   console.error(lines.join('\n'));
   console.error('    They run whatever another lane has half-edited there.');
-  console.error('    Restore the pin, from repo-kit: node src/cli/main.ts local pinned --consumer <repo> --production-live <tag>');
+  console.error('    Restore the pin, from repo-kit: node kit/cli/main.ts local pinned --consumer <repo> --production-live <tag>');
   console.error('    (no repo-kit at hand: pnpm install --frozen-lockfile --prefer-offline --force here).');
   if (why !== 'missing') console.error(`    The local-link receipt ${why} (${receipt.path}).`);
   console.error(`    Linked on purpose? Write ${receipt.path}`);

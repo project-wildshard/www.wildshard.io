@@ -12,3 +12,5 @@ export function land(argv: string[], cwd?: string, env?: NodeJS.ProcessEnv): Pro
 export function flakyFiles(directory: string, jobNames: readonly string[]): string[] | null;
 export function strikePlans(book: string, file: string, now: number): string[];
 export function quarantineFile(path: string, file: string, owner: string, reason: string, now: number): boolean;
+export const REF_LOCK: RegExp;
+export function tryGitLocked(cwd: string, args: string[], env: NodeJS.ProcessEnv, onRetry?: (why: string) => void): import('node:child_process').SpawnSyncReturns<string>;

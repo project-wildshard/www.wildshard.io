@@ -134,7 +134,7 @@ nothing, and say so if the session was clean.
 
 | Fix | Where |
 |---|---|
-| Lint, hook, ratchet | Kit-owned files (`.githooks/`, the agent hooks, `src/.oxlintrc.json`, `src/scripts/`) change in repo-kit; the repo's own checks change in place |
+| Lint, hook, ratchet | Kit-owned files (`.githooks/`, the agent hooks, `kit/.oxlintrc.json`, `kit/scripts/`) change in repo-kit; the repo's own checks change in place |
 | `AGENTS.md`, `README.md` | `README.md` and `AGENTS.md` above its marker are Jake's: propose the line in the chat. Agents edit below the marker (J241) |
 | Follow-up work | A row in `docs/plans/` |
 

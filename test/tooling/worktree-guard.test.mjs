@@ -120,8 +120,8 @@ describe('a planted plan worktree is invisible to the parent checkout', {skip: o
     } finally { rmSync(dirname(index), {recursive: true, force: true}); }
   });
 
-  test('oxlint, with every lint config at the root and in src/, reports nothing from it', () => {
-    const configs = [...rootFiles.filter(name => /^\.oxlintrc.*\.json$/u.test(name)), ...existsSync(join(ROOT, 'src/.oxlintrc.json')) ? ['src/.oxlintrc.json'] : []];
+  test('oxlint, with every lint config at the root and in kit/, reports nothing from it', () => {
+    const configs = [...rootFiles.filter(name => /^\.oxlintrc.*\.json$/u.test(name)), ...existsSync(join(ROOT, 'kit/.oxlintrc.json')) ? ['kit/.oxlintrc.json'] : []];
     assert.ok(configs.length > 0, 'no oxlint config');
     for (const config of configs) {
       const lint = run(bin('oxlint'), ['-c', config, '-f', 'json', '.']);
@@ -133,8 +133,8 @@ describe('a planted plan worktree is invisible to the parent checkout', {skip: o
   });
 
   test('a whole-root oxfmt check runs cleanly and lists nothing from it', () => {
-    assert.ok(existsSync(join(ROOT, 'src/.oxfmtrc.json')), 'no src/.oxfmtrc.json');
-    const format = run(bin('oxfmt'), ['-c', 'src/.oxfmtrc.json', '--list-different', '.']);
+    assert.ok(existsSync(join(ROOT, 'kit/.oxfmtrc.json')), 'no kit/.oxfmtrc.json');
+    const format = run(bin('oxfmt'), ['-c', 'kit/.oxfmtrc.json', '--list-different', '.']);
     // --list-different exits 1 when some file differs; anything else, or any stderr, is a broken run. A whole root
     // always holds files outside the formatted folders, so an empty list means it formatted nothing.
     assert.equal(format.error, undefined);

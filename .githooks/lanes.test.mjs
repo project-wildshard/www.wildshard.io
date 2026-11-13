@@ -30,7 +30,7 @@ describe('check lanes', () => {
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stderr, /commit lane: pnpm lint, format:check, typecheck[\s\S]*green/);
   });
-  test('lint and format see only the staged code files under src/', () => {
+  test('lint and format see only the staged code files under src/ and kit/', () => {
     const box = sandbox();
     toolchain(box, { ...pass, lint: record('lint.args'), 'format:check': record('format.args') });
     box.write('unstaged.ts', 'export {};\n');

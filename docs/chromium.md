@@ -1,7 +1,8 @@
-# Chromium without macOS keychain dialogs
+# Chromium without macOS keychain dialogs or sound
 
-Every Chromium launch passes `--use-mock-keychain` and
-`--password-store=basic`. Import `KEYCHAIN_ARGS` from
+Every Chromium launch passes `--use-mock-keychain`,
+`--password-store=basic` and `--mute-audio` (Jake, 2026-11-13: "headless
+chromium with volume off"). WebKit has no mute flag. Import `KEYCHAIN_ARGS` from
 `scripts/chromium-keychain.mjs` and spread it into Playwright launch,
 persistent-context and launch-server arguments, and raw executable
 arguments. Retain Playwright default arguments. Never use

@@ -44,7 +44,7 @@ good document makes the agent take the same **process** every run.
   `@AGENTS.md`.
 - **MMO facts stay in their docs.** Point at them; a copied budget or
   a copied rate goes stale.
-- **Wrap** markdown at 72 (`src/scripts/md-wrap.mjs`).
+- **Wrap** markdown at 72 (`kit/scripts/md-wrap.mjs`).
 
 ## Pointers
 
