@@ -66,7 +66,7 @@ Copy their shape before cutting a new one. Paths are engine's.
 | `SimHost`, `src/server/engine/sim.ts` | The headless authority; steps commands, N players | Runs in the worker, in Node tests, per grid cell |
 | `stepPlayerMotion`, `src/shared/engine/player/motion.ts` | One motion law; `MotionWorld` is its port | `SimHost` and the predicting client |
 | `objectStoreContract`, api-server `src/test/helpers/` | One promise for object storage | The local store and the R2 store |
-| The shardfile, repo `shardfile` | The one cross-repo format (J3); packs stay engine-internal (J22) | `engine`'s cook, `api-server`'s validator (J27) |
+| The shardfile, repo `shard-format` | The one cross-repo format (J3); packs stay engine-internal (J22) | `engine`'s cook, `api-server`'s validator (J27) |
 
 `NET_SCHEMA_HASH` guards the wire seam: client and server match
 exactly (J54), so a wire change is one change on both sides.

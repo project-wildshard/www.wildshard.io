@@ -28,6 +28,12 @@
       "script": ".agents/hooks/subagent-cleanup.mjs",
       "status": "Stopping the finished lane's processes",
       "timeout": 30
+    },
+    {
+      "event": "SessionEnd",
+      "script": ".agents/hooks/scratch-end.mjs",
+      "status": "Removing this session's ./tmp scratch",
+      "timeout": 10
     }
   ]
 }

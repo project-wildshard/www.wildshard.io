@@ -100,7 +100,11 @@ in order; don't paraphrase or shortcut.
    instead of deleting. Make scratch with
    `node scripts/scratch-dir.mjs <task> "<purpose>"` (it writes
    `tmp/<task>/.owner`); a folder you must keep gets a one-line
-   `.keep` saying why.
+   `.keep` saying why. The SessionEnd hook (`scratch-end.mjs`)
+   removes any folder still owned by this session that has no
+   `.keep` and no process inside, and logs it to
+   `tmp/.scratch.log`; report the same: what you removed, what you
+   kept and why.
 7. **Agents and worktrees.** Don't kill running subagents to exit.
    List every agent still alive (ListAgents; in herdr,
    `bash .agents/hooks/herdr-peers.sh`) and what it holds. Main only
