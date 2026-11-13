@@ -30,10 +30,12 @@ The repo-kit scaffold sits beside it:
 
 ## Dependencies
 
-- `@wildshard/format` by git tag
-  (`github:project-wildshard/shardfile#v0.3.1`), dev only: `pnpm
-  site:facts` and its test read it, and the site's build doesn't. The
-  install still fetches it, so `site-deploy` needs the org app token.
+- `@wildshard/format` is the npm alias
+  `npm:@wildshard/shard-format@0.4.5`, dev only: `pnpm site:facts`
+  and its test read it; the site build reads the committed facts.
+  This pin keeps the site's 25-cell catalogue and format 0.1 excerpt.
+- Shard authors install the SDK with `npm install @wildshard/sdk`.
+  `docs/dev.md` records the temporary pnpm fallback until NP7 ships.
 
 ## Boundaries the checks enforce
 
