@@ -6,7 +6,8 @@
 //
 // It looks at each folder directly under <repo>/tmp/ and would remove one in which nothing (the folder or anything in
 // it) changed for <n> days (3 by default), with or without a DK3 `.owner`. It keeps:
-//   - a folder holding `.keep`, or named in `tmp/keep` (one name per line, `#` comments);
+//   - a folder holding `.keep`, or named in `tmp/keep` (one name per line, `#` comments); `tmp/keep` itself when it is a
+//     folder (singleplayer keeps hand-kept work there);
 //   - a folder that is, or holds, some process's cwd (lsof -d cwd; /proc on Linux); an unreadable table keeps all;
 //   - a folder holding a Git root with dirty files or commits no remote has (DS14's list: the reason names the root);
 //   - dot folders, symlinks, and `tmp/vitest` (vite-tmp.mjs's own).
@@ -124,6 +125,7 @@ export function plan({ root, days = DEFAULT_DAYS, cwds = processCwds() }) {
     const keep = reason => rows.push({ name, action: /** @type {const} */ ('keep'), reason });
     if (stat(join(dir, '.keep')) !== null) keep('.keep');
     else if (kept.has(name)) keep('tmp/keep');
+    else if (name === 'keep') keep('tmp/keep is a folder of kept work');
     else if (real === undefined || real === null) keep('process table unreadable');
     else if (real.some(cwd => cwd === at || cwd.startsWith(at + sep))) keep('busy: a process cwd inside');
     else if (touched(dir, days)) keep(`changed within ${String(days)} days`);
