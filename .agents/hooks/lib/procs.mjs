@@ -88,14 +88,16 @@ export function etimeSeconds(etime) {
 
 /** Every process of this user: { pid, ppid, tty, start (ms, 1 s resolution), command, cwd }. */
 export function snapshot() {
-  const now = Date.now();
-  const ps = spawnSync('ps', ['-A', '-ww', '-o', 'pid=,ppid=,etime=,tty=,command='], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  // Elapsed time minus a pre-spawn clock makes processes look too old
+  // when ps is delayed by a loaded machine. Read their actual start time.
+  const ps = spawnSync('ps', ['-A', '-ww', '-o', 'pid=,ppid=,lstart=,tty=,command='], { encoding: 'utf8', env: {...process.env, LC_ALL: 'C'}, maxBuffer: 64 * 1024 * 1024 });
   const procs = new Map();
   for (const line of (ps.stdout || '').split('\n')) {
-    const match = /^\s*(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(.*)$/.exec(line);
+    const match = /^\s*(\d+)\s+(\d+)\s+(\S+\s+\S+\s+\d+\s+\d{2}:\d{2}:\d{2}\s+\d{4})\s+(\S+)\s+(.*)$/.exec(line);
     if (!match) continue;
-    const pid = Number(match[1]);
-    procs.set(pid, { pid, ppid: Number(match[2]), start: now - etimeSeconds(match[3]) * 1000, tty: match[4], command: match[5], cwd: '' });
+    const pid = Number(match[1]), start = Date.parse(match[3]);
+    if (!Number.isFinite(start)) continue;
+    procs.set(pid, { pid, ppid: Number(match[2]), start, tty: match[4], command: match[5], cwd: '' });
   }
   const lsof = process.platform === 'linux' ? { stdout: '' } : spawnSync('lsof', ['-nP', '-w', '-d', 'cwd', '-Fpn'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   let pid = 0;

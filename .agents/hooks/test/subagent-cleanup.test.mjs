@@ -5,7 +5,7 @@
 // hook, and checks who died. Red with WS_AUTOCLEAN_DRY=1. macOS only: it
 // needs launchd reparenting orphans to pid 1 and `lsof` cwds.
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -95,7 +95,7 @@ after(() => {
   rmSync(work, { recursive: true, force: true });
 });
 
-test('SubagentStop kills the lane\'s own processes and nothing else', { skip: !darwin && 'macOS process table only' }, async () => {
+async function cleanupScenario(extra = {}) {
   const before = child(dirs.worktree); // in its worktree, but running before the subagent began
   await pause(3200);
   const transcript = join(work, 'agent-test.jsonl');
@@ -121,13 +121,13 @@ test('SubagentStop kills the lane\'s own processes and nothing else', { skip: !d
 
   const payload = JSON.stringify({ hook_event_name: 'SubagentStop', cwd: repo, agent_id: 'test', agent_type: 'general-purpose', agent_transcript_path: transcript });
   // 1. Its background shell still runs: the subagent is waiting on it, so nothing dies yet.
-  assert.equal((await run(HOOK, [], payload)).code, 0);
+  assert.equal((await run(HOOK, [], payload, extra)).code, 0);
   for (const pid of [inWorktree, orphanInTmp, shell]) assert.equal(await alive(pid), true, `deferred while waiting: ${pid} untouched`);
   assert.match(readFileSync(logPath, 'utf8'), /waiting on its own background shell/);
 
   // 2. A wait past WS_AUTOCLEAN_MAX_WAIT_MIN no longer defers: the shell and the lane's processes go.
-  assert.equal((await run(HOOK, [], payload, { WS_AUTOCLEAN_MAX_WAIT_MIN: '0' })).code, 0);
-  assert.equal(await alive(inWorktree), false, 'sleeper in the worktree is killed');
+  assert.equal((await run(HOOK, [], payload, { ...extra, WS_AUTOCLEAN_MAX_WAIT_MIN: '0' })).code, 0);
+  assert.equal(await alive(inWorktree), false, `sleeper in the worktree is killed; hook log:\n${readFileSync(logPath, 'utf8')}`);
   assert.equal(await alive(orphanInTmp), false, 'orphan in tmp/<lane> is killed');
   assert.equal(await alive(shell), false, 'the background shell is killed');
   assert.equal(await alive(outside), true, 'a process outside every lane root is untouched');
@@ -140,6 +140,13 @@ test('SubagentStop kills the lane\'s own processes and nothing else', { skip: !d
   // 3. The wait ended on its own (shell gone): the next stop cleans up without any override.
   const late = child(dirs.worktree);
   await pause(300);
-  assert.equal((await run(HOOK, [], payload)).code, 0);
+  assert.equal((await run(HOOK, [], payload, extra)).code, 0);
   assert.equal(await alive(late), false, 'after the wait, the lane\'s processes are killed');
+}
+
+test('SubagentStop kills the lane\'s own processes and nothing else', { skip: !darwin && 'macOS process table only' }, () => cleanupScenario());
+test('a delayed process snapshot keeps the same start-time safety boundaries', { skip: !darwin && 'macOS process table only' }, () => {
+  const bin = join(work, 'delayed-ps'); mkdirSync(bin);
+  writeFileSync(join(bin, 'ps'), '#!/bin/sh\nsleep 2\nexec /bin/ps "$@"\n'); chmodSync(join(bin, 'ps'), 0o755);
+  return cleanupScenario({PATH: `${bin}:${env.PATH}`});
 });
