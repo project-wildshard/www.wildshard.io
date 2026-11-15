@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// repo-kit's 3-day scratch sweep (meta REPO-DISK-PLAN DK6, was TEMP-HYGIENE T7). One copy lives in repo-kit; every org
+// repo-kit's report-only scratch sweep (meta REPO-DISK-PLAN J358, was TEMP-HYGIENE T7). One copy lives in repo-kit; every org
 // repo carries a byte-identical copy at scripts/scratch-sweep.mjs, beside scratch-dir.mjs (DK3) and vite-tmp.mjs.
 //
-//   node scripts/scratch-sweep.mjs [--live] [--root <repo>] [--days <n>]
+//   node scripts/scratch-sweep.mjs [--root <repo>] [--days <n>]
 //
 // It looks at each folder directly under <repo>/tmp/ and would remove one in which nothing (the folder or anything in
 // it) changed for <n> days (3 by default), with or without a DK3 `.owner`. It keeps:
@@ -11,12 +11,13 @@
 //   - a folder that is, or holds, some process's cwd (lsof -d cwd; /proc on Linux); an unreadable table keeps all;
 //   - a folder holding a Git root with dirty files or commits no remote has (DS14's list: the reason names the root);
 //   - dot folders, symlinks, and `tmp/vitest` (vite-tmp.mjs's own).
-// Dry run is the default until Jake's yes (REPO-DISK decision 1) and a week of dry-run log; `--live` removes. Every
-// decision is appended to tmp/.sweep.log, one line each, and a summary line goes to stdout.
+// J358 cancelled the 11-20 go-live: this script never removes files. Every decision is appended to
+// tmp/.sweep.log, one line each, and a summary line goes to stdout for a human daily audit.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
+import { appendFileSync, lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { laneLive } from './lane-live.mjs';
 
 const DEFAULT_DAYS = 3;
 const MINUTES_A_DAY = 1440;
@@ -138,23 +139,14 @@ export function plan({ root, days = DEFAULT_DAYS, cwds = processCwds() }) {
   return rows;
 }
 
-/** Plans, logs every row to tmp/.sweep.log, and removes the planned folders when live.
- * @param {{ root: string, live?: boolean, days?: number, cwds?: readonly string[] | null, now?: Date }} options */
-export function sweep({ root, live = false, days = DEFAULT_DAYS, cwds, now = new Date() }) {
+/** Plans and logs every row to tmp/.sweep.log. J358: humans, not this script, remove leftovers.
+ * @param {{ root: string, days?: number, cwds?: readonly string[] | null, now?: Date }} options */
+export function sweep({ root, days = DEFAULT_DAYS, cwds, now = new Date() }) {
   const rows = plan({ root, days, ...(cwds === undefined ? {} : { cwds }) });
   const stamp = now.toISOString(), lines = [];
-  let removed = 0;
   for (const row of rows) {
-    let verb = row.action === 'keep' ? `keep (${row.reason})` : 'would remove';
-    if (row.action === 'remove' && live) {
-      try {
-        rmSync(join(root, 'tmp', row.name), { recursive: true, force: true });
-        verb = 'removed';
-        removed += 1;
-      } catch (error) {
-        verb = `remove failed (${error instanceof Error ? error.message : String(error)})`;
-      }
-    }
+    const liveness = laneLive(join(root, 'tmp', row.name));
+    const verb = row.action === 'keep' ? `keep (${row.reason}; ${liveness.state}: ${liveness.reason})` : `leftover (manual audit; ${liveness.state}: ${liveness.reason})`;
     lines.push(`${stamp} ${verb} tmp/${row.name}${row.action === 'remove' ? ` (${row.reason})` : ''}\n`);
   }
   if (lines.length > 0) {
@@ -163,7 +155,7 @@ export function sweep({ root, live = false, days = DEFAULT_DAYS, cwds, now = new
     } catch {}
   }
   const planned = rows.filter(row => row.action === 'remove').length;
-  return { rows, planned, removed };
+  return { rows, planned };
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -175,8 +167,8 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
   const days = Number(flag('--days') ?? DEFAULT_DAYS);
   if (!Number.isInteger(days) || days < 1) throw new Error('--days takes a whole number of days, 1 or more');
   const root = resolve(flag('--root') ?? resolve(import.meta.dirname, '..'));
-  const live = args.includes('--live');
-  const { rows, planned, removed } = sweep({ root, live, days });
+  if (args.includes('--live')) throw new Error('--live was removed by REPO-DISK J358: this command only reports leftovers');
+  const { rows, planned } = sweep({ root, days });
   const keptRows = rows.filter(row => row.action === 'keep');
-  process.stdout.write(`scratch-sweep ${live ? 'live' : '(dry run)'} ${root}/tmp: ${live ? `removed ${String(removed)} of ${String(planned)}` : `would remove ${String(planned)}`}, kept ${String(keptRows.length)}; log tmp/.sweep.log\n`);
+  process.stdout.write(`scratch-sweep report ${root}/tmp: ${String(planned)} leftover(s) for manual audit, kept ${String(keptRows.length)}; log tmp/.sweep.log\n`);
 }

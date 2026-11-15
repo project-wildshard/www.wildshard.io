@@ -24,6 +24,21 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-herdr-prompt.sh\"",
             "statusMessage": "Checking herdr targets for an open question"
+          },
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/active-hours.mjs\" mark",
+            "statusMessage": "Recording active agent time"
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/active-hours.mjs\" mark",
+            "statusMessage": "Recording active agent time"
           }
         ]
       }
@@ -59,7 +74,7 @@
             "type": "command",
             "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/scratch-end.mjs\"",
             "timeout": 10,
-            "statusMessage": "Removing this session's ./tmp scratch"
+            "statusMessage": "Reporting this session's scratch for manual cleanup"
           }
         ]
       }

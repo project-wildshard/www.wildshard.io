@@ -1,4 +1,5 @@
 node_modules/
+/.owner
 dist/
 coverage/
 test-results/

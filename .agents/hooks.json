@@ -18,6 +18,24 @@
       "status": "Checking herdr targets for an open question"
     },
     {
+      "event": "PreToolUse",
+      "tools": "shell",
+      "script": ".agents/hooks/active-hours.mjs",
+      "args": [
+        "mark"
+      ],
+      "status": "Recording active agent time"
+    },
+    {
+      "event": "PreToolUse",
+      "tools": "edit",
+      "script": ".agents/hooks/active-hours.mjs",
+      "args": [
+        "mark"
+      ],
+      "status": "Recording active agent time"
+    },
+    {
       "event": "PostToolUse",
       "tools": "edit",
       "script": ".agents/hooks/md-prose-width.sh",
@@ -32,7 +50,7 @@
     {
       "event": "SessionEnd",
       "script": ".agents/hooks/scratch-end.mjs",
-      "status": "Removing this session's ./tmp scratch",
+      "status": "Reporting this session's scratch for manual cleanup",
       "timeout": 10
     }
   ]

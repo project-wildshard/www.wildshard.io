@@ -21,6 +21,19 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard-herdr-prompt.sh\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/active-hours.mjs\" mark"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/active-hours.mjs\" mark"
           }
         ]
       }

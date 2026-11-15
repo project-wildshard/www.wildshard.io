@@ -24,6 +24,7 @@
 //              {quarantine, artifacts, packedStep, owner}: the J200 quarantine file, the artifact pattern holding
 //              the shard reports, the packed step a flaky failure must be limited to, and the quarantine's owner.
 import {execFileSync,spawn,spawnSync} from 'node:child_process';
+import {keepCopy,worktreeState} from './keep-copy.mjs';
 import {appendFileSync,existsSync,linkSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,renameSync,rmSync,writeFileSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {dirname,join,resolve} from 'node:path';
@@ -771,16 +772,45 @@ class Landing{
    const deleted=tryGit(this.root,['push','--quiet',`--force-with-lease=refs/heads/${this.branch}:${this.planTip}`,'origin','--delete',this.branch]);
    parts.push(deleted.status===0?`origin ${this.branch} deleted`:`origin ${this.branch} kept (${deleted.stderr.trim().split('\n').at(-1)??'push refused'})`);
   }
-  const dirty=tryGit(this.root,['status','--porcelain']).stdout.trim();
+  const dirtyResult=tryGit(this.root,['status','--porcelain','--untracked-files=all']);
+  const dirty=dirtyResult.stdout.trimEnd();
+  const generatedOnly=dirty!==''&&dirty.split('\n').every(line=>/^[ MAD?]{2} (?:[^"\n]+\.generated\.ts|public\/assets\/gpu\/[^"\n]+)$/u.test(line));
+  const patchBefore=tryGit(this.root,['diff','--binary','HEAD']);
   const now=tryGit(this.root,['symbolic-ref','--quiet','HEAD']).stdout.trim(),at=tryGit(this.root,['rev-parse','HEAD']).stdout.trim();
   if(now!==`refs/heads/${this.branch}`||at!==head)parts.push(`worktree kept: HEAD moved off ${this.branch} ${short(head)} after landing`);
-  else if(dirty!=='')parts.push(`worktree kept: ${dirty.split('\n').length} uncommitted or untracked path(s)`);
+  else if(dirtyResult.status!==0||patchBefore.status!==0)parts.push('worktree kept: status unreadable');
+  else if(dirty!==''&&!generatedOnly)parts.push(`worktree kept: ${dirty.split('\n').length} uncommitted or untracked path(s)`);
   else{
+   // J358's sole removal exception: this land owns this just-landed worktree.
+   // Copy first; any failure retains the source and its local branch.
+   let before;
+   try{
+    before=worktreeState(this.root);
+    const saved=keepCopy(this.root,{keepRoot:this.env.WS_SESSION_KEEP_ROOT});
+    this.say('copied',`recoverable worktree state saved at ${saved.dir}`);
+   }catch(error){
+    const line=parts.concat(`worktree kept: copy failed (${error instanceof Error?error.message:String(error)})`).join('; ');
+    this.say('cleaned',line);
+    return line;
+   }
+   const unchanged=()=>{try{return worktreeState(this.root)===before;}catch{return false;}};
+   if(!unchanged()){
+    const line=parts.concat('worktree kept: changed during copy').join('; ');
+    this.say('cleaned',line);return line;
+   }
    // TEST-SPEED FL30: nothing started here may outlive the folder (an orphaned Vitest held the CPU slots).
    let stopped=[];
-   try{stopped=stopWorktreeProcesses(realpathSync(this.root));}catch{/* Listing failed: remove as before. */}
+   try{stopped=stopWorktreeProcesses(realpathSync(this.root));}catch{
+    const line=parts.concat('worktree kept: process cleanup failed').join('; ');
+    this.say('cleaned',line);return line;
+   }
    if(stopped.length>0)parts.push(`stopped ${String(stopped.length)} process(es) still running there (pid ${stopped.join(', ')})`);
-   const removed=tryGit(canonical,['worktree','remove',this.root]);
+   // Shutdown handlers may write after the copy. Protect their last writes.
+   if(!unchanged()){
+    const line=parts.concat('worktree kept: changed during process cleanup').join('; ');
+    this.say('cleaned',line);return line;
+   }
+   const removed=tryGit(canonical,['worktree','remove',...(generatedOnly?['--force']:[]),this.root]);
    if(removed.status===0){
     tryGitLocked(canonical,['update-ref','-d',`refs/heads/${this.branch}`,head],process.env,this.retry);
     parts.push(`worktree and ${this.branch} removed; continue from ${canonical}`);

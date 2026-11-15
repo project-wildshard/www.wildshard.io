@@ -160,6 +160,11 @@ else
   fi
 fi
 
+# -- J358 leftovers (report-only; a human audit decides removal) --
+if [ -f scripts/leftovers-report.mjs ]; then
+  show "left lying around (manual audit only)" 4 "  (leftovers report unavailable)" "$(node scripts/leftovers-report.mjs 2>/dev/null)"
+fi
+
 show "uncommitted in this checkout (may be another agent's: don't sweep it)" 3 "(clean)" "$(git status --short 2>/dev/null | sed 's/^/  /')"
 show "recent commits" 3 "(none)" "$(git log --oneline -3 2>/dev/null | sed 's/^/  /')"
 echo "Commit by pathspec (git commit -m ... -- paths) with a journal entry; hooks enforce the rest. Rules: docs/dev.md."
