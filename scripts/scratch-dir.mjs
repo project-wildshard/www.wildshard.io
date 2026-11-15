@@ -41,10 +41,10 @@ export function ownerRecord(task, purpose, env, now, row = null) {
   catch (error) { if (error instanceof Error && 'code' in error && error.code === 'ENOENT') receiptOffset = 0; }
   return {
     task,
-    session: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID || lane,
+    session: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID || env.CODEX_THREAD_ID || lane,
     lane,
     pane: env.HERDR_PANE_ID || null,
-    agent: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID ? 'claude' : lane ? 'codex' : 'unknown',
+    agent: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID ? 'claude' : env.CODEX_THREAD_ID || lane ? 'codex' : 'unknown',
     row,
     receiptOffset,
     started: now.toISOString(),
