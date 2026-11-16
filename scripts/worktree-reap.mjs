@@ -93,7 +93,7 @@ export function stopWorktreeProcesses(tree,options={}){
   const current=processTable();
   // Exited children may remain zombies until their blocked parent reaps them.
   // They cannot write; a live or uninspectable process still retains the tree.
-  remaining=pids.filter(pid=>current.has(pid)&&!current.get(pid).state.startsWith('Z'));
+  remaining=pids.filter(pid=>current.get(pid)?.state.startsWith('Z')===false);
   if(remaining.length===0)break;
   Atomics.wait(nap,0,0,25);
  }while(Date.now()<killedUntil);
