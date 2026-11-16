@@ -1,7 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
@@ -81,9 +81,38 @@ describe('pre-push hook', () => {
     assert.equal(gone.status, 0, gone.stderr);
     assert.match(gone.stderr, /delete-only push of refs\/heads\/plan\/bar, refs\/heads\/plan\/foo: no commit leaves this machine/);
     assert.notEqual(box.git(['push', '-q', 'origin', '--delete', 'feature']).status, 0, 'a non-plan deletion keeps the gate');
-    box.commit({ 'b.txt': 'b\n' }, MSG);
+    // The gate runs on the pushed commit (a clean copy, M1), so the failing check must be committed.
+    box.commit({ 'b.txt': 'b\n', 'package.json': JSON.stringify({ scripts: { check: 'exit 1' } }) }, MSG);
     const mixed = box.git(['push', '-q', 'origin', 'main', ':refs/heads/feature']);
     assert.notEqual(mixed.status, 0, 'a deletion pushed alongside an update keeps the gate');
     assert.doesNotMatch(mixed.stderr, /delete-only push/);
+  });
+  test('the push gate checks the pushed commit in a clean copy, never other lanes\' files in the checkout (M1)', () => {
+    const box = withRemote();
+    const gate = "import { existsSync, readFileSync } from 'node:fs';\n" +
+      "if (readFileSync('state.txt', 'utf8') !== 'good\\n' || existsSync('loose.txt')) { console.error('gate saw bad bytes'); process.exit(1); }\n";
+    box.commit({ 'gate.mjs': gate, 'state.txt': 'good\n', 'package.json': JSON.stringify({ scripts: { check: 'node gate.mjs' } }) }, MSG);
+    const first = box.push();
+    assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stderr, /push lane gates [0-9a-f]{10} in a clean copy: canonical checkout/);
+    assert.match(first.stderr, /push-gate copy \(M1\): [0-9a-f]{10} at tmp\/push-gate\//);
+
+    // Another lane's tracked edit and untracked file sit in the checkout: the gate never sees them, and they stay.
+    box.write('state.txt', 'bad\n');
+    box.write('loose.txt', 'another lane\n');
+    box.commit({ 'c.txt': 'c\n' }, MSG);
+    const second = box.push();
+    assert.equal(second.status, 0, second.stderr);
+    assert.equal(readFileSync(join(box.root, 'state.txt'), 'utf8'), 'bad\n');
+    assert.equal(readFileSync(join(box.root, 'loose.txt'), 'utf8'), 'another lane\n');
+    const left = existsSync(join(box.root, 'tmp/push-gate')) ? readdirSync(join(box.root, 'tmp/push-gate')).filter((name) => !name.endsWith('.trash')) : [];
+    assert.deepEqual(left, [], 'the copy is gone after the gate');
+    assert.equal(box.git(['worktree', 'list', '--porcelain']).stdout.match(/^worktree /gmu)?.length, 1, 'the copy is unregistered');
+
+    // The same bad bytes, committed, are what the gate checks: refused.
+    box.git(['commit', '-q', '-m', MSG, '--', 'state.txt']);
+    const third = box.push();
+    assert.notEqual(third.status, 0, 'the pushed commit carries the bad bytes');
+    assert.match(third.stderr, /gate saw bad bytes/);
   });
 });

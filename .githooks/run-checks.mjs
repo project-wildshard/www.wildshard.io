@@ -4,7 +4,10 @@
 //           on the staged code files only, plus the whole `typecheck`,
 //           in parallel under a budget (silent < 5 s, warn 5-8 s, BLOCK
 //           > 8 s; SKIP_BUDGET=1). Skipped when no code or JSON is staged.
-//   push:   the full `check` script (adds knip and the unit tests).
+//   push:   the full `check` script (adds knip and the unit tests), run in
+//           a clean copy of the pushed commit (.githooks/push-gate-copy.mjs,
+//           meta M1), so other lanes' dirty and untracked files in a shared
+//           checkout neither refuse the push nor leak into it.
 //   both:   .githooks/pinned-links.mjs first (commit warns, push refuses;
 //           SKIP_CHECK does not skip it).
 // The hooks only check; `pnpm lint:fix` / `pnpm format` fix.
@@ -12,6 +15,7 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { git } from './lib.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
 
@@ -40,8 +44,24 @@ if (process.env.SKIP_CHECK === '1') {
   console.error(`  - SKIP_CHECK=1: ${lane} lane skipped (CI still runs it)`);
   process.exit(0);
 }
+// The push lane gates the pushed commit in a clean copy of it (M1).
+/** @type {{ path: string, remove: () => void } | null} */
+let copy = null;
+if (lane === 'push') {
+  const sha = pushedCommit(root, process.env.WS_PUSH_REFS);
+  const reason = copyReason(root, sha);
+  if (sha !== null && reason !== null) {
+    console.error(`  - push lane gates ${sha.slice(0, 10)} in a clean copy: ${reason}`);
+    try {
+      copy = makeGateCopy(root, sha);
+    } catch (error) {
+      console.error(`\n  X push blocked: the clean copy failed: ${error instanceof Error ? error.message : String(error)}\n`);
+      process.exit(1);
+    }
+  }
+}
 // The package is at the repo root; its kit configs live in kit/ (J329).
-const pkgDir = root;
+const pkgDir = copy?.path ?? root;
 const pkgPath = join(pkgDir, 'package.json');
 const manifest = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : {};
 const scripts = manifest.scripts ?? {};
@@ -67,9 +87,13 @@ if (lane === 'commit') {
 } else if (scripts.check) {
   jobs.push({ name: 'check', args: ['check'] });
 }
-if (!jobs.length) process.exit(0); // no toolchain yet
+if (!jobs.length) {
+  copy?.remove();
+  process.exit(0); // no toolchain yet
+}
 
-if (!existsSync(join(pkgDir, 'node_modules'))) {
+// A gate copy installs its own (push-gate-copy.mjs) when the pushed tree has a lockfile.
+if (copy === null && !existsSync(join(pkgDir, 'node_modules'))) {
   console.error(`\n  X ${lane} blocked: node_modules is missing. Run pnpm install, then pnpm exec npr install --frozen when binDependencies are declared.\n`);
   process.exit(1);
 }
@@ -83,6 +107,7 @@ if (manifest.binDependencies !== undefined) {
   const tools = spawnSync('pnpm', ['exec', 'npr', 'install', '--frozen'], { cwd: pkgDir, env, stdio: 'inherit' });
   if (tools.error !== undefined || tools.status !== 0) {
     console.error('  X frozen binary tool install failed; repair and commit .bin-deps/');
+    copy?.remove();
     process.exit(tools.status || 1);
   }
 }
@@ -98,6 +123,7 @@ console.error(`  - ${lane} lane: pnpm ${jobs.map((job) => job.name).join(', ')}`
 const started = Date.now();
 const results = await Promise.all(jobs.map(run));
 const seconds = (Date.now() - started) / 1000;
+copy?.remove();
 
 const failed = results.filter((result) => result.code !== 0);
 for (const { name, output } of failed) console.error(`\n  X pnpm ${name} failed:\n${output.trim().replace(/^/gm, '    ')}`);

@@ -9,9 +9,9 @@ import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
 describe('check lanes', () => {
   const MSG = ok('feat: add code');
   const toolchain = (box, scripts) => {
-    box.write('package.json', JSON.stringify({ name: 'sandbox', private: true, scripts }));
+    // Committed: the push lane gates the pushed commit in a clean copy (M1).
     mkdirSync(join(box.root, 'node_modules'), { recursive: true });
-    box.commit({}, MSG, { env: { SKIP_CHECK: '1' } });
+    box.commit({ 'package.json': JSON.stringify({ name: 'sandbox', private: true, scripts }) }, MSG, { env: { SKIP_CHECK: '1' } });
   };
   // `true` ignores the file arguments the commit lane appends.
   const pass = { typecheck: 'true', lint: 'true', 'format:check': 'true', check: 'true' };
