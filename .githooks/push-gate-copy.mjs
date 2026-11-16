@@ -5,9 +5,9 @@
 //
 // The copy is a detached `git worktree` of the pushed SHA under <root>/tmp/push-gate/<sha>-<pid>:
 //   1. git checks out the pushed tree, so other lanes' edits and untracked files never enter;
-//   2. `pnpm install --frozen-lockfile --offline` links the pushed lockfile's packages from the store (about 4 s with
-//      pnpm's global virtual store; the checkout's node_modules links are relative, so a clone of them would not
-//      resolve one level deeper);
+//   2. `pnpm install --frozen-lockfile --prefer-offline` links the pushed lockfile's packages from the store (about 4 s
+//      with pnpm's global virtual store; it fetches only what the store lacks; the checkout's node_modules links are
+//      relative, so a clone of them would not resolve one level deeper);
 //   3. the checkout's .bin-deps/node_modules (npr's shared tools), when present, is cloned copy-on-write;
 //   4. the gate runs there; then the copy is renamed aside, unregistered and deleted, green or red. A copy whose gate
 //      was killed is swept by the next one (its pid is gone).
@@ -134,8 +134,9 @@ export function makeGateCopy(root, sha, { say = (line) => process.stderr.write(`
     timed('checkout', () => git(root, ['worktree', 'add', '--quiet', '--detach', path, sha]));
     if (existsSync(join(path, 'pnpm-lock.yaml'))) {
       timed('install', () => {
-        const child = spawnSync('pnpm', ['install', '--frozen-lockfile', '--offline', '--silent'], { cwd: path, env: cleanEnv(env), stdio: ['ignore', 'ignore', 'pipe'], encoding: 'utf8' });
-        if (child.status !== 0) throw new Error(`pnpm install --offline in the gate copy exited ${String(child.status)}: ${child.stderr.trim().split('\n').slice(-3).join(' | ')}. Run pnpm install --frozen-lockfile in the checkout once (it fills the store), then push again`);
+        const child = spawnSync('pnpm', ['install', '--frozen-lockfile', '--prefer-offline'], { cwd: path, env: cleanEnv(env), stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', maxBuffer: 64 << 20 });
+        const said = `${child.stdout ?? ''}\n${child.stderr ?? ''}`.trim().split('\n').filter((line) => /ERR|error|Error/u.test(line)).slice(-3).join(' | ');
+        if (child.status !== 0) throw new Error(`pnpm install --frozen-lockfile --prefer-offline in the gate copy exited ${String(child.status)}: ${said || 'no error line; rerun it in the copy to see why'}`);
       });
     }
     // The shared binary tools (.bin-deps, npr): a copy-on-write clone of the checkout's install, so the gate's frozen
