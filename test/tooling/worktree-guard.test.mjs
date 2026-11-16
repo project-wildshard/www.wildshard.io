@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {existsSync, globSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, rmdirSync, statSync, writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
-import {basename, dirname, join, relative, resolve} from 'node:path';
+import {basename, dirname, isAbsolute, join, relative, resolve} from 'node:path';
 import {after, before, describe, test} from 'node:test';
 import {WORKTREES, isWorktreePath} from '../../scripts/worktree-ignore.mjs';
 
@@ -48,9 +48,18 @@ const run = (command, args, extra = {}) => spawnSync(command, args, {cwd: ROOT, 
 /** The planted paths a tool's output names. @param {string} text */
 const seen = text => planted().filter(path => text.includes(path) || text.includes(join(ROOT, path)));
 const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-/** A tool from node_modules/.bin, else from the repo's npm-bin-deps folder (NM8: `binDependenciesDir`, .bin-deps/). @param {string} name */
-const bin = name => [join(ROOT, 'node_modules/.bin', name), join(ROOT, pkg.binDependenciesDir ?? '.bin-deps', 'node_modules/.bin', name)]
-  .find(path => existsSync(path)) ?? join(ROOT, 'node_modules/.bin', name);
+/** Resolve external binary tools through npr's public command, not its private cache layout. @param {string} name */
+const bin = name => {
+  if (name === 'oxfmt' && pkg.binDependencies?.oxfmt !== undefined) {
+    const found = run(join(ROOT, 'node_modules/.bin/npr'), ['which', name]);
+    const path = found.stdout.trim();
+    assert.equal(found.status, 0, found.stderr);
+    assert.ok(isAbsolute(path) && !path.includes('\n') && existsSync(path), `npr did not resolve ${name}`);
+    return path;
+  }
+  return [join(ROOT, 'node_modules/.bin', name), join(ROOT, pkg.binDependenciesDir ?? '.bin-deps', 'node_modules/.bin', name)]
+    .find(path => existsSync(path)) ?? join(ROOT, 'node_modules/.bin', name);
+};
 const scripts = /** @type {Record<string, string>} */ (pkg.scripts ?? {});
 // The repo's worktree mode (J240): a repo that lands through plan worktrees carries the land tool, scripts/land.mjs.
 // One that also keeps its own, wider guard (engine: test/tooling/worktree-ignore.test.mjs) is guarded by that, not by
@@ -63,20 +72,40 @@ const rootFiles = readdirSync(ROOT);
 const uses = tool => Object.values(scripts).some(script => new RegExp(`(?:^|[\\s/'"])${tool}(?:[\\s'"]|$)`, 'u').test(script))
   || rootFiles.some(name => name.startsWith(`${tool}.config.`));
 
+/** A plant older than this is a run that was killed before its `after`; no guard run takes this long. */
+const STALE_MS = 60 * 60 * 1000;
+const removePlant = () => {
+  if (plant !== '' && basename(plant).startsWith('ds11-guard-')) rmSync(join(ROOT, plant), {recursive: true, force: true});
+};
+/** Interrupted (Ctrl-C, a hook's timeout): take the plant away, then die of the same signal. @param {NodeJS.Signals} signal */
+const onSignal = signal => { removePlant(); process.kill(process.pid, signal); };
+
 before(() => {
   if (ownGuard) return;
+  // Plant only where Git ignores it. Linters, formatters and test runners skip what .gitignore lists, so in a checkout
+  // without /.worktrees/ a plant would be seen by another agent's lint or tests running beside this one.
+  const ignored = run('git', ['check-ignore', '-q', '--', `${WORKTREES}/ds11-guard-probe/zz-guard.ts`]);
+  assert.equal(ignored.status, 0, '.gitignore lacks /.worktrees/, so nothing is planted: a plant would be visible to the checkout\'s tools');
   const parent = join(ROOT, WORKTREES);
   if (!existsSync(parent)) { mkdirSync(parent); madeParent = true; }
   // Only a real folder of this checkout: a linked .worktrees/ would send the plant, and its removal, elsewhere.
   assert.ok(lstatSync(parent).isDirectory() && realpathSync(parent) === join(ROOT, WORKTREES), `${parent} is not a plain folder of this checkout`);
+  // A killed run's plant, never a live run's (those are younger than an hour).
+  for (const name of readdirSync(parent)) {
+    if (name.startsWith('ds11-guard-') && Date.now() - statSync(join(parent, name)).mtimeMs > STALE_MS) rmSync(join(parent, name), {recursive: true, force: true});
+  }
   plant = relative(ROOT, mkdtempSync(join(parent, 'ds11-guard-')));
+  process.once('SIGINT', onSignal);
+  process.once('SIGTERM', onSignal);
   for (const [path, body] of Object.entries(FILES)) {
     mkdirSync(dirname(join(ROOT, plant, path)), {recursive: true});
     writeFileSync(join(ROOT, plant, path), body);
   }
 });
 after(() => {
-  if (plant !== '' && basename(plant).startsWith('ds11-guard-')) rmSync(join(ROOT, plant), {recursive: true, force: true});
+  removePlant();
+  process.off('SIGINT', onSignal);
+  process.off('SIGTERM', onSignal);
   // Only the parent this run made, and only while empty.
   if (madeParent) { try { rmdirSync(join(ROOT, WORKTREES)); } catch { /* Someone else's worktree is in it now. */ } }
 });
@@ -120,11 +149,13 @@ describe('a planted plan worktree is invisible to the parent checkout', {skip: o
     } finally { rmSync(dirname(index), {recursive: true, force: true}); }
   });
 
-  test('oxlint, with every lint config at the root and in kit/, reports nothing from it', () => {
+  test('oxlint, with every lint config at the root and in kit/, reports nothing from it', async () => {
+    const nativeEnv = pkg.binDependencies?.['oxlint-tsgolint'] === undefined ? env
+      : (await import('../../kit/scripts/bin-tools.mjs')).lintEnvironment(ROOT, env);
     const configs = [...rootFiles.filter(name => /^\.oxlintrc.*\.json$/u.test(name)), ...existsSync(join(ROOT, 'kit/.oxlintrc.json')) ? ['kit/.oxlintrc.json'] : []];
     assert.ok(configs.length > 0, 'no oxlint config');
     for (const config of configs) {
-      const lint = run(bin('oxlint'), ['-c', config, '-f', 'json', '.']);
+      const lint = run(bin('oxlint'), ['-c', config, '-f', 'json', '.'], nativeEnv);
       assert.equal(lint.error, undefined);
       const report = JSON.parse(lint.stdout.slice(lint.stdout.indexOf('{')));
       assert.ok(report.number_of_files > 0, `${config} linted no files: ${lint.stderr}`);
@@ -161,7 +192,11 @@ describe('a planted plan worktree is invisible to the parent checkout', {skip: o
     const words = command => [...command.matchAll(/'([^']*)'|"([^"]*)"|(\S+)/gu)].map(part => part[1] ?? part[2] ?? part[3] ?? '');
     let commands = 0;
     for (const [name, script] of Object.entries(scripts)) {
-      for (const command of script.split(/&&|\|\||;|\|/u)) {
+      // Split on shell operators outside quotes only: a quoted glob may hold `|` (an extglob, `src/!(format|ci)/**`).
+      const quoted = /** @type {string[]} */ ([]);
+      const masked = script.replaceAll(/'[^']*'|"[^"]*"/gu, part => `\u0000${quoted.push(part) - 1}\u0000`);
+      const commandsOf = masked.split(/&&|\|\||;|\|/u).map(part => part.replaceAll(/\u0000(\d+)\u0000/gu, (_, at) => quoted[Number(at)] ?? ''));
+      for (const command of commandsOf) {
         const argv = words(command.trim());
         if (argv[0] !== 'node' || !argv.includes('--test')) continue;
         commands++;

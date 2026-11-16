@@ -61,6 +61,12 @@ jobs:
           git config --global --add url."$base".insteadOf "git@github.com:"
           git config --global --add url."$base".insteadOf "ssh://git@github.com/"
       - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/npm-bin-deps
+          key: npr-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.bin-deps/package.json', '.bin-deps/package-lock.json') }}
+      - run: pnpm exec npr install --frozen
+      - run: node kit/scripts/bin-pins.mjs
       # The agent hook scripts are shellchecked in pnpm check, at this exact
       # version (.agents/hooks/test/shellcheck.test.mjs refuses any other on CI).
       # MR6: hosted runners are Linux/X64, the Mac mini's VM is Linux/ARM64;

@@ -1,0 +1,13 @@
+{
+  "runner": "2.1.0",
+  "installer": "npm",
+  "tools": {
+    "typescript": "7.0.2",
+    "oxfmt": "0.74.0",
+    "oxlint-tsgolint": "7.0.2004"
+  },
+  "files": {
+    "package.json": "5256b98d6e77328731b282eb71d06358fde7c487d5b788132b3dc0b8f24d8282",
+    "package-lock.json": "69e453e60fc8f51cc385fb873256419fc2f377d69fa31f7ac4dd8c204101e7e0"
+  }
+}

@@ -9,7 +9,7 @@
 //           SKIP_CHECK does not skip it).
 // The hooks only check; `pnpm lint:fix` / `pnpm format` fix.
 // Bypass a lane: SKIP_CHECK=1 (last resort; CI still runs it).
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { git } from './lib.mjs';
@@ -43,7 +43,8 @@ if (process.env.SKIP_CHECK === '1') {
 // The package is at the repo root; its kit configs live in kit/ (J329).
 const pkgDir = root;
 const pkgPath = join(pkgDir, 'package.json');
-const scripts = existsSync(pkgPath) ? (JSON.parse(readFileSync(pkgPath, 'utf8')).scripts ?? {}) : {};
+const manifest = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : {};
+const scripts = manifest.scripts ?? {};
 
 /** @type {{ name: string, args: string[] }[]} */
 const jobs = [];
@@ -69,13 +70,22 @@ if (lane === 'commit') {
 if (!jobs.length) process.exit(0); // no toolchain yet
 
 if (!existsSync(join(pkgDir, 'node_modules'))) {
-  console.error(`\n  X ${lane} blocked: node_modules is missing. Run pnpm install (or SKIP_CHECK=1).\n`);
+  console.error(`\n  X ${lane} blocked: node_modules is missing. Run pnpm install, then pnpm exec npr install --frozen when binDependencies are declared.\n`);
   process.exit(1);
 }
 
 // Hooks export GIT_INDEX_FILE and friends; tools that shell out to git
 // (knip, tests that build repos) must see a normal environment.
 const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+// Install a missing shared tool cache from its committed lock before checks.
+// Frozen mode refuses stale pins instead of silently rewriting the checkout.
+if (manifest.binDependencies !== undefined) {
+  const tools = spawnSync('pnpm', ['exec', 'npr', 'install', '--frozen'], { cwd: pkgDir, env, stdio: 'inherit' });
+  if (tools.error !== undefined || tools.status !== 0) {
+    console.error('  X frozen binary tool install failed; repair and commit .bin-deps/');
+    process.exit(tools.status || 1);
+  }
+}
 const run = ({ name, args }) => new Promise((done) => {
   const child = spawn('pnpm', ['run', '--silent', ...args], { cwd: pkgDir, env });
   let output = '';
