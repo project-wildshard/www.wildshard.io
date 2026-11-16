@@ -1,12 +1,13 @@
 // J358: SessionEnd only reports; even the obsolete purge flag cannot delete.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 
 test('ending a session preserves owned, foreign, ownerless and linked scratch', () => {
-  const root = resolve('tmp/codex-netlag/scratch-end-fixture');
+  mkdirSync('tmp/codex-netlag', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/codex-netlag/scratch-end-'));
   mkdirSync(join(root, '.agents/hooks'), { recursive: true });
   const hook = join(root, '.agents/hooks/scratch-end.mjs');
   cpSync('.agents/hooks/scratch-end.mjs', hook);

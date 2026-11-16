@@ -5,9 +5,9 @@
 //   node scripts/scratch-dir.mjs <task> "<purpose>" [--row <plan-row>]
 //
 // creates <repo>/tmp/<task>/ and tmp/<task>/.owner, then prints the folder's absolute path. .owner is JSON: the session
-// id ($CLAUDE_SESSION_ID, else $CLAUDE_CODE_SESSION_ID, else the Codex lane name in $WS_LANE_NAME), the lane name, the
+// id ($CODEX_THREAD_ID, else $CLAUDE_SESSION_ID, else $CLAUDE_CODE_SESSION_ID, else $WS_LANE_NAME), the lane name, the
 // herdr pane ($HERDR_PANE_ID), the start time and the purpose. DK4's SessionEnd hook removes the folders whose .owner
-// names the ending session; a .keep file in the folder (one line: why to keep it) stops that and DK6's 3-day sweep.
+// names the ending session. J358 makes cleanup report-only; a human audits and copies before removal.
 //
 // <task> is one plain folder name: letters, digits, '.', '_' and '-', not starting with '.', never containing '/' or
 // '..'. The helper deletes nothing. It refuses a folder that already exists unless that folder's .owner names this
@@ -41,10 +41,10 @@ export function ownerRecord(task, purpose, env, now, row = null) {
   catch (error) { if (error instanceof Error && 'code' in error && error.code === 'ENOENT') receiptOffset = 0; }
   return {
     task,
-    session: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID || env.CODEX_THREAD_ID || lane,
+    session: env.CODEX_THREAD_ID || env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID || lane,
     lane,
     pane: env.HERDR_PANE_ID || null,
-    agent: env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID ? 'claude' : env.CODEX_THREAD_ID || lane ? 'codex' : 'unknown',
+    agent: env.CODEX_THREAD_ID ? 'codex' : env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID ? 'claude' : lane ? 'codex' : 'unknown',
     row,
     receiptOffset,
     started: now.toISOString(),

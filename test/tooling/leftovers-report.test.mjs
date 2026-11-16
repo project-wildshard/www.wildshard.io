@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { fixtureScratch } from './owned-scratch.mjs';
 import { brief, leftovers } from '../../scripts/leftovers-report.mjs';
 
-const root = fixtureScratch('leftovers-report-fixture');
+mkdirSync('tmp/codex-netlag', { recursive: true });
+
+const root = mkdtempSync(resolve('tmp/codex-netlag/leftovers-report-'));
 
 test('it reports ended, live and ownerless folders without deleting them', () => {
   rmSync(root, { recursive: true, force: true });

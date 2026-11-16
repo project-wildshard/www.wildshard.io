@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { chmodSync, mkdirSync, writeFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { LONG, fixture } from './land-fixture.mjs';
@@ -42,4 +42,19 @@ test('J358: writes at shutdown retain the source after copying', LONG, async () 
     assert.match(result.stdout, /worktree kept: changed during process cleanup/u);
     assert.match(readFileSync(join(wt, 'src/bytes.generated.ts'), 'utf8'), /bytes = 3/u);
   } finally { if (child.exitCode === null) child.kill('SIGKILL'); }
+});
+
+test('J358: unreadable process evidence retains the landed worktree', LONG, () => {
+  const f = fixture(), wt = f.worktree('unreadable-processes');
+  f.commit(wt, 'src/feature.ts', 'export const feature = true;', 'feature');
+  const bin = join(f.root, 'failed-process-reader'); mkdirSync(bin);
+  for (const name of ['lsof', 'ps']) {
+    const path = join(bin, name); writeFileSync(path, '#!/bin/sh\nexit 1\n'); chmodSync(path, 0o755);
+  }
+  f.env.PATH = `${bin}:${f.env.PATH}`;
+  const result = f.land(wt, []);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /worktree kept: process cleanup failed/u);
+  assert.ok(existsSync(wt));
+  assert.equal(f.git(f.repo, ['rev-parse', 'plan/unreadable-processes']), f.remoteMain());
 });

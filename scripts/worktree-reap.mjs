@@ -41,7 +41,7 @@ export function processDirectories(){
  }
  // From /, so lsof itself never shows up in the folder being checked.
  const listed=spawnSync('lsof',['-a','-d','cwd','-F','pn'],{cwd:'/',encoding:'utf8',maxBuffer:64<<20});
- if(listed.error!==undefined||listed.stdout==='')return undefined;
+ if(listed.error!==undefined||listed.status!==0||listed.stdout==='')return undefined;
  let pid=0;
  for(const line of listed.stdout.split('\n')){
   if(line.startsWith('p'))pid=Number(line.slice(1));
@@ -50,13 +50,14 @@ export function processDirectories(){
  return found;
 }
 
-/** pid -> parent pid and command line, from `ps`. @returns {Map<number,{ppid:number,command:string}>} */
+/** pid -> parent pid and command line, from `ps`. @returns {Map<number,{ppid:number,state:string,command:string}>} */
 function processTable(){
- /** @type {Map<number,{ppid:number,command:string}>} */const table=new Map();
- const listed=spawnSync('ps',['-Ao','pid=,ppid=,command='],{encoding:'utf8',maxBuffer:64<<20});
+ /** @type {Map<number,{ppid:number,state:string,command:string}>} */const table=new Map();
+ const listed=spawnSync('ps',['-Ao','pid=,ppid=,stat=,command='],{encoding:'utf8',maxBuffer:64<<20});
+ if(listed.error!==undefined||listed.status!==0)throw new Error('process table unreadable');
  for(const line of (listed.stdout??'').split('\n')){
-  const match=/^\s*(\d+)\s+(\d+)\s(.*)$/u.exec(line);
-  if(match!==null)table.set(Number(match[1]),{ppid:Number(match[2]),command:match[3]??''});
+  const match=/^\s*(\d+)\s+(\d+)\s+(\S+)\s(.*)$/u.exec(line);
+  if(match!==null)table.set(Number(match[1]),{ppid:Number(match[2]),state:match[3]??'',command:match[4]??''});
  }
  return table;
 }
@@ -71,10 +72,10 @@ function processTable(){
  * @returns {number[]} */
 export function stopWorktreeProcesses(tree,options={}){
  const directories=processDirectories();
- if(directories===undefined)return [];
+ if(directories===undefined)throw new Error('process directories unreadable');
  const table=processTable(),spared=new Set();
- // Without the table nothing tells land's own parents apart (J206 review): stop nothing.
- if(!table.has(process.pid))return [];
+ // Without the table nothing tells land's own parents apart: retain the tree.
+ if(!table.has(process.pid))throw new Error('process ancestry unreadable');
  for(let pid=process.pid;pid>1&&!spared.has(pid);pid=table.get(pid)?.ppid??0)spared.add(pid);
  const shell=(/** @type {string} */ command)=>/^-?(?:\S*\/)?(?:ba|z|da|fi|k|tc|c)?sh$/u.test(command.trim());
  // Only processes whose own working directory is inside: a daemon's children elsewhere are not this worktree's.
@@ -86,6 +87,17 @@ export function stopWorktreeProcesses(tree,options={}){
  const until=Date.now()+3000,nap=new Int32Array(new SharedArrayBuffer(4));
  while(Date.now()<until&&pids.some(pid=>signal(pid,0)))Atomics.wait(nap,0,0,50);
  for(const pid of pids)signal(pid,'SIGKILL');
+ const killedUntil=Date.now()+1000;
+ let remaining=pids;
+ do{
+  const current=processTable();
+  // Exited children may remain zombies until their blocked parent reaps them.
+  // They cannot write; a live or uninspectable process still retains the tree.
+  remaining=pids.filter(pid=>current.has(pid)&&!current.get(pid).state.startsWith('Z'));
+  if(remaining.length===0)break;
+  Atomics.wait(nap,0,0,25);
+ }while(Date.now()<killedUntil);
+ if(remaining.length>0)throw new Error('a worktree process is still alive');
  return pids;
 }
 

@@ -22,8 +22,8 @@ if [ -z "$session" ] && [ ! -t 0 ]; then
 fi
 
 # The brief lands in every session's context, so it stays within 40
-# lines (REPO-KIT K4, J273): 5 asks, 5 plans, 4 journal lines, 3 of
-# the rest. A cut section says "first N of M" in its header.
+# lines (REPO-KIT K4, J273): 5 asks, 5 plans, 2 journal lines,
+# 4 leftovers, 2 dirty paths and 1 commit. Cut sections name their limit.
 # show TITLE MAX EMPTY BODY: a section header, then at most MAX lines of
 # BODY, or EMPTY when BODY is empty.
 show() {
@@ -80,9 +80,9 @@ latest="$(git log -1 --format= --name-only --diff-filter=AM -- 'project/journal/
 [ -n "$latest" ] && [ -f "$latest" ] || latest="$(ls -t project/journal/[0-9]*.md 2>/dev/null | head -1)"
 if [ -n "$latest" ]; then
   echo "-- latest journal: $latest (last lines) --"
-  tail -4 "$latest" | sed 's/^/    /'
+  tail -2 "$latest" | sed 's/^/    /'
 else
-  show "latest journal" 4 "(none)" ""
+  show "latest journal" 2 "(none)" ""
 fi
 
 # A repo with the plan-worktree tool (scripts/worktree.mjs; engine since
@@ -165,7 +165,7 @@ if [ -f scripts/leftovers-report.mjs ]; then
   show "left lying around (manual audit only)" 4 "  (leftovers report unavailable)" "$(node scripts/leftovers-report.mjs 2>/dev/null)"
 fi
 
-show "uncommitted in this checkout (may be another agent's: don't sweep it)" 3 "(clean)" "$(git status --short 2>/dev/null | sed 's/^/  /')"
-show "recent commits" 3 "(none)" "$(git log --oneline -3 2>/dev/null | sed 's/^/  /')"
+show "uncommitted in this checkout (may be another agent's: don't sweep it)" 2 "(clean)" "$(git status --short 2>/dev/null | sed 's/^/  /')"
+show "recent commits" 1 "(none)" "$(git log --oneline -1 2>/dev/null | sed 's/^/  /')"
 echo "Commit by pathspec (git commit -m ... -- paths) with a journal entry; hooks enforce the rest. Rules: docs/dev.md."
 exit 0

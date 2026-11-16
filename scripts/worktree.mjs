@@ -386,7 +386,7 @@ export function worktreeNew(argv,cwd=process.cwd(),env=process.env){
  let receiptOffset=null;
  try{receiptOffset=statSync(env.WS_LANE_RECEIPTS??join(homedir(),'.cache/wildshard/lane-receipts.log')).size;}
  catch(error){if(error instanceof Error&&'code'in error&&error.code==='ENOENT')receiptOffset=0;}
- const owner={lane,session:env.CLAUDE_SESSION_ID||env.CLAUDE_CODE_SESSION_ID||env.CODEX_THREAD_ID||lane,agent:env.CLAUDE_SESSION_ID||env.CLAUDE_CODE_SESSION_ID?'claude':env.CODEX_THREAD_ID||lane?'codex':'unknown',row:options.row??env.WS_PLAN_ROW??null,created,activeHours:null,receiptOffset};
+ const owner={lane,session:env.CODEX_THREAD_ID||env.CLAUDE_SESSION_ID||env.CLAUDE_CODE_SESSION_ID||lane,agent:env.CODEX_THREAD_ID?'codex':env.CLAUDE_SESSION_ID||env.CLAUDE_CODE_SESSION_ID?'claude':lane?'codex':'unknown',row:options.row??env.WS_PLAN_ROW??null,created,activeHours:null,receiptOffset};
  writeFileSync(join(tree,'.owner'),`${JSON.stringify(owner,null,2)}\n`,{flag:'wx'});
  mkdirSync(join(tree,'tmp'),{recursive:true});
  writeFileSync(join(tree,'tmp/worktree-setup.json'),`${JSON.stringify(record,null,2)}\n`);

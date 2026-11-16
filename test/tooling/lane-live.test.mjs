@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { appendFileSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { fixtureScratch } from './owned-scratch.mjs';
 import { laneLive } from '../../scripts/lane-live.mjs';
 
-const root = fixtureScratch('lane-live-fixture');
+mkdirSync('tmp/codex-netlag', { recursive: true });
+
+const root = mkdtempSync(resolve('tmp/codex-netlag/lane-live-'));
 
 function lane(name, laneName, receiptOffset = 0) {
   const path = join(root, name);

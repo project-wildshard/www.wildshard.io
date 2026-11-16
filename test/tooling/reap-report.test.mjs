@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
-import { fixtureScratch } from './owned-scratch.mjs';
 import { reap } from '../../scripts/worktree-reap.mjs';
 
+mkdirSync('tmp/codex-netlag', { recursive: true });
+
 test('reap keeps a landed worktree and branch while reporting its liveness', () => {
-  const root = fixtureScratch('reap-report-fixture');
+  const root = mkdtempSync(resolve('tmp/codex-netlag/reap-report-'));
   mkdirSync(root, { recursive: true });
   const git = (...args) => execFileSync('git', ['-C', root, ...args], {
     encoding: 'utf8', env: { ...process.env, GIT_AUTHOR_NAME: 'test', GIT_AUTHOR_EMAIL: 'test@example.test',

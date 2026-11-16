@@ -7,15 +7,12 @@ import { execFile, execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { after } from 'node:test';
-import { scratchDir } from '../../scripts/scratch-dir.mjs';
+import { fixtureScratch } from './owned-scratch.mjs';
 import { fileURLToPath } from 'node:url';
 
 export const KIT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const LAND = join(KIT, 'scripts/land.mjs');
-const task = process.env.WS_LANE_NAME ?? `test-disk-${process.pid}`;
-const parent = resolve(KIT, 'tmp', task), parentExisted = existsSync(parent);
-scratchDir(task, 'SDK disk fixtures', { root: KIT, env: { ...process.env, WS_LANE_NAME: task } });
-export const SCRATCH = join(parent, 'land-test');
+export const SCRATCH = fixtureScratch('land-test');
 export const ENGINE_CONFIG = {};
 /** The two configs under test: the kit default (only the CI stub set) and engine's. */
 export const CONFIGS = { default: {}, engine: ENGINE_CONFIG };
@@ -26,7 +23,6 @@ export const track = (root) => { roots.push(root); };
 after(() => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
   try { if (readdirSync(SCRATCH).length === 0) rmSync(SCRATCH, { recursive: true }); } catch { /* already gone */ }
-  if (!parentExisted && readdirSync(parent).every(name => name === '.owner')) rmSync(parent, { recursive: true });
 });
 
 const FAKE_GH = `#!/usr/bin/env node
