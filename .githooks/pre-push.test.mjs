@@ -89,10 +89,12 @@ describe('pre-push hook', () => {
   });
   test('the push gate checks the pushed commit in a clean copy, never other lanes\' files in the checkout (M1)', () => {
     const box = withRemote();
+    // This models a local push even when the test itself runs on a hosted runner.
+    const localPush = () => box.push({ CI: '', GITHUB_ACTIONS: '', WS_PUSH_GATE_COPY: '1' });
     const gate = "import { existsSync, readFileSync } from 'node:fs';\n" +
       "if (readFileSync('state.txt', 'utf8') !== 'good\\n' || existsSync('loose.txt')) { console.error('gate saw bad bytes'); process.exit(1); }\n";
     box.commit({ 'gate.mjs': gate, 'state.txt': 'good\n', 'package.json': JSON.stringify({ scripts: { check: 'node gate.mjs' } }) }, MSG);
-    const first = box.push();
+    const first = localPush();
     assert.equal(first.status, 0, first.stderr);
     assert.match(first.stderr, /push lane gates [0-9a-f]{10} in a clean copy: canonical checkout/);
     assert.match(first.stderr, /push-gate copy \(M1\): [0-9a-f]{10} at tmp\/push-gate\//);
@@ -101,7 +103,7 @@ describe('pre-push hook', () => {
     box.write('state.txt', 'bad\n');
     box.write('loose.txt', 'another lane\n');
     box.commit({ 'c.txt': 'c\n' }, MSG);
-    const second = box.push();
+    const second = localPush();
     assert.equal(second.status, 0, second.stderr);
     assert.equal(readFileSync(join(box.root, 'state.txt'), 'utf8'), 'bad\n');
     assert.equal(readFileSync(join(box.root, 'loose.txt'), 'utf8'), 'another lane\n');
@@ -111,7 +113,7 @@ describe('pre-push hook', () => {
 
     // The same bad bytes, committed, are what the gate checks: refused.
     box.git(['commit', '-q', '-m', MSG, '--', 'state.txt']);
-    const third = box.push();
+    const third = localPush();
     assert.notEqual(third.status, 0, 'the pushed commit carries the bad bytes');
     assert.match(third.stderr, /gate saw bad bytes/);
   });

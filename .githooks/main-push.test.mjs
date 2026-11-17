@@ -21,7 +21,8 @@ const REPLAY = /ref-action/u.test(`${spawnSync('git', ['replay', '-h'], { encodi
 /** @param {string} name @param {() => void} fn */
 const test = (name, fn) => nodeTest(name, { skip: REPLAY ? false : 'git lacks git replay --ref-action' }, fn);
 
-const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), WS_MAIN_PUSH_RECEIPT: '0' };
+const home = join(work, 'home');
+const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), HOME: home, XDG_CONFIG_HOME: home, WS_MAIN_PUSH_RECEIPT: '0' };
 const ID = { GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 const git = (cwd, ...args) => {
   const out = spawnSync('git', args, { cwd, encoding: 'utf8', env: { ...env, ...ID } });
@@ -37,6 +38,9 @@ const push = (cwd, ...args) => spawnSync(process.execPath, [SCRIPT, '--wait', '0
 const clone = (dir) => {
   git(work, 'clone', '--quiet', remote, dir);
   git(dir, 'config', 'core.hooksPath', join(dir, '.hooks'));
+  // main-push clears inherited GIT_* state; each clone owns its commit identity.
+  git(dir, 'config', 'user.name', ID.GIT_AUTHOR_NAME);
+  git(dir, 'config', 'user.email', ID.GIT_AUTHOR_EMAIL);
 };
 /** B commits one file and pushes, as another lane would. */
 const otherLanePushes = (path, text) => {
@@ -55,6 +59,7 @@ const notMidRebase = (dir) => {
 beforeEach(() => {
   rmSync(work, { recursive: true, force: true });
   mkdirSync(work, { recursive: true });
+  write(home, '.gitconfig', '[user]\n\tuseConfigOnly = true\n');
   git(work, 'init', '--quiet', '--bare', '--initial-branch=main', remote);
   const seed = join(work, 'seed');
   git(work, 'init', '--quiet', '--initial-branch=main', seed);
