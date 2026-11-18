@@ -26,7 +26,7 @@
 import {execFileSync,spawn,spawnSync} from 'node:child_process';
 import {keepCopy,worktreeState} from './keep-copy.mjs';
 import {appendFileSync,existsSync,linkSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,renameSync,rmSync,writeFileSync} from 'node:fs';
-import {homedir} from 'node:os';
+import {homedir,hostname} from 'node:os';
 import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {canonicalRoot,followMain,withStoreUse} from './worktree.mjs';
@@ -120,21 +120,35 @@ export function githubSlug(remote){
 
 /** Refuse anything but the known options. Any spelling of force is refused by name.
  * @param {string[]} argv */
-export function parseArgs(argv){
- const options={pollSeconds:30,timeoutMinutes:60,appearMinutes:5,rounds:5,keep:false};
+/** J422 (meta FLOW-SIMPLE FS6): push mode is the MacBook default, one way onto main for every row: rebase, push main
+ * through the repo's ordinary pre-push, move on; no plan-branch push and no hosted wait. The Mac mini keeps the hosted
+ * land for now (J422 wave 2), as does WS_LAND_MODE=hosted or --hosted.
+ * @param {NodeJS.ProcessEnv} env @param {string} host */
+export function defaultMode(env,host){
+ if(env.WS_LAND_MODE==='hosted'||env.WS_LAND_MODE==='push')return env.WS_LAND_MODE;
+ return /mac-?mini/iu.test(host)?'hosted':'push';
+}
+
+/** @param {string[]} argv @param {NodeJS.ProcessEnv} [env] @param {string} [host] */
+export function parseArgs(argv,env=process.env,host=hostname()){
+ const options={mode:defaultMode(env,host),pollSeconds:30,timeoutMinutes:60,appearMinutes:5,rounds:5,keep:false,done:false};
  for(const arg of argv){
   if(/^-f$|force/iu.test(arg))throw new StopError(`refused ${arg}: land never force-pushes main (J240: fast-forward only). If main moved, land rebases and retries by itself`);
   const [name,value]=arg.split('=',2);
   const number=Number(value);
   // --no-watch-main is accepted for old callers: land never watches main now (LS8).
   if(name==='--no-watch-main'&&value===undefined)continue;
-  if(name==='--keep'&&value===undefined)options.keep=true;
+  if((name==='--hosted'||name==='--push')&&value===undefined)options.mode=name.slice(2);
+  else if(name==='--done'&&value===undefined)options.done=true;
+  else if(name==='--keep'&&value===undefined)options.keep=true;
   else if(value!==undefined&&Number.isFinite(number)&&number>0&&name==='--poll')options.pollSeconds=number;
   else if(value!==undefined&&Number.isFinite(number)&&number>0&&name==='--timeout')options.timeoutMinutes=number;
   else if(value!==undefined&&Number.isFinite(number)&&number>0&&name==='--appear')options.appearMinutes=number;
   else if(value!==undefined&&Number.isSafeInteger(number)&&number>0&&name==='--rounds')options.rounds=number;
-  else throw new StopError(`unknown option ${arg}; usage: node scripts/land.mjs [--poll=SECONDS] [--timeout=MINUTES] [--appear=MINUTES] [--rounds=N] [--keep]`);
+  else throw new StopError(`unknown option ${arg}; usage: node scripts/land.mjs [--done] [--push|--hosted] [--poll=SECONDS] [--timeout=MINUTES] [--appear=MINUTES] [--rounds=N] [--keep]`);
  }
+ // J422: push mode keeps the plan worktree for the next row unless this is the last one.
+ if(options.mode==='push'&&!options.done)options.keep=true;
  return options;
 }
 
@@ -650,15 +664,17 @@ class Landing{
 
  /** Fast-forward main to HEAD. Refuses before pushing unless origin/main is
   * an ancestor; the refspec has no `+` and no force flag ever.
-  * @param {boolean} carried @returns {'landed'|'moved'} */
- pushMain(carried){
+  * @param {boolean} carried @param {boolean} [push] J422: the repo's ordinary pre-push gates it
+  * @returns {'landed'|'moved'} */
+ pushMain(carried,push=false){
   const head=this.holds('before the merge'),main=this.fetchMain();
   if(!isAncestor(this.root,main,head))return 'moved';
   if(main===head)return 'landed';
   const args=mainPushArgs(head);
-  this.say('merging',`main ${short(main)} -> ${short(head)} fast-forward only${carried?'; static pre-push on the rebased tree, no Vitest (LS3)':'; the hosted-green SHA, no local gate'}`);
+  this.say('merging',`main ${short(main)} -> ${short(head)} fast-forward only${push?'; the ordinary pre-push gates it (J422)':carried?'; static pre-push on the rebased tree, no Vitest (LS3)':'; the hosted-green SHA, no local gate'}`);
   // LS3 (J258): the pre-push knows this is land's main push and of which kind (.githooks/run-checks.mjs).
   const env={...this.env,WS_LAND_MAIN_PUSH:`${carried?'carried':'exact'}:${head}`};
+  if(push)Reflect.deleteProperty(env,'WS_LAND_MAIN_PUSH');
   const result=spawnSync('git',args,{cwd:this.root,env,encoding:'utf8',stdio:['ignore','pipe','inherit']});
   if(result.status===0)return 'landed';
   // A lost race is main having moved; anything else (a red pre-push) stops.
@@ -680,6 +696,7 @@ class Landing{
    this.rebase(main);
    if(this.head()===main){this.say('nothing',`every commit on ${this.branch} is already on main`);return 0;}
   }
+  if(this.options.mode==='push')return this.runPush(main);
   /** @type {{sha:string,base:string}|null} */let tested=null;
   let needHosted=true,rule='exact',why='main had not moved since the hosted run';
   for(let round=1;round<=this.options.rounds;round++){
@@ -717,6 +734,21 @@ class Landing{
   }
   this.receipt(`STOP gave up after ${this.options.rounds} tries; main kept moving`);
   throw new StopError(`main kept moving: ${this.options.rounds} tries each lost the race to another push (J258 stops at 5). Nothing landed; run land again when main is quieter`);
+ }
+
+ /** J422: push main through the ordinary pre-push; a lost race rebases and pushes again. No plan push, no hosted wait.
+  * @param {string} base */
+ runPush(base){
+  let main=base;
+  for(let round=1;round<=this.options.rounds;round++){
+   if(this.pushMain(false,true)==='landed')return this.landed('push','the ordinary pre-push; main ci runs the full suite',round,main);
+   main=this.fetchMain();
+   this.say('moved',`main moved to ${short(main)}; rebasing and pushing again (round ${round})`);
+   this.rebase(main);
+   if(this.head()===main){this.say('nothing',`every commit on ${this.branch} is already on main`);return 0;}
+  }
+  this.receipt(`STOP gave up after ${this.options.rounds} tries; main kept moving`);
+  throw new StopError(`main kept moving: ${this.options.rounds} tries each lost the race to another push. Nothing landed; run land again`);
  }
 
  /** After GitHub's main moved, bring the canonical checkout's main along (Jake, 2026-11-10 ~23:50 Cancún: "go to
@@ -828,9 +860,9 @@ class Landing{
   this.landedSha=head;
   this.followCanonical();
   this.startWatcher(head);
-  this.say('rule',`main's own CI runs on ${short(head)} now. If it goes red, the lane that landed last fixes it forward or reverts it, at once (J249)`);
+  this.say('rule',rule==='push'?`main's own CI runs on ${short(head)} now. If main-watch names this push on red, fix it forward at once (J422)`:`main's own CI runs on ${short(head)} now. If it goes red, the lane that landed last fixes it forward or reverts it, at once (J249)`);
   const seconds=Math.round((Date.now()-this.started)/1000);
-  this.receipt(`landed ${short(head)} on main (${short(before)}..${short(head)}); ${rule}; rounds ${round}; branch ci ${this.runs.join(', ')||'none'}; main ci ${rule==='carried'?'followed by main-watch':'reuses the branch run'}; ${seconds} s`);
+  this.receipt(`landed ${short(head)} on main (${short(before)}..${short(head)}); ${rule}; rounds ${round}; branch ci ${this.runs.join(', ')||'none'}; main ci ${rule==='carried'||rule==='push'?'followed by main-watch':'reuses the branch run'}; ${seconds} s`);
   return 0;
  }
 }
@@ -849,7 +881,7 @@ export function mainPushArgs(sha){
 export async function land(argv,cwd=process.cwd(),env=process.env){
  /** @type {(() => void)|null} */let unlock=null;
  try{
-  const landing=new Landing(cwd,parseArgs(argv),env);
+  const landing=new Landing(cwd,parseArgs(argv,env),env);
   unlock=landing.lock();
   const code=await landing.run();
   // Cleanup runs under the land lock (J206 review): no second land can start here meanwhile. The lock file lives in
