@@ -15,8 +15,8 @@
       {
         "x": 1,
         "z": 1,
-        "slug": "_template",
-        "plot": false
+        "slug": "open-plot-1-1",
+        "plot": true
       },
       {
         "x": -1,

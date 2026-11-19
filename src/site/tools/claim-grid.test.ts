@@ -18,7 +18,9 @@ import type { FactCell } from './facts.ts'
 
 const site = new URL('../', import.meta.url)
 const { cells } = readFacts(new URL('facts.json', site).pathname)
-const TAKEN = ['C2', 'D2', 'B3', 'C3', 'D3', 'C4', 'D4']
+// D2, the Template's (1,1), is an open plot since it left the grid (meta
+// TEMPLATE-E2E TR-13, J434).
+const TAKEN = ['C2', 'B3', 'C3', 'D3', 'C4', 'D4']
 const label = (c: FactCell): string => `{{${c.slug}}}`
 const shardOn = (name: string): string | undefined =>
   cells.find(c => cellName(c) === name)?.slug

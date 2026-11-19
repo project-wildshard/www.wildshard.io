@@ -800,10 +800,6 @@ Sky Reach
 
 9 Dragon
 
-## Map · Template
-
-Template
-
 ## Map · your wish
 
 Your wish

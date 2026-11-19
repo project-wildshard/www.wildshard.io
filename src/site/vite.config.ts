@@ -74,7 +74,6 @@ const MAP_LABEL: Readonly<Record<string, string>> = {
   'sunscar-dunes': 'Map · Dunes',
   'far-reach': 'Map · Sky Reach',
   'nine-dragon-stack': 'Map · Nine Dragon',
-  _template: 'Map · Template',
 }
 function label(c: FactCell): string {
   const k = MAP_LABEL[c.slug]
