@@ -28,8 +28,8 @@ Use our nouns, and leave settled decisions settled. Read the parts
 that touch the area:
 
 - this repo: `docs/design.md`, `docs/decisions.md`, `docs/plans/`;
-- meta: `docs/vision/GLOSSARY.md`, and in `docs/plans/multi-repo/`
-  `MULTI-REPO-PLAN.md` (J-numbers) and `STATE.md`.
+- meta: `docs/vision/GLOSSARY.md`, and in `docs/plans/MULTI-REPO-SAGA/`
+  `decisions/` (J-numbers) and `STATE.md`.
 
 ## 2. Scope
 
@@ -103,7 +103,7 @@ Use the `grill-me` skill.
 As decisions settle:
 
 - A decision goes in the repo's `docs/decisions.md` as a D-number;
-  a cross-repo one goes to Jake as a J-number in `MULTI-REPO-PLAN.md`.
+  a cross-repo one goes to Jake as a J-number in `MULTI-REPO-SAGA/decisions/`.
 - Work becomes a plan row (`write-plan`). The refactor runs later, in
   its own session.
 - A rejection with a lasting reason: offer to record it, so the next

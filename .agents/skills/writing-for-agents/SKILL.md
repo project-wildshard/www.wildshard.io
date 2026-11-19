@@ -22,7 +22,7 @@ good document makes the agent take the same **process** every run.
   to the doc, and a few rules (`- Commands, layout: docs/dev.md`).
 - **Cite the decision instead of arguing it.** J-numbers are Jake's
   cross-repo decisions (meta
-  `docs/plans/multi-repo/MULTI-REPO-PLAN.md`), D-numbers a repo's
+  `docs/plans/MULTI-REPO-SAGA/decisions/`), D-numbers a repo's
   `docs/decisions.md`, and M1, R2, B1 are the MMO requirements (meta
   `docs/README.md` links them). "Features frozen (J103, J119)" is a
   whole rule.

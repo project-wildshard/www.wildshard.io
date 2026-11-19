@@ -1,7 +1,7 @@
 # www.wildshard.io: decisions
 
 Living doc. Decisions that bind this repo, newest last. Cross-repo decisions
-(J-numbers) are Jake's, from `Raynos/project-wildshard-meta` `docs/multi-repo/MULTI-REPO-PLAN.md`;
+(J-numbers) are Jake's, from `Raynos/project-wildshard-meta` `docs/plans/MULTI-REPO-SAGA/decisions/`;
 this repo's own decisions are D-numbers.
 
 ## Cross-repo (J)

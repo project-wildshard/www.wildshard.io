@@ -6,4 +6,4 @@ its state: draft · in progress · blocked · finished. `.githooks/pre-commit`
 checks new plans. Finished plans move to `project/archive/`.
 
 Cross-repo plans for Project Wildshard live in
-`Raynos/project-wildshard-meta` under `docs/multi-repo/`.
+`Raynos/project-wildshard-meta` under `docs/plans/MULTI-REPO-SAGA/`.
