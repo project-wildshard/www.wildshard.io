@@ -26,7 +26,7 @@
 import {execFileSync,spawn,spawnSync} from 'node:child_process';
 import {keepCopy,worktreeState} from './keep-copy.mjs';
 import {appendFileSync,existsSync,linkSync,lstatSync,mkdirSync,mkdtempSync,readFileSync,readdirSync,realpathSync,renameSync,rmSync,writeFileSync} from 'node:fs';
-import {homedir,hostname} from 'node:os';
+import {homedir} from 'node:os';
 import {dirname,join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {canonicalRoot,followMain,withStoreUse} from './worktree.mjs';
@@ -120,18 +120,19 @@ export function githubSlug(remote){
 
 /** Refuse anything but the known options. Any spelling of force is refused by name.
  * @param {string[]} argv */
-/** J422 (meta FLOW-SIMPLE FS6): push mode is the MacBook default, one way onto main for every row: rebase, push main
- * through the repo's ordinary pre-push, move on; no plan-branch push and no hosted wait. The Mac mini keeps the hosted
- * land for now (J422 wave 2), as does WS_LAND_MODE=hosted or --hosted.
- * @param {NodeJS.ProcessEnv} env @param {string} host */
-export function defaultMode(env,host){
+/** J422 (meta FLOW-SIMPLE FS6): push mode is the default on every host, one way onto main for every row: rebase, push
+ * main through the repo's ordinary pre-push, move on; no plan-branch push and no hosted wait. The Mac mini moved to push
+ * mode with J443. The hosted land is an explicit opt-in only (WS_LAND_MODE=hosted or --hosted); consumers no longer run
+ * CI on plan/**, so it serves the disk-land tests that pin it.
+ * @param {NodeJS.ProcessEnv} env */
+export function defaultMode(env){
  if(env.WS_LAND_MODE==='hosted'||env.WS_LAND_MODE==='push')return env.WS_LAND_MODE;
- return /mac-?mini/iu.test(host)?'hosted':'push';
+ return 'push';
 }
 
-/** @param {string[]} argv @param {NodeJS.ProcessEnv} [env] @param {string} [host] */
-export function parseArgs(argv,env=process.env,host=hostname()){
- const options={mode:defaultMode(env,host),pollSeconds:30,timeoutMinutes:60,appearMinutes:5,rounds:5,keep:false,done:false};
+/** @param {string[]} argv @param {NodeJS.ProcessEnv} [env] */
+export function parseArgs(argv,env=process.env){
+ const options={mode:defaultMode(env),pollSeconds:30,timeoutMinutes:60,appearMinutes:5,rounds:5,keep:false,done:false};
  for(const arg of argv){
   if(/^-f$|force/iu.test(arg))throw new StopError(`refused ${arg}: land never force-pushes main (J240: fast-forward only). If main moved, land rebases and retries by itself`);
   const [name,value]=arg.split('=',2);

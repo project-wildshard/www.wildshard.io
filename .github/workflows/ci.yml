@@ -2,10 +2,9 @@ name: ci
 
 on:
   push:
-    # plan/** is for land (meta J240, J290): land waits on this exact SHA's
-    # run. This workflow only checks; the site deploys from site-deploy.yml,
-    # which runs on main only.
-    branches: [main, 'plan/**']
+    # Main only, no plan/** runs (meta FLOW-SIMPLE FS6, J422). This workflow
+    # only checks; the site deploys from site-deploy.yml, on main only.
+    branches: [main]
   pull_request:
 
 permissions:
@@ -13,8 +12,6 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  # A newer push to a plan branch cancels its older run; land reads a
-  # cancelled run as red and stops, so push a plan branch only via land.
   cancel-in-progress: true
 
 jobs:
