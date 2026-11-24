@@ -27,6 +27,11 @@
           },
           {
             "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/no-pr-guard.mjs\"",
+            "statusMessage": "Checking for a pull request on a project-wildshard repo"
+          },
+          {
+            "type": "command",
             "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/active-hours.mjs\" mark",
             "statusMessage": "Recording active agent time"
           }

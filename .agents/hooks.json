@@ -20,6 +20,12 @@
     {
       "event": "PreToolUse",
       "tools": "shell",
+      "script": ".agents/hooks/no-pr-guard.mjs",
+      "status": "Checking for a pull request on a project-wildshard repo"
+    },
+    {
+      "event": "PreToolUse",
+      "tools": "shell",
       "script": ".agents/hooks/active-hours.mjs",
       "args": [
         "mark"

@@ -48,6 +48,22 @@ B='(^|[;&|(])[[:space:]]*'
 ADD="${B}git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+add([[:space:]]+[^;&|]*)?"
 COMMIT="${B}git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+commit"
 
+# Preserve a token for quoted values while ignoring their contents. This
+# recognizes ordinary Git global options without reading commit messages
+# as commands. Explicit plumbing refusal must run before the merge exception.
+policy="$(printf '%s' "$flat" | sed -E "s/'[^']*'/__quoted__/g; s/\"[^\"]*\"/__quoted__/g")"
+assignments='([A-Za-z_][A-Za-z_0-9]*=[^[:space:];&|]+[[:space:]]+)*'
+if printf '%s' "$policy" | grep -qE "${B}((env|export)[[:space:]]+)?${assignments}GIT_INDEX_FILE="; then
+  deny "external GIT_INDEX_FILE (use scripts/commit.sh --patch)"
+fi
+value_options='(-[cC]|--git-dir|--work-tree|--namespace)'
+switch_options='(-[cC][^[:space:];&|]+|--(no-pager|paginate|bare|literal-pathspecs|no-optional-locks|no-replace-objects|git-dir=[^[:space:];&|]+|work-tree=[^[:space:];&|]+|namespace=[^[:space:];&|]+))'
+global_options="([[:space:]]+${value_options}[[:space:]]+[^[:space:];&|]+|[[:space:]]+${switch_options})*"
+git_prefix="${B}${assignments}(env[[:space:]]+${assignments})?(command[[:space:]]+(-p[[:space:]]+)?)?git"
+if printf '%s' "$policy" | grep -qE "${git_prefix}${global_options}[[:space:]]+commit-tree([[:space:]]|$)"; then
+  deny "raw git commit-tree (use scripts/commit.sh --patch)"
+fi
+
 if printf '%s' "$stripped" | grep -qE "${ADD}[[:space:]](-A|--all|-[A-Za-z]*A[A-Za-z]*)([[:space:]]|$)"; then
   deny "git add -A / --all"
 fi

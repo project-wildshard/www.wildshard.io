@@ -89,8 +89,8 @@ describe('payload adapter', () => {
 describe('guard-git-add.sh: same verdict from both tools', () => {
   const root = sandbox();
   const verdict = (tool, command) => run(root, 'guard-git-add.sh', withCommand(tool, command));
-  const blocked = ['git add -A', 'git add .', 'git add -u', 'git -C /repo add --all', 'git commit -am "fix: x"', 'git commit -m "fix: x"', 'git diff -- a && git commit -m "fix: x"'];
-  const allowed = ['git status --short', 'git add src/new.ts', 'git commit -m "fix: x" -- a.ts', 'git commit --amend --no-edit', 'SKIP_SWEEPGUARD=1 git commit -m "chore: all"', 'echo "git add -A"'];
+  const blocked = ['git add -A', 'git add .', 'git add -u', 'git -C /repo add --all', 'git commit -am "fix: x"', 'git commit -m "fix: x"', 'git diff -- a && git commit -m "fix: x"', 'git commit-tree deadbeef', 'git commit-tree deadbeef --', 'git -C /repo commit-tree deadbeef --'];
+  const allowed = ['git status --short', 'git add src/new.ts', 'git commit -m "fix: x" -- a.ts', 'git commit --amend --no-edit', 'SKIP_SWEEPGUARD=1 git commit -m "chore: all"', 'echo "git add -A"', 'scripts/commit.sh --patch own.patch "fix: own" -- shared.ts', 'git grep commit-tree', 'echo "GIT_INDEX_FILE=x git commit-tree tree"', 'git -c core.x=1 status --short', 'env WS_LANE_NAME=wire scripts/commit.sh --patch own.patch "fix: own" -- shared.ts'];
   for (const command of blocked) {
     test(`blocks: ${command}`, () => {
       const [claude, codex] = TOOLS.map((tool) => verdict(tool, command));
@@ -106,6 +106,50 @@ describe('guard-git-add.sh: same verdict from both tools', () => {
       assert.deepEqual(codex, claude);
     });
   }
+  for (const command of [
+    'git -c core.x=1 commit-tree deadbeef',
+    'command git commit-tree deadbeef',
+    'git --no-pager -C /repo -c "core.x=1" commit-tree deadbeef --',
+    'git --git-dir=/repo/.git commit-tree deadbeef',
+    'WS_LANE_NAME=wire command git commit-tree deadbeef',
+  ]) test(`explicit plumbing refusal: ${command}`, () => {
+    for (const tool of TOOLS) {
+      const result = verdict(tool, command);
+      assert.equal(result.status, 2, result.stderr);
+      assert.match(result.stderr, /raw git commit-tree/u);
+    }
+  });
+  for (const command of [
+    'GIT_INDEX_FILE=lane.index git commit -m "fix: x" -- shared',
+    'env GIT_INDEX_FILE="lane index" git commit -m "fix: x" -- shared',
+    'export GIT_INDEX_FILE=lane.index; git commit -m "fix: x" -- shared',
+  ]) test(`external index refusal: ${command}`, () => {
+    for (const tool of TOOLS) {
+      const result = verdict(tool, command);
+      assert.equal(result.status, 2, result.stderr);
+      assert.match(result.stderr, /external GIT_INDEX_FILE/u);
+    }
+  });
+  test('the merge exception admits a real merge commit, never raw commit-tree', () => {
+    const merge = sandbox();
+    assert.equal(git(merge, ['checkout', '-qb', 'peer']).status, 0);
+    writeFileSync(join(merge, 'peer'), 'upstream\n');
+    assert.equal(git(merge, ['add', '--', 'peer']).status, 0);
+    assert.equal(git(merge, ['-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'peer']).status, 0);
+    assert.equal(git(merge, ['checkout', '-q', 'main']).status, 0);
+    assert.equal(git(merge, ['merge', '--no-ff', '--no-commit', 'peer']).status, 0);
+    for (const tool of TOOLS) {
+      const payload = (command) => {
+        const input = fixture(tool, 'pre-bash', merge);
+        input.tool_input.command = command;
+        return input;
+      };
+      assert.equal(run(merge, 'guard-git-add.sh', payload('git commit -m "merge"')).status, 0);
+      const blocked = run(merge, 'guard-git-add.sh', payload('git commit-tree deadbeef'));
+      assert.equal(blocked.status, 2, blocked.stderr);
+      assert.match(blocked.stderr, /raw git commit-tree/u);
+    }
+  });
   test('ignores an edit payload and empty input', () => {
     for (const payload of [fixture('claude', 'pre-edit', root), fixture('codex', 'pre-apply-patch', root), '']) assert.equal(run(root, 'guard-git-add.sh', payload).status, 0);
   });
