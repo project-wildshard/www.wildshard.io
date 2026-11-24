@@ -32,6 +32,11 @@
           },
           {
             "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/no-sound-guard.mjs\"",
+            "statusMessage": "Checking for a command that makes a sound"
+          },
+          {
+            "type": "command",
             "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/active-hours.mjs\" mark",
             "statusMessage": "Recording active agent time"
           }

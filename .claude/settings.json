@@ -28,6 +28,10 @@
           },
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/no-sound-guard.mjs\""
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/active-hours.mjs\" mark"
           }
         ]
