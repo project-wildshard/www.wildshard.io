@@ -77,7 +77,9 @@ function pidfileLive(root, depth = 0) {
 function sessionEvidence(session, activeLog, terminal) {
   // The hc terminal the owner ran in (scratch-dir's `pane`): live while hc says so.
   if (typeof terminal === 'string' && /^[\w.@:/-]+$/u.test(terminal)) {
-    const got = spawnSync('hc', ['get', terminal], { encoding: 'utf8', timeout: 2000, maxBuffer: 8 * 1024 * 1024 });
+    // 10 s, not 2: under a loaded `pnpm check` (the kit sync's, 11-25) spawning even a tiny `hc` overran 2 s, and the live lane
+    // read as ended. A real `hc get` answers in milliseconds; the cap only bounds a hung one.
+    const got = spawnSync('hc', ['get', terminal], { encoding: 'utf8', timeout: 10_000, maxBuffer: 8 * 1024 * 1024 });
     if (got.status === 0) {
       try { if (JSON.parse(got.stdout)?.state === 'live') return { live: true }; } catch {/* Unreadable evidence is skipped. */}
     }
