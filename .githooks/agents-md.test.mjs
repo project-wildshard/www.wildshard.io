@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HEADING, MARKER, guard, guardMerge, isAiMessage, lintAgents, lintClaude } from './agents-md.mjs';
-import { ENV, TRAILER, ok, roots, sandbox } from './test-helpers.mjs';
+import { ENV, TRAILER, nameHatches, ok, roots, sandbox } from './test-helpers.mjs';
 
 const HOOKS = dirname(fileURLToPath(import.meta.url));
 const AI = ok('docs(agents): note the browser lane');
@@ -165,7 +165,7 @@ describe('the hooks, in sandbox repos', () => {
   test('commit: deleting AGENTS.md is refused', () => {
     const box = seeded();
     box.git(['rm', '-q', 'AGENTS.md']);
-    const result = box.git(['commit', '-q', '-m', HUMAN], { SKIP_ATTRIB: '1' });
+    const result = box.git(['commit', '-q', '-m', nameHatches(HUMAN, { SKIP_ATTRIB: '1' })], { SKIP_ATTRIB: '1' });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /deletes AGENTS\.md/);
   });

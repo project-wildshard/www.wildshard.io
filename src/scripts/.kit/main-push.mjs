@@ -60,6 +60,15 @@ function git(cwd, args) {
 /** @param {string} text @param {number} [n] */
 function firstLines(text, n = 6) { return text.trim().split('\n').slice(0, n).join(' | '); }
 
+/** A refused commit's reason: its X, blocked and refused lines first (a long staged list would push them past any
+ * first-lines cut), else its first 12 lines. @param {string} text */
+export function commitRefusal(text) {
+  // oxlint-disable-next-line no-control-regex -- strips terminal colour codes.
+  const lines = text.split('\n').map((line) => line.replaceAll(/\u001B\[[0-9;]*m/gu, '').trim()).filter(Boolean);
+  const red = lines.filter((line) => /(?:^|\s)X\s|blocked|refused|Error: /u.test(line)).slice(0, 8);
+  return (red.length > 0 ? red : lines.slice(0, 12)).join(' | ');
+}
+
 /** Refuse anything but main with no rebase, merge, cherry-pick or revert in progress. @param {string} cwd */
 export function checkState(cwd) {
   if (run(cwd, ['symbolic-ref', '--quiet', 'HEAD']).stdout.trim() !== 'refs/heads/main') {
@@ -114,7 +123,7 @@ export function commitFiles(cwd, files, messages) {
   const commit = run(cwd, ['commit', ...messages.flatMap((message) => ['-m', message]), '--', ...files]);
   if (commit.status !== 0) {
     if (untracked.length > 0) run(cwd, ['reset', '--quiet', '--', ...untracked]);
-    throw new StopError(`git commit refused: ${firstLines(`${commit.stdout}\n${commit.stderr}`, 12)}`);
+    throw new StopError(`git commit refused: ${commitRefusal(`${commit.stdout}\n${commit.stderr}`)}`);
   }
   const made = git(cwd, ['rev-parse', '--short=8', 'HEAD']);
   OWN.add(git(cwd, ['log', '-1', '--format=%s', 'HEAD']));

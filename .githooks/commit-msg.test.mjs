@@ -1,7 +1,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { validate } from './check-commit-message.mjs';
-import { TRAILER, ok, sandbox } from './test-helpers.mjs';
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
+import { ENV, TRAILER, ok, sandbox } from './test-helpers.mjs';
 
 describe('commit message', () => {
   test('accepts a well-formed AI commit', () => {
@@ -104,7 +106,43 @@ describe('commit-msg hook', () => {
   });
   test('SKIP_ATTRIB=1 lets a human commit without a trailer', () => {
     const { commit } = sandbox();
-    const result = commit({ 'a.txt': 'a\n' }, 'feat: add a\n\nBy hand.', { env: { SKIP_ATTRIB: '1' } });
+    const result = commit({ 'a.txt': 'a\n' }, 'feat: add a\n\nBy hand; SKIP_ATTRIB=1 since no agent wrote any of it.', { env: { SKIP_ATTRIB: '1' } });
     assert.equal(result.status, 0, result.stderr);
+  });
+  // J381, meta QA 11-25 row 51: an escape hatch is named with its reason.
+  test('a commit made with a SKIP_ or ALLOW_ variable set is refused unless its body names it with a reason', () => {
+    const { commit } = sandbox();
+    const env = { SKIP_JOURNAL: '1', ALLOW_BIG: '1' };
+    const bare = commit({ 'a.txt': 'a\n' }, ok('feat: add a'), { env, named: false });
+    assert.notEqual(bare.status, 0);
+    assert.match(bare.stderr, /commit blocked: ALLOW_BIG, SKIP_JOURNAL are set, so name each in the body/u);
+    const terse = commit({ 'a.txt': 'a\n' }, ok('feat: add a', 'SKIP_JOURNAL=1, ALLOW_BIG=1.'), { env, named: false });
+    assert.notEqual(terse.status, 0, 'a name with no reason is refused');
+    const named = commit({ 'a.txt': 'a\n' }, ok('feat: add a', 'SKIP_JOURNAL=1 and ALLOW_BIG=1: the fixture is a generated\nasset the journal rule cannot see.'), { env, named: false });
+    assert.equal(named.status, 0, named.stderr);
+  });
+  test('a plain commit with no variable set needs no hatch line, and SKIP_PEERS or a 0 is no hatch', () => {
+    const { commit } = sandbox();
+    assert.equal(commit({ 'a.txt': 'a\n' }, ok('feat: add a')).status, 0);
+    const quiet = commit({ 'b.txt': 'b\n' }, ok('feat: add b'), { env: { SKIP_PEERS: '1', SKIP_CHECK: '0', ALLOW_BIG: '' } });
+    assert.equal(quiet.status, 0, quiet.stderr);
+  });
+});
+
+describe('escape hatches at push (check-push.mjs)', () => {
+  const outgoing = (git) => `refs/heads/main ${git(['rev-parse', 'HEAD']).stdout.trim()} refs/heads/main ${'0'.repeat(40)}\n`;
+  test('a push with SKIP_CHECK set is refused unless an outgoing commit names it; none set passes', () => {
+    const { commit, git, root } = sandbox();
+    assert.equal(commit({ 'a.txt': 'a\n' }, ok('feat: add a')).status, 0);
+    const push = (env) => spawnSync('node', [join(root, '.githooks/check-push.mjs')], { cwd: root, encoding: 'utf8', input: outgoing(git), env: { ...ENV, SKIP_PEERS: '1', ...env } });
+    const plain = push({});
+    assert.equal(plain.status, 0, plain.stderr);
+    const refused = push({ SKIP_CHECK: '1' });
+    assert.notEqual(refused.status, 0);
+    assert.match(refused.stderr, /push blocked: no outgoing commit names its escape hatch\. SKIP_CHECK is set/u);
+    const body = 'Pushed with SKIP_CHECK=1: the cleanup test reads two drifted\nlocal checkouts, not this change.';
+    assert.equal(commit({ 'b.txt': 'b\n' }, ok('feat: add b', body)).status, 0);
+    const named = push({ SKIP_CHECK: '1' });
+    assert.equal(named.status, 0, named.stderr);
   });
 });

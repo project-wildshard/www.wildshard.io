@@ -8,7 +8,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join } from 'node:path';
 import { after, beforeEach, test as nodeTest } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { laneRefusal, parseArgs } from '../src/scripts/.kit/main-push.mjs';
+import { commitRefusal, laneRefusal, parseArgs } from '../src/scripts/.kit/main-push.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../src/scripts/.kit/main-push.mjs', import.meta.url));
 const repoDir = fileURLToPath(new URL('..', import.meta.url));
@@ -205,6 +205,9 @@ test('refuses a directory, a missing message, and a checkout mid-rebase; a refus
   assert.equal(refused.status, 1);
   assert.match(refused.stderr, /git commit refused: .*subject too long/u);
   assert.equal(git(a, 'status', '--short', '--', 'docs'), '?? docs/', 'the file it added is unstaged again');
+  const staged = Array.from({ length: 40 }, (_, at) => `      M .githooks/file-${at}.mjs`).join('\n');
+  assert.equal(commitRefusal(`- staged for THIS commit:\n${staged}\n\n  X commit blocked: no journal entry staged:\n`),
+    'X commit blocked: no journal entry staged:', 'the reason survives a long staged list (QA 11-25 row 50)');
 
   mkdirSync(join(a, '.git/rebase-merge'));
   assert.match(push(a).stderr, /a git rebase-merge is in progress in the shared checkout/u);

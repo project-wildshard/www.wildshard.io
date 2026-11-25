@@ -132,6 +132,18 @@ if (manifest.binDependencies !== undefined) {
     process.exit(tools.status || 1);
   }
 }
+// Meta QA 11-25 row 49 (J505): a shard push whose hero is older than its content is refused here, before main ci's
+// build does it (.githooks/hero-fresh.mjs, shard repos only). Bypass: SKIP_HERO=1.
+const heroFresh = join(root, '.githooks/hero-fresh.mjs');
+if (lane === 'push' && existsSync(heroFresh) && process.env.SKIP_HERO !== '1') {
+  const { sdkRestamp, staleHeroes } = await import(pathToFileURL(heroFresh).href);
+  const stale = staleHeroes(pkgDir, sdkRestamp(pkgDir, env));
+  if (stale.length) {
+    console.error(`\n  X push blocked: a stale hero would fail main ci's build:\n${stale.map((line) => `    ${line}`).join('\n')}\n    SKIP_HERO=1 is a last resort (J381).\n`);
+    copy?.remove();
+    process.exit(1);
+  }
+}
 const run = ({ name, args }) => new Promise((done) => {
   const child = spawn('pnpm', ['run', '--silent', ...args], { cwd: pkgDir, env });
   let output = '';

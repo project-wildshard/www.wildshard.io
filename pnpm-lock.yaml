@@ -34,8 +34,8 @@ importers:
         specifier: 0.28.2
         version: 0.28.2
       npm-bin-deps:
-        specifier: 2.1.0
-        version: 2.1.0
+        specifier: 2.2.0
+        version: 2.2.0
       oxlint:
         specifier: 1.89.0
         version: 1.89.0
@@ -305,8 +305,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  npm-bin-deps@2.1.0:
-    resolution: {integrity: sha512-lHzsAszPtclbMFnS+9J/N7KwGpo/vYeA6nMT9lxA8X72SLyEOcaY0F95PSeC9Yo7D8SvXMC9WJH+PQdDBgEQxQ==}
+  npm-bin-deps@2.2.0:
+    resolution: {integrity: sha512-NSmlhxChyX0f3+TiPsSfrx7jTho8JkGtnFtRFjkuBA46NpMib3CW3yrupogAQqaGWwWnDMXMQ0o56xsGLNQU8Q==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -655,7 +655,7 @@ snapshots:
 
   nanoid@3.3.20: {}
 
-  npm-bin-deps@2.1.0: {}
+  npm-bin-deps@2.2.0: {}
 
   oxlint@1.89.0:
     optionalDependencies:

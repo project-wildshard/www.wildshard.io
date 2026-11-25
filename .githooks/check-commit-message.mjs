@@ -9,6 +9,11 @@
 //     META-CLEAN-2 C7). No `Co-Authored-By:` for an AI and no
 //     "Generated with" / robot banners.
 // SKIP_ATTRIB=1 drops only the trailer requirement (human-only commit).
+//   - An escape hatch is named (J381, meta QA 11-25 row 51): a commit made
+//     while any SKIP_* or ALLOW_* variable is set names that variable in
+//     its body with a reason (its paragraph holds five more words).
+//     pre-push holds a push made with one to the same rule over its
+//     outgoing commits (check-push.mjs). SKIP_PEERS only quiets output.
 // Git-generated merge / revert / fixup / squash / amend messages skip.
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -79,13 +84,43 @@ export function validate(raw, { human = false } = {}) {
   return null;
 }
 
+/** Variables that only quiet output, not a check. */
+const QUIET = new Set(['SKIP_PEERS']);
+
+/** The escape hatches set in `env`: SKIP_* and ALLOW_* with a value other than empty or 0. */
+export function hatchesSet(env = process.env) {
+  return Object.entries(env)
+    .filter(([name, value]) => /^(?:SKIP|ALLOW)_[A-Z0-9_]+$/u.test(name) && !QUIET.has(name) && value !== undefined && value !== '' && value !== '0')
+    .map(([name]) => name)
+    .sort();
+}
+
+/** The hatches in `names` that `raw`'s body does not name with a reason: a body paragraph that holds the name and
+ * five more words. Git's own merge, revert, fixup and squash messages pass. @param {string} raw @param {string[]} names */
+export function unnamedHatches(raw, names) {
+  const lines = clean(raw);
+  if (!lines.length || /^(Merge |Revert "|fixup! |squash! |amend! )/.test(lines[0])) return [];
+  const paragraphs = lines.slice(1).join('\n').split(/\n\s*\n/u)
+    .filter((text) => text.trim() !== '' && !text.trim().split('\n').every((line) => TRAILER.test(line)));
+  const words = (text) => text.split(/\s+/u).filter((word) => /[A-Za-z]/u.test(word)).length;
+  return names.filter((name) => !paragraphs.some((text) => new RegExp(`\\b${name}\\b`, 'u').test(text) && words(text.replaceAll(name, '')) >= 5));
+}
+
+/** The refusal for hatches a message leaves unnamed, or null. @param {string[]} unnamed */
+export function hatchRefusal(unnamed) {
+  if (!unnamed.length) return null;
+  const one = unnamed.length === 1;
+  return `${unnamed.join(', ')} ${one ? 'is' : 'are'} set, so name ${one ? 'it' : 'each'} in the body with its reason (J381), e.g. "${unnamed[0]}=1: <what it skips and why>".`;
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const file = process.argv[2];
   if (!file) {
     console.error('usage: check-commit-message.mjs <message-file>');
     process.exit(2);
   }
-  const error = validate(readFileSync(file, 'utf8'), { human: process.env.SKIP_ATTRIB === '1' });
+  const raw = readFileSync(file, 'utf8');
+  const error = validate(raw, { human: process.env.SKIP_ATTRIB === '1' }) ?? hatchRefusal(unnamedHatches(raw, hatchesSet()));
   if (error) {
     console.error(`\n  X commit blocked: ${error}\n    See docs/dev.md.\n`);
     process.exit(1);

@@ -36,3 +36,8 @@ re-copied in their lean shape.
 
 `vite-tmp` now holds the kit's exact lean text, which repo-kit's org
 coverage test compares against.
+
+L4, later the same day: the bins moved to the kit's pnpm profile on
+npm-bin-deps 2.2.0 with `binDependenciesProjectSettings: false`, so they
+share one cache entry with every repo. The re-stamp brought the kit's
+newer files too.

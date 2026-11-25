@@ -3,6 +3,7 @@
 // carry a token or a huge file off the machine. Reads git's ref lines
 // on stdin: <local ref> <local sha> <remote ref> <remote sha>.
 import { readFileSync } from 'node:fs';
+import { hatchesSet, hatchRefusal, unnamedHatches } from './check-commit-message.mjs';
 import { advertisedTips, blobSizes, checkBlob, git, peers, outgoingRange, printPeers, report } from './lib.mjs';
 
 printPeers(peers(), 'share this repo: a red check below may be their WIP, not yours');
@@ -29,6 +30,18 @@ for (const commit of commits) {
     const [, , mode, object, status] = raw[i].slice(1).match(/^(\d+) (\d+) [0-9a-f]+ ([0-9a-f]+) ([A-Z])/) ?? [];
     const path = status === 'R' || status === 'C' ? raw[(i += 2)] : raw[++i];
     if (object && !blobs.has(object)) blobs.set(object, { path, object, mode, commit });
+  }
+}
+
+// J381 (meta QA 11-25 row 51): a push made with a SKIP_* or ALLOW_* variable set names each one, with its reason, in
+// a commit it sends.
+const hatches = hatchesSet();
+if (hatches.length && commits.size) {
+  const messages = [...commits].map((sha) => git(['log', '-1', '--format=%B', sha]));
+  const unnamed = hatches.filter((name) => messages.every((message) => unnamedHatches(message, [name]).length));
+  if (unnamed.length) {
+    console.error(`\n  X push blocked: no outgoing commit names its escape hatch. ${hatchRefusal(unnamed)}\n    Amend the commit's body, then push again.\n`);
+    process.exit(1);
   }
 }
 
