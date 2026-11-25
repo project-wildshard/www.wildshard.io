@@ -14,12 +14,6 @@ cd "$root" || exit 0
 common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
 repo="$(basename "$(dirname "${common:-$root/.git}")")"
 
-# SessionStart passes its JSON on stdin; its session_id lets the herdr
-# section leave this session out. Run by hand, stdin is a terminal.
-session="${CLAUDE_CODE_SESSION_ID:-}"
-if [ -z "$session" ] && [ ! -t 0 ]; then
-  session="$(node "$here/lib/payload.mjs" session 2>/dev/null)"
-fi
 
 # The brief lands in every session's context, so it stays within 40
 # lines (REPO-KIT K4, J273): 5 asks, 5 plans, 2 journal lines,
@@ -39,19 +33,30 @@ if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
   echo "!! git hooks are OFF in this clone. Run: git config core.hooksPath .githooks"
 fi
 
-if [ "${HERDR_ENV:-}" != 1 ]; then
-  show "other agents in this repo (herdr)" 3 "(not running inside herdr)" ""
+# Peers come from herdr-core (hc); this session is $HC_TERMINAL_ID, left out.
+if [ -z "${HC_TERMINAL_ID:-}" ]; then
+  show "other agents in this repo (hc)" 3 "(not running inside hc)" ""
 else
-  peers="$(bash "$here/herdr-peers.sh" "" "$session" | while IFS="$(printf '\t')" read -r pane status goal where; do
+  peers="$(bash "$here/peers.sh" "" | while IFS="$(printf '\t')" read -r terminal status goal where; do
     [ "$goal" = "-" ] && goal="(no goal set)"
-    echo "  $pane  $status  $goal  [$where]"
+    echo "  $terminal  $status  $goal  [$where]"
   done)"  # "": the canonical checkout
-  show "other agents in this repo (herdr)" 3 "(none: you're the only agent here)" "$peers"
+  show "other agents in this repo (hc)" 3 "(none: you're the only agent here)" "$peers"
   [ -n "$peers" ] && echo "  They share this checkout and its index: commit only your own paths."
 fi
 
-if [ -f kit/scripts/asks.mjs ]; then
-  asks="$(node kit/scripts/asks.mjs brief 2>/dev/null || echo "  (kit/scripts/asks.mjs brief failed: read docs/tasks/asks/ directly)")"
+# The kit's scripts sit in src/scripts/.kit/ (the lean layout, D31) or, in a
+# repo not yet moved, kit/scripts/ or scripts/: the first that has the file.
+# One copy of this hook serves both layouts byte for byte.
+kit_script() {
+  for dir in src/scripts/.kit kit/scripts scripts; do
+    [ -f "$dir/$1" ] && { printf '%s/%s' "$dir" "$1"; return 0; }
+  done
+  return 1
+}
+
+if asks_mjs="$(kit_script asks.mjs)"; then
+  asks="$(node "$asks_mjs" brief 2>/dev/null || echo "  ($asks_mjs brief failed: read docs/tasks/asks/ directly)")"
 else
   asks="  (no ask tooling)"
 fi
@@ -85,7 +90,7 @@ else
   show "latest journal" 2 "(none)" ""
 fi
 
-# A repo with the plan-worktree tool (scripts/worktree.mjs; engine since
+# A repo with the plan-worktree tool (worktree.mjs; engine since
 # J240, the rest at WORKTREE-LAND-STANDARD WL4) also allows
 # .worktrees/<slug> on plan/<slug>; any other repo stays main only.
 release_wt='/\.worktrees/release-(dryrun-)?v[0-9]+\.[0-9]+\.[0-9]+ +[0-9a-f]+ \[release/'
@@ -94,7 +99,7 @@ release_branch='^branch release/(dryrun-)?v[0-9]+\.[0-9]+\.[0-9]+$'
 plan_branch="^branch plan/[a-z0-9][a-z0-9._-]*$|$release_branch"
 release_remote='^remote [^/]+/release/(dryrun-)?v[0-9]+\.[0-9]+\.[0-9]+$'
 plan_remote="^remote [^/]+/plan/[a-z0-9][a-z0-9._-]*$|$release_remote"
-if [ -f scripts/worktree.mjs ]; then
+if kit_script worktree.mjs >/dev/null; then
   echo "-- main only, plus plan worktrees: .worktrees/<slug> on plan/<slug> (D27, J221, J240) --"
   wts="$(git worktree list 2>/dev/null | tail -n +2 | grep -E "$plan_wt" | sed -E 's#^.*/(\.worktrees/[^ ]+) .*#\1#' || true)"
   if [ -n "$wts" ]; then
@@ -164,8 +169,8 @@ else
 fi
 
 # -- J358 leftovers (report-only; a human audit decides removal) --
-if [ -f scripts/leftovers-report.mjs ]; then
-  show "left lying around (manual audit only)" 4 "  (leftovers report unavailable)" "$(node scripts/leftovers-report.mjs 2>/dev/null)"
+if leftovers_mjs="$(kit_script leftovers-report.mjs)"; then
+  show "left lying around (manual audit only)" 4 "  (leftovers report unavailable)" "$(node "$leftovers_mjs" 2>/dev/null)"
 fi
 
 show "uncommitted in this checkout (may be another agent's: don't sweep it)" 2 "(clean)" "$(git status --short 2>/dev/null | sed 's/^/  /')"

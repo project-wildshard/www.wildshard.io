@@ -63,7 +63,7 @@ jobs:
           path: ~/.cache/npm-bin-deps
           key: npr-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.bin-deps/package.json', '.bin-deps/package-lock.json') }}
       - run: pnpm exec npr install --frozen
-      - run: node kit/scripts/bin-pins.mjs
+      - run: node src/scripts/.kit/bin-pins.mjs
       # The agent hook scripts are shellchecked in pnpm check, at this exact
       # version (.agents/hooks/test/shellcheck.test.mjs refuses any other on CI).
       # MR6: hosted runners are Linux/X64, the Mac mini's VM is Linux/ARM64;
@@ -80,7 +80,6 @@ jobs:
           tar -xJf "$RUNNER_TEMP/shellcheck.tar.xz" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/shellcheck-v0.11.0" >> "$GITHUB_PATH"
       - run: pnpm check
-      - run: pnpm test:hooks
       # Tests can't reach another repo, so CI holds this gate: api-server must
       # refuse the cells the form doesn't offer (docs/dev.md).
       - name: api-server has the form's grid

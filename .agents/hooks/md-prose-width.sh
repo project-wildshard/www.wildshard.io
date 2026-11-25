@@ -48,11 +48,14 @@ while IFS= read -r file; do
   case "$rel" in
     node_modules/*|*/node_modules/*|.worktrees/*|project/archive/*|tmp/*) continue ;;
   esac
-  [ -f "$file" ] && [ -f "$root/kit/scripts/md-wrap.mjs" ] || continue
-  out="$(cd "$root" && node kit/scripts/md-wrap.mjs --check --new-only "$rel" 2>&1)" && continue
+  # md-wrap is a kit script: src/scripts/.kit/ in a lean repo (D31), else kit/scripts/.
+  wrap=
+  for dir in src/scripts/.kit kit/scripts; do [ -f "$root/$dir/md-wrap.mjs" ] && { wrap="$dir/md-wrap.mjs"; break; }; done
+  [ -f "$file" ] && [ -n "$wrap" ] || continue
+  out="$(cd "$root" && node "$wrap" --check --new-only "$rel" 2>&1)" && continue
   report="$report$out
 "
-  fixes="$fixes  node kit/scripts/md-wrap.mjs \"$rel\"
+  fixes="$fixes  node $wrap \"$rel\"
 "
 done <<EOF
 $paths

@@ -14,7 +14,7 @@ in order; don't paraphrase or shortcut.
 ## What is different here
 
 - **One checkout, one index, several agents.** Other Claude sessions
-  (herdr panes) and their subagents edit this tree on `main`. The
+  (hc terminals) and their subagents edit this tree on `main`. The
   only other place work happens is a plan worktree, `.worktrees/<slug>`
   on `plan/<slug>`, landed by `land` (J290); no other branches or
   worktrees (D27 as relaxed by J240; pre-commit enforces it).
@@ -47,19 +47,19 @@ in order; don't paraphrase or shortcut.
      stop and say so. Never `reset` to fix it.
    - **A shared file with someone else's hunks** (`git diff -- <path>`
      shows lines you didn't write): a pathspec commit would ship their
-     half-done work. Ask the owner over herdr / SendMessage to commit
-     first, or leave yours uncommitted and say so in the report.
+     half-done work. Ask the owner over `hc send` / SendMessage to
+     commit first, or leave yours uncommitted and say so in the report.
    - Subject `type(scope): summary`, ≤ 50 chars; body wrapped at 72;
      final `Assisted-by: <agent>:<actual model>` (Claude Code or
      Codex, no colon in the agent name). Never `Co-Authored-By:` for
      an AI. The commit-msg hook refuses the rest.
 2. **Gates green on HEAD.** The pre-commit lane ran on your staged
    files. If you touched `.githooks/` or `.agents/hooks/`, the hook
-   suite ran too (`pnpm test:hooks` / `node --test
-   .githooks/*.test.mjs` by hand). Red on your commit: fix it forward
-   with a new pathspec commit (never `--amend` a pushed commit, never
-   revert to hide it). Red on someone else's commit: name the commit
-   and its owner in the report.
+   suite ran too (`pnpm test:hooks`, `pnpm test` in a lean repo, or
+   `node --test .githooks/*.test.mjs` by hand). Red on your commit:
+   fix it forward with a new pathspec commit (never `--amend` a pushed
+   commit, never revert to hide it). Red on someone else's commit:
+   name the commit and its owner in the report.
 3. **Push, and stop there.** `git push origin main`; pre-push re-scans
    the outgoing commits and runs the full `pnpm check`. Rejected
    (non-fast-forward): `git fetch origin && git merge origin/main`
@@ -69,7 +69,7 @@ in order; don't paraphrase or shortcut.
 4. **Asks and plans tell the truth** (rules:
    `docs/tasks/asks/README.md`). Every request for work Jake made this
    session has its `docs/tasks/asks/<ID>.md` (claimed with
-   `kit/scripts/ask-new.sh "<his words>"`), and its `**Status:**` is true:
+   `src/scripts/.kit/ask-new.sh "<his words>"`), and its `**Status:**` is true:
    `done (<date>): <SHAs>` once it is on `origin/main`,
    `in flight (<date>, <owner>)`, `needs pick (<date>)` naming exactly
    what he must choose, `dropped (<date>): <his words>`, or
@@ -98,7 +98,7 @@ in order; don't paraphrase or shortcut.
    paths (`rm -rf ./tmp/<task>`, your session scratchpad's big files);
    keep only small text the report links to. Never rename aside
    instead of deleting. Make scratch with
-   `node scripts/scratch-dir.mjs <task> "<purpose>"` (it writes
+   `node src/scripts/.kit/scratch-dir.mjs <task> "<purpose>"` (it writes
    `tmp/<task>/.owner`); a folder you must keep gets a one-line
    `.keep` saying why. The SessionEnd hook (`scratch-end.mjs`)
    removes any folder still owned by this session that has no
@@ -106,8 +106,8 @@ in order; don't paraphrase or shortcut.
    `tmp/.scratch.log`; report the same: what you removed, what you
    kept and why.
 7. **Agents and worktrees.** Don't kill running subagents to exit.
-   List every agent still alive (ListAgents; in herdr,
-   `bash .agents/hooks/herdr-peers.sh`) and what it holds. Main only
+   List every agent still alive (ListAgents; in hc,
+   `bash .agents/hooks/peers.sh`) and what it holds. Main only
    (D27): if the brief's main-only section shows a branch or worktree
    you or your subagents made, land its work on `main`, `git worktree
    remove` it, and name the branch in the report for Jake to delete

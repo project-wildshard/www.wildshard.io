@@ -44,7 +44,7 @@ good document makes the agent take the same **process** every run.
   `@AGENTS.md`.
 - **MMO facts stay in their docs.** Point at them; a copied budget or
   a copied rate goes stale.
-- **Wrap** markdown at 72 (`kit/scripts/md-wrap.mjs`).
+- **Wrap** markdown at 72 (`src/scripts/.kit/md-wrap.mjs`).
 
 ## Pointers
 
@@ -127,5 +127,5 @@ only for a hard guardrail, paired with the positive.
   skill or a plain doc, since neither can call the other.
 - A skill is one directory in `.agents/skills/<name>/` (Codex reads
   it there); `.claude/skills/<name>` is a symlink to it for Claude.
-  Kit skills come from repo-kit (`scripts/agent-sync.mjs`,
+  Kit skills come from repo-kit (`src/scripts/.kit/agent-sync.mjs`,
   `docs/agent-parity.md`); never copy one by hand.

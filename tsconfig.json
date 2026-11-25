@@ -36,6 +36,8 @@
   ],
   "exclude": [
     "src/scripts",
-    "src/test/.kit"
+    "src/test/.kit",
+    "src/web",
+    "src/site"
   ]
 }

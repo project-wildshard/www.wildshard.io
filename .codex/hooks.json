@@ -23,23 +23,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/pkill-guard.mjs\"",
-            "statusMessage": "Checking for a kill by name or pattern"
-          },
-          {
-            "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-git-add.sh\"",
             "statusMessage": "Checking shared Git index safety"
           },
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-herdr-prompt.sh\"",
-            "statusMessage": "Checking herdr targets for an open question"
+            "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-hc-send.sh\"",
+            "statusMessage": "Checking hc targets for an open question"
           },
           {
             "type": "command",
             "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/no-pr-guard.mjs\"",
             "statusMessage": "Checking for a pull request on a project-wildshard repo"
+          },
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/pkill-guard.mjs\"",
+            "statusMessage": "Checking for a kill by name or pattern"
           },
           {
             "type": "command",

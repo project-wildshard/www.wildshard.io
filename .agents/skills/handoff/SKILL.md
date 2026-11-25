@@ -35,7 +35,7 @@ Include:
   which uncommitted files belong to other agents and must be left
   alone.
 - **Other agents** still working in the repo
-  (`bash .agents/hooks/herdr-peers.sh`) and what they hold. Any
+  (`bash .agents/hooks/peers.sh`, from `hc`) and what they hold. Any
   branch or worktree the brief flags as stray (D27): name it.
 - **Decisions Jake made** in this conversation that aren't written down
   yet (then also record them: `docs/decisions.md`).

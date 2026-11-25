@@ -21,7 +21,7 @@ executor and to Jake, without trampling parallel work.
 - A trivial change → just do it.
 - A plan that spans several org repos → meta's `docs/plans/`, not here.
 - Jake asked for it → file the ask first:
-  `f=$(kit/scripts/ask-new.sh "<his words>")`, and cite the id in the plan.
+  `f=$(src/scripts/.kit/ask-new.sh "<his words>")`, and cite the id in the plan.
 
 ## 1. Name and skeleton
 
@@ -71,7 +71,7 @@ append to it.
 3. **Rows are buildable and checkable.** Each row has a done-when line
    a reviewer can verify. No "investigate X" rows without an output.
 4. **Name the seams (shared checkout).** Check `docs/plans/` for live
-   plans and `bash .agents/hooks/herdr-peers.sh` for other agents
+   plans and `bash .agents/hooks/peers.sh` (hc) for other agents
    (work is on `main`, or a whole or half plan in `.worktrees/<slug>`
    on `plan/<slug>`, landed by `land`, J290; say which mode). Say which
    files this plan owns and what must land before or after it.

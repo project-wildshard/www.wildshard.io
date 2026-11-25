@@ -22,18 +22,28 @@ after(() => {
   rmSync(scratch, { recursive: true, force: true });
 });
 
-// A clean environment: no agent or herdr variables, no GIT_* from a hook running this suite.
-const ENV = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^(?:GIT_|HERDR_|CLAUDE_)/.test(key)));
+// A clean environment: no agent, hc or herdr variables, no GIT_* from a hook running this suite.
+const ENV = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^(?:GIT_|HC_|HERDR_|CLAUDE_)/.test(key)));
+// A fake hc (herdr-core) in bin/: `hc ls` lists the terminals, `hc get <t>` gives one.
+const fakeHc = (bin, terminals) => {
+  writeFileSync(join(bin, 'terminals.json'), JSON.stringify(terminals));
+  writeFileSync(join(bin, 'hc'), `#!/usr/bin/env bash\ncase "$1" in\n  ls) jq -c '{terminals: [.[] | {address, agent, state}]}' "${join(bin, 'terminals.json')}" ;;\n  get) jq -c --arg t "$2" '.[] | select(.address == $t)' "${join(bin, 'terminals.json')}" ;;\nesac\n`);
+  chmodSync(join(bin, 'hc'), 0o755);
+};
+const terminal = (address, cwd, msg, state = 'working') => ({ address, agent: 'claude-code', state: 'live', status: { state, msg }, cwd: '/launched/elsewhere', foreground: { cwd } });
 const fixture = (tool, name, root = '/repo') => JSON.parse(readFileSync(join(FIXTURES, tool, `${name}.json`), 'utf8').replaceAll('__ROOT__', root));
 const git = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8', env: { ...ENV, GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' } });
 
-/** A git repo holding a copy of .agents/hooks/ (and the md-wrap tool), with one commit. */
-function sandbox() {
+/** Where this repo keeps the kit's md-wrap tool: src/scripts/.kit/ in a lean repo (D31), else kit/scripts/. */
+const WRAP = ['src/scripts/.kit/md-wrap.mjs', 'kit/scripts/md-wrap.mjs'].find((path) => existsSync(join(REPO, path)));
+
+/** A git repo holding a copy of .agents/hooks/ (and the md-wrap tool, at `wrapAt`), with one commit. */
+function sandbox(wrapAt = WRAP) {
   const root = realpathSync(mkdtempSync(join(scratch, 'box-')));
   boxes.push(root);
   git(root, ['init', '-q', '-b', 'main']);
   cpSync(HOOKS, join(root, '.agents', 'hooks'), { recursive: true, filter: (path) => !path.includes(`${join('hooks', 'test')}`) });
-  if (existsSync(join(REPO, 'kit/scripts/md-wrap.mjs'))) cpSync(join(REPO, 'kit/scripts/md-wrap.mjs'), join(root, 'kit/scripts/md-wrap.mjs'));
+  if (WRAP && wrapAt) cpSync(join(REPO, WRAP), join(root, wrapAt));
   writeFileSync(join(root, 'notes.md'), '# t\n\nhello\n');
   git(root, ['add', '-A']);
   git(root, ['-c', 'core.hooksPath=/dev/null', 'commit', '-q', '-m', 'init']);
@@ -89,8 +99,14 @@ describe('payload adapter', () => {
 describe('guard-git-add.sh: same verdict from both tools', () => {
   const root = sandbox();
   const verdict = (tool, command) => run(root, 'guard-git-add.sh', withCommand(tool, command));
-  const blocked = ['git add -A', 'git add .', 'git add -u', 'git -C /repo add --all', 'git commit -am "fix: x"', 'git commit -m "fix: x"', 'git diff -- a && git commit -m "fix: x"', 'git commit-tree deadbeef', 'git commit-tree deadbeef --', 'git -C /repo commit-tree deadbeef --'];
-  const allowed = ['git status --short', 'git add src/new.ts', 'git commit -m "fix: x" -- a.ts', 'git commit --amend --no-edit', 'SKIP_SWEEPGUARD=1 git commit -m "chore: all"', 'echo "git add -A"', 'scripts/commit.sh --patch own.patch "fix: own" -- shared.ts', 'git grep commit-tree', 'echo "GIT_INDEX_FILE=x git commit-tree tree"', 'git -c core.x=1 status --short', 'env WS_LANE_NAME=wire scripts/commit.sh --patch own.patch "fix: own" -- shared.ts'];
+  const blocked = ['git add -A', 'git add .', 'git add -u', 'git -C /repo add --all', 'git commit -am "fix: x"', 'git commit -m "fix: x"', 'git diff -- a && git commit -m "fix: x"', 'git commit-tree deadbeef', 'git commit-tree deadbeef --', 'git -C /repo commit-tree deadbeef --',
+    // An apostrophe inside a double-quoted message is not a quote: the bare commit is still bare (A2).
+    'git commit -m "fix: the repo\'s rule"', 'git commit -m "fix: it\'s" | grep -E \'x\''];
+  const allowed = [
+    // A2: an apostrophe in a double-quoted message once paired with a later single quote and hid the pathspec.
+    'git commit -m "docs: AGENTS.md\'s rule" -- a.ts 2>&1 | grep -E \'X |blocked\'', 'git commit -m \'say "hi" -- not a pathspec\' -- a.ts',
+    'git commit -m "fix: a \\"quoted\\" word, it\'s fine" -- a.ts | grep \'x\'',
+    'git status --short', 'git add src/new.ts', 'git commit -m "fix: x" -- a.ts', 'git commit --amend --no-edit', 'SKIP_SWEEPGUARD=1 git commit -m "chore: all"', 'echo "git add -A"', 'scripts/commit.sh --patch own.patch "fix: own" -- shared.ts', 'git grep commit-tree', 'echo "GIT_INDEX_FILE=x git commit-tree tree"', 'git -c core.x=1 status --short', 'env WS_LANE_NAME=wire scripts/commit.sh --patch own.patch "fix: own" -- shared.ts'];
   for (const command of blocked) {
     test(`blocks: ${command}`, () => {
       const [claude, codex] = TOOLS.map((tool) => verdict(tool, command));
@@ -155,7 +171,7 @@ describe('guard-git-add.sh: same verdict from both tools', () => {
   });
 });
 
-describe('md-prose-width.sh: same advice from both tools', { skip: !existsSync(join(REPO, 'kit/scripts/md-wrap.mjs')) && 'no kit/scripts/md-wrap.mjs here' }, () => {
+describe('md-prose-width.sh: same advice from both tools', { skip: !WRAP && 'no md-wrap.mjs here' }, () => {
   const long = (n) => `${'word '.repeat(n).trim()}`;
   const codexPatch = (root, files) => {
     const payload = fixture('codex', 'post-apply-patch', root);
@@ -173,8 +189,17 @@ describe('md-prose-width.sh: same advice from both tools', { skip: !existsSync(j
     const claude = run(root, 'md-prose-width.sh', claudeEdit(root, 'notes.md'));
     const codex = run(root, 'md-prose-width.sh', codexPatch(root, ['notes.md']));
     assert.equal(claude.status, 2, claude.stderr);
-    assert.match(claude.stderr, /notes\.md:4: \d+ chars[\s\S]*node kit\/scripts\/md-wrap\.mjs "notes\.md"/);
+    assert.match(claude.stderr, /notes\.md:4: \d+ chars[\s\S]*node (?:src\/scripts\/\.kit|kit\/scripts)\/md-wrap\.mjs "notes\.md"/);
     assert.deepEqual(codex, claude);
+  });
+  test('either layout: md-wrap runs from src/scripts/.kit/ or kit/scripts/', () => {
+    for (const at of ['src/scripts/.kit/md-wrap.mjs', 'kit/scripts/md-wrap.mjs']) {
+      const root = sandbox(at);
+      writeFileSync(join(root, 'notes.md'), `# t\n\nhello\n${long(20)}\n`);
+      const claude = run(root, 'md-prose-width.sh', claudeEdit(root, 'notes.md'));
+      assert.equal(claude.status, 2, claude.stderr);
+      assert.ok(claude.stderr.includes(`node ${at} "notes.md"`), claude.stderr);
+    }
   });
   test('Claude Write and Codex Add File, recorded payloads as sent', () => {
     const root = sandbox();
@@ -234,7 +259,7 @@ describe('session-brief.sh: same brief from both tools', () => {
     const [claude, codex] = TOOLS.map((tool) => run(root, 'session-brief.sh', fixture(tool, 'session-start', root)));
     assert.equal(claude.status, 0, claude.stderr);
     assert.match(claude.stdout, new RegExp(`^== ${basename(root)} session brief \\(\\.agents/hooks/session-brief\\.sh\\) ==`));
-    assert.match(claude.stdout, /\(not running inside herdr\)/);
+    assert.match(claude.stdout, /\(not running inside hc\)/);
     assert.deepEqual(codex, claude);
   });
   test('a plan worktree reports its canonical checkout\'s name', () => {
@@ -265,30 +290,21 @@ describe('session-brief.sh: same brief from both tools', () => {
     cpSync(join(root, '.agents'), join(root, '.worktrees', 'x', '.agents'), { recursive: true });
     const bin = join(root, 'tmp-bin');
     mkdirSync(bin);
-    const agents = [
-      { pane_id: 'w1:p1', agent_status: 'working', cwd: root, agent_session: { value: 'a' }, terminal_title_stripped: 'On main' },
-      { pane_id: 'w1:p2', agent_status: 'idle', cwd: join(root, '.worktrees', 'x', 'src'), agent_session: { value: 'b' }, terminal_title_stripped: 'In plan x' },
-    ];
-    writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents } }));
-    writeFileSync(join(bin, 'herdr'), `#!/usr/bin/env bash\n[ "$1 $2" = "agent list" ] && cat "${join(bin, 'agents.json')}"\n`);
-    chmodSync(join(bin, 'herdr'), 0o755);
-    const out = run(join(root, '.worktrees', 'x'), 'session-brief.sh', fixture('codex', 'session-start', root), { HERDR_ENV: '1', PATH: `${bin}:${process.env.PATH}` }).stdout;
-    assert.match(out, /w1:p1 {2}working {2}On main {2}\[main\]/);
-    assert.match(out, /w1:p2 {2}idle {2}In plan x {2}\[\.worktrees\/x\]/);
+    fakeHc(bin, [terminal('t1', root, 'On main'), terminal('t2', join(root, '.worktrees', 'x', 'src'), 'In plan x', 'idle')]);
+    const out = run(join(root, '.worktrees', 'x'), 'session-brief.sh', fixture('codex', 'session-start', root), { HC_TERMINAL_ID: 't0', PATH: `${bin}:${process.env.PATH}` }).stdout;
+    assert.match(out, /t1 {2}working {2}On main {2}\[main\]/);
+    assert.match(out, /t2 {2}idle {2}In plan x {2}\[\.worktrees\/x\]/);
   });
-  test('leaves out its own session, read from either tool\'s stdin', () => {
+  test('leaves out its own terminal ($HC_TERMINAL_ID) under either tool', () => {
     const root = sandbox();
     const bin = join(root, 'tmp-bin');
     mkdirSync(bin);
-    const agents = TOOLS.map((tool, index) => ({ pane_id: `w1:p${index + 1}`, agent_status: 'working', cwd: root, agent_session: { value: fixture(tool, 'session-start').session_id }, terminal_title_stripped: `Self ${tool}` }));
-    agents.push({ pane_id: 'w1:p9', agent_status: 'idle', cwd: root, agent_session: { value: 'peer' }, terminal_title_stripped: 'Build the queue view' });
-    writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents } }));
-    writeFileSync(join(bin, 'herdr'), `#!/usr/bin/env bash\n[ "$1 $2" = "agent list" ] && cat "${join(bin, 'agents.json')}"\n`);
-    chmodSync(join(bin, 'herdr'), 0o755);
-    for (const tool of TOOLS) {
-      const out = run(root, 'session-brief.sh', fixture(tool, 'session-start', root), { HERDR_ENV: '1', PATH: `${bin}:${process.env.PATH}` }).stdout;
-      assert.match(out, /w1:p9 {2}idle {2}Build the queue view {2}\[main\]/, tool);
+    const terminals = TOOLS.map((tool, index) => terminal(`t${index + 1}`, root, `Self ${tool}`));
+    fakeHc(bin, [...terminals, terminal('t9', root, 'Build the queue view', 'idle')]);
+    TOOLS.forEach((tool, index) => {
+      const out = run(root, 'session-brief.sh', fixture(tool, 'session-start', root), { HC_TERMINAL_ID: `t${index + 1}`, PATH: `${bin}:${process.env.PATH}` }).stdout;
+      assert.match(out, /t9 {2}idle {2}Build the queue view {2}\[main\]/, tool);
       assert.doesNotMatch(out, new RegExp(`Self ${tool}`), tool);
-    }
+    });
   });
 });

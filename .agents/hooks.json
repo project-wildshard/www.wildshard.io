@@ -8,26 +8,26 @@
     {
       "event": "PreToolUse",
       "tools": "shell",
-      "script": ".agents/hooks/pkill-guard.mjs",
-      "status": "Checking for a kill by name or pattern"
-    },
-    {
-      "event": "PreToolUse",
-      "tools": "shell",
       "script": ".agents/hooks/guard-git-add.sh",
       "status": "Checking shared Git index safety"
     },
     {
       "event": "PreToolUse",
       "tools": "shell",
-      "script": ".agents/hooks/guard-herdr-prompt.sh",
-      "status": "Checking herdr targets for an open question"
+      "script": ".agents/hooks/guard-hc-send.sh",
+      "status": "Checking hc targets for an open question"
     },
     {
       "event": "PreToolUse",
       "tools": "shell",
       "script": ".agents/hooks/no-pr-guard.mjs",
       "status": "Checking for a pull request on a project-wildshard repo"
+    },
+    {
+      "event": "PreToolUse",
+      "tools": "shell",
+      "script": ".agents/hooks/pkill-guard.mjs",
+      "status": "Checking for a kill by name or pattern"
     },
     {
       "event": "PreToolUse",

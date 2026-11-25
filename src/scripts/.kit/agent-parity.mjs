@@ -49,6 +49,7 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSyn
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { basename, isAbsolute, join, relative, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
@@ -141,8 +142,13 @@ const run = (args, cwd) => {
  * Content hash of a file or a directory tree (relative paths and bytes; symlinks followed, each real
  * directory once; .DS_Store skipped). Throws with the unreadable path; callers turn that into `broken`.
  */
-export function hashPath(path) {
+export function hashPath(path, edit = null) {
   const hash = createHash('sha256');
+  // `edit(rel, text)`: the bytes a repo should hold for each file (a lean repo's re-pointed copy).
+  const bytesOf = (full, rel) => {
+    const bytes = readFileSync(full);
+    return edit === null || bytes.includes(0) ? bytes : Buffer.from(edit(rel, bytes.toString('utf8')), 'utf8');
+  };
   const seen = new Set();
   const walk = (dir, prefix) => {
     const here = realpathSync(dir);
@@ -152,17 +158,17 @@ export function hashPath(path) {
       if (name === '.DS_Store' || name === '__pycache__') continue;
       const full = join(dir, name);
       if (isDir(full)) walk(full, `${prefix}${name}/`);
-      else if (existsSync(full)) hash.update(`${prefix}${name}\0`).update(readFileSync(full)).update('\0');
+      else if (existsSync(full)) hash.update(`${prefix}${name}\0`).update(bytesOf(full, `${prefix}${name}`)).update('\0');
       else hash.update(`${prefix}${name}\0dangling\0`);
     }
   };
   if (isDir(path)) walk(path, '');
-  else hash.update(readFileSync(path));
+  else hash.update(bytesOf(path, ''));
   return hash.digest('hex');
 }
-const tryHash = (path) => {
+const tryHash = (path, edit = null) => {
   try {
-    return { hash: hashPath(path), error: null };
+    return { hash: hashPath(path, edit), error: null };
   } catch (error) {
     return { hash: null, error: `${error.code ?? 'error'} hashing ${error.path ?? path}` };
   }
@@ -1031,7 +1037,7 @@ function auditHooks(root, toml = { entries: new Map(), error: null }, global = f
   return items;
 }
 
-/** MA9's literal-token grammar (src/scripts/agent-policy.mjs): what both tools read the same way. */
+/** MA9's literal-token grammar (scripts/agent-policy.mjs): what both tools read the same way. */
 const POLICY_TOKEN = /^[A-Za-z0-9._/@%+=,-]+$/u;
 
 /**
@@ -1134,7 +1140,7 @@ function comparePermissions(root, settings, global = false) {
   const onlyClaude = [...claude.prefixes].filter((prefix) => !codex.prefixes.has(prefix)).length + claude.unsupported;
   const onlyCodex = [...codex.prefixes].filter((prefix) => !claude.prefixes.has(prefix)).length + codex.unsupported;
   if (onlyClaude === 0 && onlyCodex === 0) return { status: 'paired', note: `the same ${claude.prefixes.size} refused command prefix(es) in permissions.deny and .codex/rules` };
-  return { status: 'drift', note: `refused command prefixes differ: ${onlyClaude} only in Claude permissions.deny, ${onlyCodex} only in .codex/rules (one spec writes both: src/scripts/agent-policy.mjs)` };
+  return { status: 'drift', note: `refused command prefixes differ: ${onlyClaude} only in Claude permissions.deny, ${onlyCodex} only in .codex/rules (one spec writes both: scripts/agent-policy.mjs)` };
 }
 
 /** Claude `env` against Codex `shell_environment_policy.set`: same names and string values, or drift naming keys only. */
@@ -1283,6 +1289,24 @@ function auditGitHooks(root) {
 export const KIT_SCRIPTS = ['.agents/hooks.json', 'src/scripts/.kit/agent-parity.mjs', 'src/scripts/.kit/agent-sync.mjs'];
 /** Where the kit's hook scripts lived before MA2; a repo not yet stamped still has them there. */
 const LEGACY_HOOK_DIR = '.claude/hooks';
+
+/**
+ * Lean-layout L1 (D31): a repo with src/scripts/.kit/ keeps the kit's scripts there. The kit's
+ * kit/tools/kit-layout.ts says where each kit path lives in it and re-points the text; the hook
+ * scripts (.agents/hooks/, hooks.json) find either layout themselves and stay byte for byte.
+ * Null for a repo on the old layout, or a kit that predates the module.
+ */
+export function leanLayout(kit, root) {
+  const module = join(kit, 'kit/tools/kit-layout.ts');
+  if (!isDir(join(root, 'src/scripts/.kit')) || !isFile(module)) return null;
+  const layout = createRequire(import.meta.url)(module);
+  const names = layout.kitScriptNames(kit);
+  const moves = (path) => !path.startsWith('.agents/hooks');
+  return {
+    at: (path) => (moves(path) ? layout.toLeanPath(path, names) : path),
+    text: (path, text) => (moves(path) ? layout.toLeanText(path, text, names) : text),
+  };
+}
 const realDirs = (dir) => list(dir).filter((name) => isDir(join(dir, name)) && !isLink(join(dir, name)));
 const filesUnder = (root, dir) => {
   const out = [];
@@ -1314,21 +1338,25 @@ export function kitUnits(kit) {
 export function auditKit(root, kit, owned = {}) {
   const items = [];
   const units = kitUnits(kit);
+  const lean = leanLayout(kit, root);
   for (const unit of units) {
-    const want = tryHash(join(kit, unit.path));
+    // In a lean repo a kit script sits in src/scripts/.kit/, and every piece holds its re-pointed text.
+    const at = lean ? lean.at(unit.path) : unit.path;
+    const edit = lean ? (rel, text) => lean.text(rel ? `${unit.path}/${rel}` : unit.path, text) : null;
+    const want = tryHash(join(kit, unit.path), edit);
     if (want.error) {
       items.push(item('kit', unit.name, 'broken', { note: `the kit's copy: ${want.error}` }));
       continue;
     }
-    const here = existsSync(join(root, unit.path)) ? unit.path : unit.legacy && existsSync(join(root, unit.legacy)) ? unit.legacy : null;
+    const here = existsSync(join(root, at)) ? at : unit.legacy && existsSync(join(root, unit.legacy)) ? unit.legacy : null;
     if (!here) {
-      items.push(item('kit', unit.name, 'missing', { note: `no ${unit.path}; stamp it: node src/scripts/.kit/agent-sync.mjs --from <repo-kit>` }));
+      items.push(item('kit', unit.name, 'missing', { note: `no ${at}; stamp it: node src/scripts/.kit/agent-sync.mjs --from <repo-kit>` }));
       continue;
     }
     const have = tryHash(join(root, here));
     if (have.error) items.push(item('kit', unit.name, 'broken', { note: have.error }));
-    else if (here !== unit.path) items.push(item('kit', unit.name, 'drift', { note: `old layout at ${here}${have.hash === want.hash ? ' (same bytes)' : ', bytes differ'}; stamp it: node src/scripts/.kit/agent-sync.mjs --from <repo-kit>` }));
-    else if (have.hash !== want.hash) items.push(item('kit', unit.name, 'drift', { note: `${unit.path} differs from the kit's; fix it in repo-kit, then stamp` }));
+    else if (here !== at) items.push(item('kit', unit.name, 'drift', { note: `old layout at ${here}${have.hash === want.hash ? ' (same bytes)' : ', bytes differ'}; stamp it: node src/scripts/.kit/agent-sync.mjs --from <repo-kit>` }));
+    else if (have.hash !== want.hash) items.push(item('kit', unit.name, 'drift', { note: `${at} differs from the kit's; fix it in repo-kit, then stamp` }));
     else items.push(item('kit', unit.name, 'same', { note: 'the kit\'s bytes' }));
   }
   // The generated manifests and links, judged by the kit's own generator against this repo's spec.

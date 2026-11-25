@@ -9,8 +9,9 @@ Run from the repo root.
 
 - `pnpm install`: installs deps and points `core.hooksPath` at `.githooks/`.
 - `pnpm check`: typecheck + lint + format:check + unit tests + asks. The pre-push hook runs it.
-- `pnpm test`: `node:test` on `src/**/*.test.ts`, run as .ts by Node's type stripping.
-- `pnpm test:hooks`: the `.githooks/` suite (CI, and pre-commit when hooks change).
+- `pnpm test`: `node:test` on `src/**/*.test.ts` (run as .ts by Node's type
+  stripping), plus the kit's tests: `src/test/.kit/`, `.githooks/` and the
+  agent hooks.
 - `pnpm dev`: esbuild watch + the server on http://127.0.0.1:4404.
 - `pnpm build`: builds the web app into `src/dist/web`.
 - `pnpm site:build`: builds the marketing site into `src/site/dist`.
@@ -38,14 +39,14 @@ The root stays thin: README.md and AGENTS.md (humans only), CLAUDE.md
 goes in `tmp/<task>/` and is deleted when done.
 
 - `src/cli/`: the CLI (`--version`, `--help`; commands arrive with the import).
-- `kit/test/helpers/`: shared test helpers; `git.ts` makes real git repos in temp dirs.
 - `src/server/`: the Hono app (`GET /api/health`) and `serve.ts`.
 - `src/shared/`: zod schemas used on both sides of the wire.
 - `src/web/`: the Preact web app, with its own `tsconfig.json` (DOM lib).
 - `src/site/`: the marketing site, a Vite build with its own `tsconfig.json`. Jake's words are in `COPY.md`.
 - `src/tools/build-web.ts`: esbuild into `src/dist/web` (`--dev` watches and serves).
 - `src/e2e/`: Playwright smoke test (CI).
-- `src/scripts/`: repo tooling (asks, md-wrap), plain JS.
+- `src/scripts/`: this repo's own tooling, plain JS; the kit's scripts
+  sit in `src/scripts/.kit/` and its tests in `src/test/.kit/` (repo-kit).
 - `docs/`: living docs. `docs/plans/` is the queue, `docs/tasks/asks/`
   the receipts.
 - `project/`: history. `journal/`, `origins/` (the meta-repo plans this
@@ -54,7 +55,7 @@ goes in `tmp/<task>/` and is deleted when done.
 ## Code rules
 
 - TypeScript only, imports with explicit `.ts`/`.tsx` extensions.
-- Every function has an explicit return type. `kit/.oxlintrc.json` denies
+- Every function has an explicit return type. `.oxlintrc.author.json` denies
   every category (D28); disable a rule only with a one-line reason beside it.
 - Pin dependencies exactly (`.npmrc` has `save-exact=true`).
 - Public Wildshard packages come from npm (meta J315). Use pnpm to

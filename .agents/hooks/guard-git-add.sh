@@ -42,8 +42,11 @@ EOF
 }
 
 # Strip quoted strings (commit messages may contain ; & | or --),
-# then look at each command segment between ; & | boundaries.
-stripped="$(printf '%s' "$flat" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
+# then look at each command segment between ; & | boundaries. One pass,
+# so the quote that opens first wins: an apostrophe inside "..." (it's)
+# is text, not the start of a '...' that would swallow a later -- (A2,
+# folded from shard-showcase ab17e4d).
+stripped="$(printf '%s' "$flat" | sed -E "s/'[^']*'|\"([^\"\\\\]|\\\\.)*\"//g")"
 B='(^|[;&|(])[[:space:]]*'
 ADD="${B}git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+add([[:space:]]+[^;&|]*)?"
 COMMIT="${B}git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+commit"
@@ -51,7 +54,7 @@ COMMIT="${B}git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+commit"
 # Preserve a token for quoted values while ignoring their contents. This
 # recognizes ordinary Git global options without reading commit messages
 # as commands. Explicit plumbing refusal must run before the merge exception.
-policy="$(printf '%s' "$flat" | sed -E "s/'[^']*'/__quoted__/g; s/\"[^\"]*\"/__quoted__/g")"
+policy="$(printf '%s' "$flat" | sed -E "s/'[^']*'|\"([^\"\\\\]|\\\\.)*\"/__quoted__/g")"
 assignments='([A-Za-z_][A-Za-z_0-9]*=[^[:space:];&|]+[[:space:]]+)*'
 if printf '%s' "$policy" | grep -qE "${B}((env|export)[[:space:]]+)?${assignments}GIT_INDEX_FILE="; then
   deny "external GIT_INDEX_FILE (use scripts/commit.sh --patch)"
