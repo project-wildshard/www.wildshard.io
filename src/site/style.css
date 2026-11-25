@@ -142,7 +142,7 @@
   .trailer { margin: 0 var(--g); position: relative; }
   .trailer video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
   .trailer-cap { margin: 6px 0 0; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
-  .trailer-alpha1 { margin: 18px var(--g) 0; max-width: 420px; }
+  .trailer-alpha1 { margin: 18px var(--g) 0; max-width: min(420px, 62%); }
   .trailer-alpha1 video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
 
   .plate { margin: 18px 0 0; position: relative; }

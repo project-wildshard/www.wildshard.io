@@ -35,7 +35,7 @@ interface Loop {
 
 interface Media {
   trailer: Trailer
-  /** the alpha 1 trailer, kept in a smaller slot under the current one (meta J520) */
+  /** The alpha 1 trailer, kept in a smaller slot under the current one (meta J520) */
   alpha1?: Trailer
   loops: Record<string, Loop>
 }
@@ -102,6 +102,13 @@ function publish(dir: string, file: string, known: string[]): string {
   return url
 }
 
+/** The trailer a new one replaces stays on the page as alpha 1; a re-run of the same trailer keeps the alpha 1 it had */
+function alpha1(before: Media | undefined, now: Trailer): Trailer | undefined {
+  return before?.trailer !== undefined && before.trailer.mp4 !== now.mp4
+    ? before.trailer
+    : before?.alpha1
+}
+
 function main(): void {
   const arg = process.argv[2]
   if (!arg) {
@@ -137,11 +144,7 @@ function main(): void {
     // loops up by slug, so their order doesn't matter)
     loops: before?.loops ?? {},
   }
-  // The trailer this one replaces stays on the page as alpha 1; a re-run of the same trailer keeps the alpha 1 it had
-  const kept =
-    before?.trailer !== undefined && before.trailer.mp4 !== media.trailer.mp4
-      ? before.trailer
-      : before?.alpha1
+  const kept = alpha1(before, media.trailer)
   if (kept !== undefined) {
     media.alpha1 = kept
   }

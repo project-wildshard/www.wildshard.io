@@ -1,8 +1,8 @@
 {
   "trailer": {
-    "mp4": "/media/v/trailer-1280-7b56a3ed.mp4",
-    "mp4Phone": "/media/v/trailer-1080-9fc85807.mp4",
-    "poster": "/media/trailer-alpha-poster.webp"
+    "mp4": "/media/v/trailer-1280-6eb31528.mp4",
+    "mp4Phone": "/media/v/trailer-1080-a900590f.mp4",
+    "poster": "/media/trailer-alpha-2-poster.webp"
   },
   "loops": {
     "driftwood-isle": {
@@ -29,5 +29,10 @@
       "card": "/media/v/nine-dragon-stack-card-86258d0e.mp4",
       "wide": "/media/v/nine-dragon-stack-wide-2a5dbb8f.mp4"
     }
+  },
+  "alpha1": {
+    "mp4": "/media/v/trailer-1280-7b56a3ed.mp4",
+    "mp4Phone": "/media/v/trailer-1080-9fc85807.mp4",
+    "poster": "/media/trailer-alpha-poster.webp"
   }
 }

@@ -1,7 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 
 // The marketing site's build (MARKETING-SITE MS4, E465), its own root, public/ and output, from this folder alone (P1-W1)
 //   → dist/      pages: index.html (home), play/, build/ and mmo/ (the sagas, MS29–MS31), map/ (E506 MR4), 404.html
@@ -27,6 +26,7 @@ import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
 import { fillGames } from './tools/games.ts'
+import { esc, fields, fillTrailers } from './tools/trailers.ts'
 
 import type { FactCell } from './tools/facts.ts'
 import type { Plugin } from 'vite'
@@ -51,20 +51,7 @@ const sha =
 const BUILD = `${sha}-${Date.now().toString(36)}`
 
 /** A JSON object's own fields, or null when it isn't an object */
-function fields(v: unknown): Record<string, unknown> | null {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-    ? Object.fromEntries(Object.entries(v))
-    : null
-}
 const FACTS = readFacts(join(root, 'facts.json'))
-
-function esc(s: string): string {
-  return s
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-}
 
 // ---- MR11 / MR5 · the grid, drawn from facts.json ---------------------------------------------------
 /** each shard's short map label (a COPY.md entry); every other cell is an open plot */
@@ -246,27 +233,8 @@ function generated(): Plugin {
           JSON.stringify(media).replaceAll('</', String.raw`<\/`),
         )
       }
-      if (out.includes('%TRAILER_PHONE%')) {
-        // The trailer is a plain <video>: both encodes go straight into its <source> tags
-        const { trailer } = media ?? {}
-        const { mp4, mp4Phone } = fields(trailer) ?? {}
-        if (typeof mp4 !== 'string' || typeof mp4Phone !== 'string') {
-          throw new Error('src/site/media.json has no trailer.mp4 / mp4Phone')
-        }
-        out = out
-          .replace('%TRAILER_PHONE%', esc(mp4Phone))
-          .replace('%TRAILER_WIDE%', esc(mp4))
-      }
-      if (out.includes('%ALPHA1_')) {
-        // The alpha 1 trailer, in its smaller slot under the current one
-        const { mp4, poster } = fields(fields(media)?.alpha1) ?? {}
-        if (typeof mp4 !== 'string' || typeof poster !== 'string') {
-          throw new Error('src/site/media.json has no alpha1.mp4 / poster')
-        }
-        out = out
-          .replace('%ALPHA1_WIDE%', esc(mp4))
-          .replace('%ALPHA1_POSTER%', esc(poster))
-      }
+      // Both trailers are plain <video> tags: their encodes go straight into the <source> tags
+      out = fillTrailers(out, media)
       if (out.includes('<!--gen:shardfile-->')) {
         out = out.replace('<!--gen:shardfile-->', shardfileHtml())
       }
@@ -293,7 +261,7 @@ export default defineConfig({
   publicDir: 'public',
   base: '/',
   build: {
-    outDir: fileURLToPath(new URL('dist', import.meta.url)),
+    outDir: join(root, 'dist'),
     emptyOutDir: true,
     target: 'es2022',
     sourcemap: false,
