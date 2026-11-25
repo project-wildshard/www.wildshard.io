@@ -1,5 +1,5 @@
 // How many paths the shard.json schema declares: the site's "{=schemaPaths} schema paths, every one in the generated
-// reference". A port of the walk in singleplayer's src/scripts/docs/schema-reference.mjs (SF45), which @wildshard/format
+// reference". A port of the walk in singleplayer's scripts/docs/schema-reference.mjs (SF45), which @wildshard/format
 // doesn't export: the walk visits the same nodes, and counts them instead of writing each one down. It reads trusted
 // schema metadata only, and a node it doesn't know stops it, so a new valibot shape can't silently change the count.
 const SCHEMAS = new Set([
