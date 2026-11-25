@@ -27,3 +27,6 @@ What moved:
 
 The move's first commit skipped hooks (`--no-verify`, J381), because
 its verbs still named `kit/` until this one. The push gate checks both.
+
+The agent rules follow: `AGENTS.md` takes the kit's main-only block, and
+its landing section shrinks to the one deploy note that still applies.

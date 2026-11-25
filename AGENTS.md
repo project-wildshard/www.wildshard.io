@@ -15,32 +15,18 @@
 Git hygiene
 
  - Small Commit early & often.
- - Two ways to work, no in-between (J290). The lane's brief names the mode; a unit with no mode named is mode 1 if it
-   is one row or one fix.
-   1. **Small or urgent unit** (one row, one fix): work and commit straight on `main` in the canonical checkout
-      (`~/projects/games/wildshard/www.wildshard.io`), by pathspec. Then `git pull --rebase origin main` and a plain
-      `git push origin main` through the normal pre-push. No worktree, no land.
-   2. **A whole plan or half a plan:** its own worktree, `node scripts/worktree.mjs new <slug>` (`.worktrees/<slug>`
-      on `plan/<slug>`). Commit there by pathspec. Never push `plan/<slug>` by hand: only `land` pushes it (a hand
-      push spends a CI run and can cancel the one land waits on). Land with `WS_LANE_NAME=<lane> node scripts/land.mjs`
-      from the worktree only when the plan is complete, at a major milestone, or once a day for a multi-day plan.
-      Never land per row. `node scripts/worktree.mjs reap` removes worktrees whose branch has landed.
- - Never hand-push a plan branch to main, never `--no-verify` or `SKIP_*`, never force main; only `land`
-   force-pushes your `plan/*` branch, under its own lease. No other branches or worktrees.
- - Use pre-commit & pre-push git hooks for keeping checks/quality/lints etc.
- - Mode 1: push after every commit. Mode 2: commit often; `land` does the pushing.
+ - Main only (D36: this repo has no `land.config.json`): many agents share one checkout
+   (`~/projects/games/wildshard/www.wildshard.io`) and every commit goes straight on `main`. No worktrees,
+   no branches, no landing. After each commit, `git pull --rebase origin main`, then a plain
+   `git push origin main` through the normal pre-push (it runs `pnpm check` in a clean copy).
+ - Never `--no-verify` or `SKIP_*`, never force main.
+ - If main's CI goes red, whoever pushed last fixes it forward or reverts it, at once.
  - Every meaningful commit writes a journal into project/journal, the why & informal.
 
-Landing from a worktree (mode 2; `scripts/land.mjs`, settings in `land.config.json`)
+Deploys
 
- - Land rebases onto main if it is ahead, pushes `plan/<slug>`, waits for that exact SHA's `ci` push run
-   to go green, rebases again if main moved (a conflict stops; a clean rebase carries the green run), pushes main
-   fast-forward only (never forced), then deletes the plan branch and the worktree. One land per worktree; worktrees never wait on each other.
- - After a rebase that moves `pnpm-lock.yaml` or a `package.json`, land runs `pnpm install --frozen-lockfile --config.confirmModulesPurge=false`.
- - Landings, CI reds, refusals and give-ups append a line to `~/.cache/wildshard/lane-receipts.log` (`grep ' land '`).
- - Main's CI runs after every land; if it goes red, the lane that landed last fixes it forward or reverts it, at once.
- - A plan branch never deploys: `ci` only checks, and `site-deploy` runs on `main` only (its job skips any other ref).
-   A landing that touches `src/site/`, `package.json` or the lockfile redeploys wildshard.io from main, like any push.
+ - `site-deploy` runs on `main` only: a push that touches `src/site/`, `package.json` or the lockfile
+   redeploys wildshard.io from main.
 
 Shared checkout
 
