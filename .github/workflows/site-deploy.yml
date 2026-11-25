@@ -8,7 +8,7 @@ name: site-deploy
 # Which pushes deploy (meta HOW-WE-BUILD WWW1): `paths` lets in src/site/ (minus tests, the README and the gate) and
 # package.json, then the `changes` job runs src/site/tools/deploy-gate.ts over the whole push, which keeps a
 # package.json change only when a field the build reads moved (node, pnpm, vite, the deploy script). Kit syncs, lint
-# config, the lockfile alone, scripts/ and this workflow (wrangler's pin included) never deploy; ship one with
+# config, the lockfile alone, src/scripts/ and this workflow (wrangler's pin included) never deploy; ship one with
 # `gh workflow run site-deploy.yml --ref main`.
 #
 # Main only: the job's `if`, which a branch's own copy of this file could drop, and the `production` environment,

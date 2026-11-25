@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 
 import { defineConfig, devices } from '@playwright/test'
 
-import { KEYCHAIN_ARGS } from '../../scripts/chromium-keychain.mjs'
+import { KEYCHAIN_ARGS } from '../scripts/.kit/chromium-keychain.mjs'
 
 import type { PlaywrightTestConfig } from '@playwright/test'
 

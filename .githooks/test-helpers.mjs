@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HOOKS = dirname(fileURLToPath(import.meta.url));
-const SCRIPTS = join(HOOKS, '..', 'kit', 'scripts');
+const SCRIPTS = join(HOOKS, '..', 'src', 'scripts', '.kit');
 export const TRAILER = 'Assisted-by: Claude:claude-opus-5-5';
 export const ok = (subject, body = 'Why this matters.') => `${subject}\n\n${body}\n\n${TRAILER}\n`;
 
@@ -18,8 +18,10 @@ after(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true });
 });
 
-// Drop GIT_* (a hook running this suite exports its own GIT_INDEX_FILE)
-// and every bypass flag, then isolate from the user's git config.
+// Drop GIT_* (a hook running this suite exports its own GIT_INDEX_FILE),
+// pre-push's WS_PUSH_REFS (the outer push's refs, unknown to a sandbox),
+// hc's terminal identity (a sandbox is not the agent's terminal) and every
+// bypass flag, then isolate from the user's git config.
 const BYPASS = new Set(['WS_PUSH_REFS', 'SKIP_ATTRIB', 'SKIP_JOURNAL', 'SKIP_CHECK', 'SKIP_BUDGET', 'ALLOW_BRANCH', 'ALLOW_BIG', 'ALLOW_SECRET', 'PRECOMMIT_SOFT_S', 'PRECOMMIT_HARD_S', 'HC_TERMINAL_ID', 'HC_TERMINAL_SOCKET', 'HC_SCOPE', 'HC_SESSION', 'HC_SOCKET', 'CLAUDE_CODE_SESSION_ID', 'SKIP_PEERS', 'KIT_STAMP', 'ALLOW_KIT_EDIT']);
 export const ENV = {
   ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !BYPASS.has(key))),
@@ -36,7 +38,7 @@ export function sandbox() {
   git(['config', 'user.email', 'test@example.com']);
   git(['config', 'commit.gpgsign', 'false']);
   cpSync(HOOKS, join(root, '.githooks'), { recursive: true });
-  if (existsSync(SCRIPTS)) cpSync(SCRIPTS, join(root, 'kit', 'scripts'), { recursive: true }); // ask tooling
+  if (existsSync(SCRIPTS)) cpSync(SCRIPTS, join(root, 'src', 'scripts', '.kit'), { recursive: true }); // ask tooling
   git(['config', 'core.hooksPath', '.githooks']);
   const write = (path, content) => {
     mkdirSync(dirname(join(root, path)), { recursive: true });

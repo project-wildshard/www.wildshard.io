@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url'
 // .git), so it passes SITE_BUILD_SHA; a local build asks this checkout.
 import { defineConfig } from 'vite'
 
-import { viteTmpRoot } from '../../scripts/vite-tmp.mjs'
+import { viteTmpRoot } from '../scripts/.kit/vite-tmp.mjs'
 import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'

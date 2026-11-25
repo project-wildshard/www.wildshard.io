@@ -4,7 +4,7 @@
 //   - in package.json, only the fields the deploy reads (SITE_PACKAGE_FIELDS): node and pnpm versions, the module
 //     type, the pinned vite, pnpm overrides and patches, and the site:deploy:cf script. A whole-file diff would deploy on every kit sync.
 // Not deploying, on purpose: pnpm-lock.yaml alone (vite is pinned exactly in package.json, so a vite bump shows there),
-// scripts/vite-tmp.mjs (the kit's temp redirect; it changes no output) and the workflow itself. ci builds the site
+// src/scripts/.kit/vite-tmp.mjs (the kit's temp redirect; it changes no output) and the workflow itself. ci builds the site
 // on every push, so a toolchain change that breaks the build fails there; ship one with
 // `gh workflow run site-deploy.yml --ref main`.
 //

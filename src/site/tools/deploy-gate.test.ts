@@ -64,7 +64,7 @@ test('site files are src/site/ minus tests and the README', () => {
   assert.ok(!isSiteFile('src/site/tools/copy.test.ts'))
   assert.ok(!isSiteFile('src/site/README.md'))
   assert.ok(!isSiteFile('src/site/tools/deploy-gate.ts'))
-  assert.ok(!isSiteFile('scripts/vite-tmp.mjs'))
+  assert.ok(!isSiteFile('src/scripts/.kit/vite-tmp.mjs'))
   assert.ok(!isSiteFile('pnpm-lock.yaml'))
   assert.ok(!isSiteFile('.github/workflows/site-deploy.yml'))
 })
@@ -96,7 +96,7 @@ const base = commit({
 
 test('a push decides over all its commits', () => {
   const kit = commit({
-    'scripts/vite-tmp.mjs': '//\n',
+    'src/scripts/.kit/vite-tmp.mjs': '//\n',
     'pnpm-lock.yaml': 'x\n',
     '.github/workflows/site-deploy.yml': 'x\n',
     'src/site/tools/copy.test.ts': '//\n',

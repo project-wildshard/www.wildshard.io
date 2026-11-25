@@ -62,6 +62,17 @@ describe('pre-commit hook', () => {
     const result = run(['commit', '-q', '-m', MSG]);
     assert.equal(result.status, 0, result.stderr);
   });
+  test('release worktrees commit only on their matching release branch', () => {
+    for (const name of ['v1.2.3', 'dryrun-v1.2.3']) {
+      const { run, write } = planWorktree(`release-${name}`, `release/${name}`);
+      write('b.txt', 'release notes\n');
+      const result = run(['commit', '-q', '-m', MSG]);
+      assert.equal(result.status, 0, result.stderr);
+      run(['switch', '-q', '-c', 'release/v9.9.9']);
+      write('c.txt', 'wrong release\n');
+      blocked(run(['commit', '-q', '-m', MSG]), /not release\//);
+    }
+  });
   test('a plan worktree refuses another branch or a detached HEAD', () => {
     const { run, write } = planWorktree('foo', 'plan/bar');
     write('b.txt', 'b\n');
@@ -184,5 +195,16 @@ describe('pre-commit hook', () => {
     const result = git(['commit', '-q', '-m', MSG, '--', 'a.txt', 'project/journal/2026-11-04.md']);
     assert.equal(result.status, 0, result.stderr);
     assert.doesNotMatch(result.stderr, /other\.txt/);
+  });
+
+  // FAST-RELEASE FR-A4 (J505): kit-owned files change in repo-kit and arrive by its stamp, never by hand here.
+  test('refuses an edit to a kit-owned file, unless the kit stamp (KIT_STAMP=1) or ALLOW_KIT_EDIT=1 makes it', () => {
+    const { commit } = sandbox();
+    const owned = '# Kit-owned (repo-kit files/): edit it there, never in a shard repo.\nname: publish\n';
+    assert.equal(commit({ '.github/workflows/publish.yml': owned, 'notes.txt': 'a\n' }, MSG).status, 0);
+    blocked(commit({ '.github/workflows/publish.yml': owned + '# by hand\n' }, MSG), /kit-owned file is edited in repo-kit[\s\S]*publish\.yml/);
+    assert.equal(commit({ '.github/workflows/publish.yml': owned + '# stamped\n' }, MSG, { env: { KIT_STAMP: '1' } }).status, 0);
+    assert.equal(commit({ '.github/workflows/publish.yml': owned + '# hatch\n' }, MSG, { env: { ALLOW_KIT_EDIT: '1' } }).status, 0);
+    assert.equal(commit({ 'notes.txt': 'b\n' }, MSG).status, 0, 'any other file commits as before');
   });
 });

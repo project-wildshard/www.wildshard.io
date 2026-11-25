@@ -28,7 +28,7 @@ Run from the repo root.
 - `pnpm lint:fix` / `pnpm format`: the hooks only check; these fix.
 - `node src/cli/main.ts --help`: the CLI without installing it. `serve [--port n]` starts the server (default 4404).
 - `pnpm md:wrap`: rewraps Markdown prose to ~72 columns.
-- `kit/scripts/ask-new.sh "<Jake's words>"`: opens an ask (`docs/tasks/asks/README.md`).
+- `src/scripts/.kit/ask-new.sh "<Jake's words>"`: opens an ask (`docs/tasks/asks/README.md`).
 
 ## Layout
 

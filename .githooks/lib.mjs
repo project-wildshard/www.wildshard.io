@@ -133,23 +133,22 @@ export function report(title, problems) {
 }
 
 /**
- * Other herdr agents live in this repo, via herdr-peers.sh in .agents/hooks/
- * (.claude/hooks/ before the agent layout; prints nothing outside herdr).
- * Advisory only; SKIP_HERDR_PEERS=1 hides it.
- * @returns {{ pane: string, status: string, goal: string, where: string }[]}
+ * Other agents live in this repo, via .agents/hooks/peers.sh (herdr-core,
+ * `hc`; prints nothing outside hc). Advisory only; SKIP_PEERS=1 hides it.
+ * @returns {{ terminal: string, status: string, goal: string, where: string }[]}
  */
-export function herdrPeers(env = process.env) {
-  const script = ['.agents/hooks/herdr-peers.sh', '.claude/hooks/herdr-peers.sh'].find((path) => existsSync(path));
-  if (env.SKIP_HERDR_PEERS === '1' || !script) return [];
+export function peers(env = process.env) {
+  const script = '.agents/hooks/peers.sh';
+  if (env.SKIP_PEERS === '1' || !existsSync(script)) return [];
   const out = spawnSync('bash', [script], { encoding: 'utf8', timeout: 5000 }).stdout ?? '';
   return out.split('\n').filter(Boolean).map((line) => {
-    const [pane = '?', status = '?', goal = '-', where = 'main'] = line.split('\t');
-    return { pane, status, goal: goal === '-' ? '(no goal set)' : goal, where };
+    const [terminal = '?', status = '?', goal = '-', where = 'main'] = line.split('\t');
+    return { terminal, status, goal: goal === '-' ? '(no goal set)' : goal, where };
   });
 }
 
 export function printPeers(peers, headline) {
   if (!peers.length) return;
-  console.error(`  - herdr: ${peers.length} other agent(s) ${headline}`);
-  for (const peer of peers) console.error(`      ${peer.pane} (${peer.status}) — ${peer.goal} [${peer.where}]`);
+  console.error(`  - hc: ${peers.length} other agent(s) ${headline}`);
+  for (const peer of peers) console.error(`      ${peer.terminal} (${peer.status}) — ${peer.goal} [${peer.where}]`);
 }

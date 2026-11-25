@@ -10,11 +10,13 @@
 //           checkout neither refuse the push nor leak into it.
 //   both:   .githooks/pinned-links.mjs first (commit warns, push refuses;
 //           SKIP_CHECK does not skip it).
-// The hooks only check; `pnpm lint:fix` / `pnpm format` fix.
+// The hooks only check; `pnpm fix` fixes (D33's verb; a repo without it
+// yet, `pnpm lint:fix` / `pnpm format`).
 // Bypass a lane: SKIP_CHECK=1 (last resort; CI still runs it).
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { git } from './lib.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
@@ -27,11 +29,12 @@ const LINTABLE = /\.(?:ts|tsx|js|mjs|cjs)$/;
 const FORMATTABLE = /\.(?:ts|tsx|js|mjs|cjs|json|jsonc)$/;
 
 // A push that only deletes plan/* branches (`git push --delete origin plan/<slug>`
-// after a landing, J240) sends no commit, so there is nothing to check. Any
-// other deleted ref, or any update pushed alongside, keeps the gate.
+// after a landing, J240) or a shipped release/vX.Y.Z branch (release.sh
+// --merge-back, after main has the merge) sends no commit, so there is nothing
+// to check. Any other deleted ref, or any update pushed alongside, keeps the gate.
 if (lane === 'push') {
   const lines = (process.env.WS_PUSH_REFS ?? '').split('\n').map((line) => line.trim().split(/\s+/u)).filter((row) => row[0] !== '');
-  if (lines.length > 0 && lines.every(([, local = '', remote = '']) => /^0+$/u.test(local) && /^refs\/heads\/plan\/[a-z0-9][a-z0-9._-]*$/u.test(remote))) {
+  if (lines.length > 0 && lines.every(([, local = '', remote = '']) => /^0+$/u.test(local) && /^refs\/heads\/(?:plan\/[a-z0-9][a-z0-9._-]*|release\/v\d+\.\d+\.\d+)$/u.test(remote))) {
     console.error(`  - delete-only push of ${lines.map(([, , remote]) => remote).join(', ')}: no commit leaves this machine; push lane skipped`);
     process.exit(0);
   }
@@ -40,6 +43,24 @@ if (lane === 'push') {
 // another lane's edits, not the pin CI uses. Commit warns, push refuses.
 // It runs before SKIP_CHECK: a lane that links on purpose writes a receipt.
 if (!guardPinnedLinks(root, lane)) process.exit(1);
+// FAST-RELEASE FR2 (meta docs/plans/FAST-RELEASE-PLAN.md): a release-only push (a tag on a commit origin has, a
+// stamp-only release branch over origin/main, a stamp-only merge-back, a release branch delete) sends no new code, so
+// the push lane has nothing to gate; SDK 0.4.32 spent about 6 min on each. A repo opts in with its own
+// scripts/release-reuse.mjs, src/scripts/release-reuse.mjs in a lean repo (sharddev's names the manifests its release
+// stamps); its release ci still proves the
+// exact SHA, and main's ci runs the merge.
+const reuse = ['scripts/release-reuse.mjs', 'src/scripts/release-reuse.mjs'].map((path) => join(root, path)).find((path) => existsSync(path));
+if (lane === 'push' && reuse) {
+  const { releaseOnlyPush } = await import(pathToFileURL(reuse).href);
+  /** @type {{ ok: boolean, reason: string }} */ let verdict = { ok: false, reason: '' };
+  try {
+    verdict = releaseOnlyPush(root, process.env.WS_PUSH_REFS ?? '');
+  } catch {} // Anything it cannot read keeps the gate.
+  if (verdict.ok) {
+    console.error(`  - ${verdict.reason}: push lane skipped`);
+    process.exit(0);
+  }
+}
 if (process.env.SKIP_CHECK === '1') {
   console.error(`  - SKIP_CHECK=1: ${lane} lane skipped (CI still runs it)`);
   process.exit(0);
@@ -128,7 +149,8 @@ copy?.remove();
 const failed = results.filter((result) => result.code !== 0);
 for (const { name, output } of failed) console.error(`\n  X pnpm ${name} failed:\n${output.trim().replace(/^/gm, '    ')}`);
 if (failed.length) {
-  const fix = lane === 'commit' ? ' (pnpm lint:fix / pnpm format fix most of it)' : '';
+  const fixer = scripts.fix ? 'pnpm fix fixes' : 'pnpm lint:fix / pnpm format fix';
+  const fix = lane === 'commit' ? ` (${fixer} most of it)` : '';
   console.error(`\n  ${lane} blocked. Fix it${fix}; SKIP_CHECK=1 is a last resort.\n`);
   process.exit(1);
 }

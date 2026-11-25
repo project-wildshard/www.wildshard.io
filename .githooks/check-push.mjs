@@ -3,9 +3,9 @@
 // carry a token or a huge file off the machine. Reads git's ref lines
 // on stdin: <local ref> <local sha> <remote ref> <remote sha>.
 import { readFileSync } from 'node:fs';
-import { advertisedTips, blobSizes, checkBlob, git, herdrPeers, outgoingRange, printPeers, report } from './lib.mjs';
+import { advertisedTips, blobSizes, checkBlob, git, peers, outgoingRange, printPeers, report } from './lib.mjs';
 
-printPeers(herdrPeers(), 'share this repo: a red check below may be their WIP, not yours');
+printPeers(peers(), 'share this repo: a red check below may be their WIP, not yours');
 
 const ZERO = /^0+$/;
 // Git passes the actual push URL ($2). Only what that destination advertises

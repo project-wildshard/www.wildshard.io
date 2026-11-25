@@ -1,4 +1,4 @@
-// scripts/main-push.mjs (meta M1; the kit copy of engine's .githooks/main-push.test.mjs, itself ported from meta's MF7
+// src/scripts/.kit/main-push.mjs (meta M1; the kit copy of engine's .githooks/main-push.test.mjs, itself ported from meta's MF7
 // main-push test): real git, a bare fake remote and two clones of it. Lane A works in the "shared checkout" beside
 // another lane's tracked edit, staged file and untracked file; lane B pushes in between. Skipped on a git without
 // `git replay --ref-action` (2.50+), which main-push needs.
@@ -8,9 +8,9 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync }
 import { join } from 'node:path';
 import { after, beforeEach, test as nodeTest } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { parseArgs } from '../scripts/main-push.mjs';
+import { laneRefusal, parseArgs } from '../src/scripts/.kit/main-push.mjs';
 
-const SCRIPT = fileURLToPath(new URL('../scripts/main-push.mjs', import.meta.url));
+const SCRIPT = fileURLToPath(new URL('../src/scripts/.kit/main-push.mjs', import.meta.url));
 const repoDir = fileURLToPath(new URL('..', import.meta.url));
 const work = join(repoDir, `tmp/main-push-test-${process.pid}`);
 const remote = join(work, 'remote.git');
@@ -22,7 +22,7 @@ const REPLAY = /ref-action/u.test(`${spawnSync('git', ['replay', '-h'], { encodi
 const test = (name, fn) => nodeTest(name, { skip: REPLAY ? false : 'git lacks git replay --ref-action' }, fn);
 
 const home = join(work, 'home');
-const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), HOME: home, XDG_CONFIG_HOME: home, WS_MAIN_PUSH_RECEIPT: '0' };
+const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))), HOME: home, XDG_CONFIG_HOME: home, WS_MAIN_PUSH_RECEIPT: '0', WS_LANE_NAME: 'fixture-lane' };
 const ID = { GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t' };
 const git = (cwd, ...args) => {
   const out = spawnSync('git', args, { cwd, encoding: 'utf8', env: { ...env, ...ID } });
@@ -71,6 +71,17 @@ beforeEach(() => {
   clone(b);
 });
 
+test('meta QA 11-25 row 43: no lane name, no push; the refusal names WS_LANE_NAME, never a default lane', () => {
+  assert.equal(laneRefusal({ WS_LANE_NAME: 'opus-ma' }, 'main-push'), null);
+  for (const lane of [undefined, '', 'Opus MA']) assert.match(laneRefusal(lane === undefined ? {} : { WS_LANE_NAME: lane }, 'land') ?? '', /set WS_LANE_NAME=/u);
+  write(a, 'plan.md', 'plan.md line 2\n');
+  const nameless = { ...env, ...ID }; delete nameless.WS_LANE_NAME;
+  const out = spawnSync(process.execPath, [SCRIPT, '--wait', '0', '-m', 'docs: a', 'plan.md'], { cwd: a, encoding: 'utf8', env: nameless });
+  assert.equal(out.status, 1);
+  assert.match(out.stderr, /main-push runs only under a lane name: set WS_LANE_NAME=/u);
+  assert.equal(remoteFile('plan.md'), 'plan.md line 1', 'nothing was pushed');
+});
+
 test('commits only the named files, syncs past another lane, pushes, and leaves other lanes\' files byte-identical', () => {
   // Another lane in A: a tracked edit, a staged new file and an untracked file.
   write(a, 'other.md', 'other lane edit\n');
@@ -107,7 +118,7 @@ test('a real conflict undoes its own commit, never rebases, and prints the --ont
   assert.equal(out.status, 1);
   assert.match(out.stderr, /^main-push STOP your commit\(s\) conflict with origin\/main in plan\.md; nothing moved\. Your commit is undone and your edits are back, uncommitted, in plan\.md\./mu);
   assert.match(out.stderr, /git rebase --abort wipes them/u);
-  const command = /run: (node scripts\/main-push\.mjs --onto ([0-9a-f]{12}) -m 'docs: A'\\''s tick' plan\.md)$/mu.exec(out.stderr);
+  const command = /run: (node (?:src\/scripts\/\.kit|scripts)\/main-push\.mjs --onto ([0-9a-f]{12}) -m 'docs: A'\\''s tick' plan\.md)$/mu.exec(out.stderr);
   assert.ok(command, out.stderr);
   notMidRebase(a);
   assert.equal(git(a, 'rev-parse', 'HEAD'), before, 'main is back where it was');

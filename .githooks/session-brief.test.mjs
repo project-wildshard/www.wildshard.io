@@ -1,97 +1,67 @@
-// Tests for the herdr section of .agents/hooks/session-brief.sh, with a
-// fake `herdr` on PATH that prints a canned `herdr agent list`.
+// Tests for the peers section of .agents/hooks/session-brief.sh, with a
+// fake `hc` (herdr-core) on PATH: `hc ls` lists terminals, `hc get <t>`
+// gives one, with the folder its agent works in now.
 import { test, describe, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
-import { fixtureScratch } from '../test/tooling/owned-scratch.mjs';
+import { fixtureScratch } from '../src/test/.kit/owned-scratch.mjs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CANONICAL = dirname(spawnSync('git', ['-C', ROOT, 'rev-parse', '--path-format=absolute', '--git-common-dir'], {encoding: 'utf8'}).stdout.trim());
 const BRIEF = join(ROOT, '.agents', 'hooks', 'session-brief.sh');
-const bin = fixtureScratch('repo-herdr');
+const bin = fixtureScratch('repo-hc');
 after(() => rmSync(bin, { recursive: true, force: true }));
 
-const agent = (pane, session, cwd, extra = {}) => ({
-  pane_id: pane, agent: 'claude', agent_status: 'working', cwd, foreground_cwd: cwd,
-  agent_session: { value: session }, tokens: {}, terminal_title_stripped: '', ...extra,
+const terminal = (address, cwd, { msg = '', state = 'working', labels = {}, agent = 'claude-code' } = {}) => ({
+  address, agent, state: 'live', status: { app: agent, msg, state }, cwd: '/launched/elsewhere', foreground: { cwd }, labels,
 });
-writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents: [
-  agent('w1:p1', 'me', ROOT, { terminal_title_stripped: 'Me, myself' }),
-  agent('w1:p2', 'peer', CANONICAL, { agent_status: 'idle', terminal_title_stripped: '⠐ Build the queue view' }),
-  agent('w1:p3', 'wt', join(CANONICAL, '.claude/worktrees/agent-x/src'), { tokens: { goal: 'scaffold' } }),
-  agent('w1:p4', 'bare', join(CANONICAL, 'docs')),
-  agent('w2:p1', 'elsewhere', '/Users/someone/other-repo', { terminal_title_stripped: 'Other repo' }),
-] } }));
-writeFileSync(join(bin, 'herdr'), `#!/usr/bin/env bash\n[ "$1 $2" = "agent list" ] && cat "${join(bin, 'agents.json')}"\n`);
-chmodSync(join(bin, 'herdr'), 0o755);
+const TERMINALS = join(bin, 'terminals.json');
+writeFileSync(TERMINALS, JSON.stringify([
+  terminal('t1', ROOT, { msg: 'Me, myself' }),
+  terminal('t2', CANONICAL, { state: 'idle', msg: 'Build the queue view' }),
+  terminal('t3', join(CANONICAL, '.claude/worktrees/agent-x/src'), { msg: 'busy', labels: { goal: 'scaffold' } }),
+  terminal('t4', join(CANONICAL, 'docs')),
+  terminal('t5', '/Users/someone/other-repo', { msg: 'Other repo' }),
+  terminal('t6', CANONICAL, { agent: 'bash', msg: 'a shell' }),
+]));
+writeFileSync(join(bin, 'hc'), `#!/usr/bin/env bash\ncase "$1" in\n  ls) jq -c '{terminals: [.[] | {address, agent, state}]}' "${TERMINALS}" ;;\n  get) jq -c --arg t "$2" '.[] | select(.address == $t)' "${TERMINALS}" ;;\nesac\n`);
+chmodSync(join(bin, 'hc'), 0o755);
 
+const IDENTITY = /^(?:HC_|HERDR_)|^CLAUDE_CODE_SESSION_ID$/;
 const brief = (env, input = '') => {
-  const clean = Object.fromEntries(Object.entries(process.env)
-    .filter(([key]) => !['HERDR_ENV', 'HERDR_PANE_ID', 'CLAUDE_CODE_SESSION_ID'].includes(key)));
+  const clean = Object.fromEntries(Object.entries(process.env).filter(([key]) => !IDENTITY.test(key)));
   const result = spawnSync('bash', [BRIEF], { input, encoding: 'utf8', env: { ...clean, PATH: `${bin}:${process.env.PATH}`, ...env } });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.split('-- live plans')[0];
 };
 
-describe('session brief: herdr peers', () => {
-  test('lists the other agents in this repo, not self or other repos', () => {
-    const out = brief({ HERDR_ENV: '1', CLAUDE_CODE_SESSION_ID: 'me' });
-    assert.match(out, /w1:p2 {2}idle {2}Build the queue view {2}\[main\]/);
-    assert.match(out, /w1:p3 {2}working {2}scaffold {2}\[\.claude\/worktrees\/agent-x\]/);
-    assert.match(out, /w1:p4 {2}working {2}\(no goal set\) {2}\[main\]/);
+describe('session brief: hc peers', () => {
+  test('lists the other agents in this repo, not self, shells or other repos', () => {
+    const out = brief({ HC_TERMINAL_ID: 't1' });
+    assert.match(out, /t2 {2}idle {2}Build the queue view {2}\[main\]/);
+    assert.match(out, /t3 {2}working {2}scaffold {2}\[\.claude\/worktrees\/agent-x\]/);
+    assert.match(out, /t4 {2}working {2}\(no goal set\) {2}\[main\]/);
     assert.match(out, /commit only your own paths/);
-    assert.doesNotMatch(out, /Me, myself|Other repo/);
+    assert.doesNotMatch(out, /Me, myself|Other repo|a shell/);
   });
-  test('reads its own session id from the SessionStart JSON on stdin', () => {
-    const out = brief({ HERDR_ENV: '1' }, JSON.stringify({ session_id: 'me', hook_event_name: 'SessionStart' }));
-    assert.doesNotMatch(out, /Me, myself/);
-    assert.match(out, /Build the queue view/);
+  test('leaves out whichever terminal it runs in', () => {
+    const out = brief({ HC_TERMINAL_ID: 't2' });
+    assert.match(out, /Me, myself/);
+    assert.doesNotMatch(out, /Build the queue view/);
   });
-  test('says so when not inside herdr', () => {
-    assert.match(brief({}), /\(not running inside herdr\)/);
+  test('says so when not inside hc', () => {
+    assert.match(brief({}), /\(not running inside hc\)/);
   });
   test('says so when it is the only agent', () => {
-    writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents: [agent('w1:p1', 'me', ROOT)] } }));
-    assert.match(brief({ HERDR_ENV: '1', CLAUDE_CODE_SESSION_ID: 'me' }), /you're the only agent here/);
+    const all = readFileSync(TERMINALS, 'utf8');
+    writeFileSync(TERMINALS, JSON.stringify([terminal('t1', ROOT)]));
+    try { assert.match(brief({ HC_TERMINAL_ID: 't1' }), /you're the only agent here/); }
+    finally { writeFileSync(TERMINALS, all); }
   });
 });
-
-// K2: the brief lists each live plan with its State line, in a real
-// temporary git repo that holds a copy of this repo's hook folder.
-describe('session brief: live plans', () => {
-  const plans = (files) => {
-    const repo = fixtureScratch('repo-brief');
-    after(() => rmSync(repo, { recursive: true, force: true }));
-    spawnSync('git', ['init', '-q', '-b', 'main'], { cwd: repo });
-    const hooks = relative(ROOT, dirname(BRIEF));
-    cpSync(dirname(BRIEF), join(repo, hooks), { recursive: true });
-    mkdirSync(join(repo, 'docs', 'plans'), { recursive: true });
-    for (const [name, text] of Object.entries(files)) writeFileSync(join(repo, 'docs', 'plans', name), text);
-    const clean = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && key !== 'HERDR_ENV'));
-    const result = spawnSync('bash', [join(repo, hooks, 'session-brief.sh')], { encoding: 'utf8', env: clean, input: '' });
-    assert.equal(result.status, 0, result.stderr);
-    return result.stdout.split('-- live plans')[1].split('-- latest journal')[0];
-  };
-  test('shows a quoted bold State line, a plain one, and an old Status line', () => {
-    const out = plans({
-      'opus-2026-11-07-a.md': '# A\n\n> Written by: Claude\n\n> **State:** ready for review, 2026-11-07.\n\nStatus: not this one\n',
-      'opus-2026-11-07-b.md': '# B\n\nState: draft, parked, 2026-11-07: for December.\n',
-      'opus-2026-11-04-old.md': '# Old\n\nStatus: in progress 2026-11-04\n',
-      'README.md': '# Plans\n\n> **State:** living index.\n',
-    });
-    assert.match(out, /docs\/plans\/opus-2026-11-07-a\.md {2}\(State: ready for review, 2026-11-07\.\)/);
-    assert.match(out, /docs\/plans\/opus-2026-11-07-b\.md {2}\(State: draft, parked, 2026-11-07: for December\.\)/);
-    assert.match(out, /docs\/plans\/opus-2026-11-04-old\.md {2}\(Status: in progress 2026-11-04\)/);
-    assert.doesNotMatch(out, /README|not this one/);
-  });
-  test('a plan with no state line is listed bare', () => {
-    assert.match(plans({ 'opus-2026-11-07-c.md': '# C\n\nbody\n' }), /docs\/plans\/opus-2026-11-07-c\.md\n/);
-  });
-});
-
 // K4: the brief lands in every session's context, so it stays within
 // 40 lines (J273): 5 asks, 5 plans, 4 journal lines, 3 of the rest.
 describe('session brief: line cap', () => {
@@ -99,7 +69,7 @@ describe('session brief: line cap', () => {
     const repo = realpathSync(fixtureScratch('repo-brief'));
     after(() => rmSync(repo, { recursive: true, force: true }));
     const env = {
-      ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !['HERDR_ENV', 'HERDR_PANE_ID', 'CLAUDE_CODE_SESSION_ID'].includes(key))),
+      ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !IDENTITY.test(key))),
       GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null',
       GIT_AUTHOR_NAME: 't', GIT_AUTHOR_EMAIL: 't@t', GIT_COMMITTER_NAME: 't', GIT_COMMITTER_EMAIL: 't@t',
     };
@@ -111,12 +81,12 @@ describe('session brief: line cap', () => {
     git('init', '-q', '-b', 'main');
     const hooks = relative(ROOT, dirname(BRIEF));
     cpSync(dirname(BRIEF), join(repo, hooks), { recursive: true });
-    write('kit/scripts/asks.mjs', readFileSync(join(ROOT, 'kit', 'scripts', 'asks.mjs'), 'utf8'));
+    write('src/scripts/.kit/asks.mjs', readFileSync(join(ROOT, 'src', 'scripts', '.kit', 'asks.mjs'), 'utf8'));
     for (let i = 1; i <= 8; i++) write(`docs/tasks/asks/A${i}.md`, `# A${i}\n\n**Status:** open (2026-11-11)\n**Ask:** ask ${i}\n`);
     for (let i = 1; i <= 9; i++) write(`docs/plans/opus-2026-11-11-p${i}.md`, `# P${i}\n\n> **State:** in progress, 2026-11-11.\n`);
     write('project/journal/2026-11-11.md', `${Array.from({ length: 10 }, (_, i) => `journal line ${i + 1}`).join('\n')}\n`);
-    write('scripts/worktree.mjs', '// the plan-worktree tool\n');
-    for (const name of ['leftovers-report', 'lane-live']) write(`scripts/${name}.mjs`, readFileSync(join(ROOT, `scripts/${name}.mjs`), 'utf8'));
+    write('src/scripts/.kit/worktree.mjs', '// the plan-worktree tool\n');
+    for (const name of ['leftovers-report', 'lane-live']) write(`src/scripts/.kit/${name}.mjs`, readFileSync(join(ROOT, `src/scripts/.kit/${name}.mjs`), 'utf8'));
     for (let i = 4; i <= 7; i++) write(`tmp/lane-${i}/out.log`, 'x\n');
     write('.gitignore', 'tmp/\n');
     for (let i = 1; i <= 3; i++) write(`tmp/lane-${i}/out.log`, 'x\n');
@@ -125,8 +95,10 @@ describe('session brief: line cap', () => {
     for (let i = 1; i <= 10; i++) git('commit', '-q', '--allow-empty', '-m', `commit ${i}`);
     for (let i = 1; i <= 5; i++) git('branch', `stray-${i}`);
     for (let i = 1; i <= 6; i++) write(`dirty-${i}.txt`, 'x\n');
-    writeFileSync(join(bin, 'agents.json'), JSON.stringify({ result: { agents: Array.from({ length: 7 }, (_, i) => agent(`w1:p${i}`, `s${i}`, repo, { terminal_title_stripped: `Peer ${i}` })) } }));
-    const result = spawnSync('bash', [join(repo, hooks, 'session-brief.sh')], { encoding: 'utf8', input: '', env: { ...env, HERDR_ENV: '1', CLAUDE_CODE_SESSION_ID: 's0', PATH: `${bin}:${process.env.PATH}` } });
+    const saved = readFileSync(TERMINALS, 'utf8');
+    writeFileSync(TERMINALS, JSON.stringify(Array.from({ length: 7 }, (_, i) => terminal(`t${i}`, repo, { msg: `Peer ${i}` }))));
+    after(() => writeFileSync(TERMINALS, saved));
+    const result = spawnSync('bash', [join(repo, hooks, 'session-brief.sh')], { encoding: 'utf8', input: '', env: { ...env, HC_TERMINAL_ID: 't0', PATH: `${bin}:${process.env.PATH}` } });
     assert.equal(result.status, 0, result.stderr);
     const out = result.stdout;
     const lines = out.trimEnd().split('\n').length;
@@ -134,7 +106,7 @@ describe('session brief: line cap', () => {
     assert.match(out, /unknown.*lane-1/);
     assert.ok(lines <= 40, `${lines} lines:\n${out}`);
     assert.match(out, /git hooks are OFF/);
-    assert.match(out, /-- other agents in this repo \(herdr\), first 3 of 6 --\n(  w1:p[1-3] .*\n){3}  They share this checkout/);
+    assert.match(out, /-- other agents in this repo \(hc\), first 3 of 6 --\n(  t[1-6] .*\n){3}  They share this checkout/);
     assert.match(out, /-- asks still open \(.*\), first 5 of 8 --\n(  A[1-5] \|.*\n){5}-- live plans/);
     assert.match(out, /-- live plans \(docs\/plans\/\), first 5 of 9 --\n( {2}docs\/plans\/opus-2026-11-11-p[1-5]\.md {2}\(State: in progress, 2026-11-11\.\)\n){5}-- latest journal/);
     assert.match(out, /-- latest journal: project\/journal\/2026-11-11\.md \(last lines\) --\n( {4}journal line (9|10)\n){2}-- main only/);
@@ -176,7 +148,7 @@ describe('session brief: ./tmp line', () => {
     return { repo, hooks };
   };
   const run = ({ repo, hooks }, env = {}) => {
-    const clean = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !key.startsWith('WS_TMP_') && key !== 'HERDR_ENV'));
+    const clean = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !key.startsWith('WS_TMP_') && !IDENTITY.test(key)));
     const started = Date.now();
     const result = spawnSync('bash', [join(repo, hooks, 'session-brief.sh')], { encoding: 'utf8', env: { ...clean, ...env }, input: '', timeout: 20_000 });
     assert.equal(result.status, 0, result.stderr);

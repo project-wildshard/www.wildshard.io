@@ -1,0 +1,48 @@
+{
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "trailingComma": "all",
+  "arrowParens": "avoid",
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+  "bracketSpacing": true,
+  "sortPackageJson": false,
+  "sortImports": {
+    "groups": [
+      "builtin",
+      "external",
+      "internal",
+      ["parent", "sibling", "index"],
+      [
+        "type-external",
+        "type-internal",
+        "type-parent",
+        "type-sibling",
+        "type-index"
+      ]
+    ],
+    "newlinesBetween": true
+  },
+  "ignorePatterns": [
+    // repo-kit's stamped copies and the repo's own tooling under src/,
+    // not shard source (A9); repo-kit formats its own.
+    "src/scripts/**",
+    "src/test/.kit/**",
+    "dist/**",
+    "node_modules/**",
+    "test-results/**",
+    "playwright-report/**",
+    "pnpm-lock.yaml",
+    "**/*.md"
+  ],
+  "overrides": [
+    {
+      "files": ["*.json", "*.jsonc"],
+      "options": { "trailingComma": "none" }
+    }
+  ]
+}

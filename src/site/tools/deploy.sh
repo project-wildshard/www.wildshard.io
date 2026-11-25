@@ -8,7 +8,7 @@
 #
 # The export holds only this folder (P1-W1): its pages, COPY.md, public/ and facts.json, the game's facts committed here.
 # It is unpacked at tmp/site-deploy.XXXXXX, two levels below the repo root, so `vite` resolves from the root's
-# node_modules and vite.config.ts's `../../scripts/vite-tmp.mjs` finds the root's scripts/ (d7acaff). CI runs it too
+# node_modules and vite.config.ts's `../../scripts/vite-tmp.mjs` finds the root's src/scripts/ (d7acaff). CI runs it too
 # (.github/workflows/site-deploy.yml, MS10) on every push that changes src/site/. There CLOUDFLARE_API_TOKEN is the credential; locally wrangler's own login is.
 set -euo pipefail
 

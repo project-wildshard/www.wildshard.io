@@ -6,7 +6,7 @@
 
 At the day's first agent audit, run:
 
-    node scripts/disk-audit.mjs --root <repo> --root <another-repo>
+    node src/scripts/.kit/disk-audit.mjs --root <repo> --root <another-repo>
 
 The JSON lines list ended, live and unknown scratch and old keep-copies.
 Save the report in your existing lane scratch folder. The helper only
@@ -17,14 +17,14 @@ Git alternates and unpublished work before choosing an exact path.
 Keep live entries. Unknown owners need investigation; age alone never
 authorizes removal.
 
-Before removing an audited Git worktree, run scripts/keep-copy.mjs
+Before removing an audited Git worktree, run src/scripts/.kit/keep-copy.mjs
 with that exact worktree. Verify its manifest, bundle, patch and archive.
 A failed or incomplete copy means retain the source. For ordinary
 scratch, keep its irreplaceable files in an explicitly owned destination
 and verify the copy before manually removing the exact audited folder.
 Never delete dependencies' borrowed Git object directories.
 
-Review 14-day keep-copies with scripts/keep-copy-report.mjs. Inspect
+Review 14-day keep-copies with src/scripts/keep-copy-report.mjs. Inspect
 them before manually removing a particular old capture. No helper purges
 them.
 

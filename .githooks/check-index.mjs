@@ -8,12 +8,12 @@
 //   3. Per staged blob: 1 MB cap, credential scan, bash / module syntax.
 //   4. Journal: 30+ changed lines need a project/journal/*.md entry
 //      staged (D25; SKIP_JOURNAL=1).
-//   5. Staged ask files pass kit/scripts/asks.mjs check.
+//   5. Staged ask files pass src/scripts/.kit/asks.mjs check.
 //   6. Touching .githooks/, .agents/hooks/ (or the old .claude/hooks/) or
-//      kit/scripts/ runs the hook suite, the agent hook tests with it.
+//      src/scripts/.kit/ runs the hook suite, the agent hook tests with it.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
-import { blobSizes, checkBlob, git, herdrPeers, planWorktreeSlug, printPeers, rebaseHeadName, report } from './lib.mjs';
+import { blobSizes, checkBlob, git, peers, planWorktreeSlug, printPeers, rebaseHeadName, report } from './lib.mjs';
 
 // 0. Main only (D27), relaxed by J221/J240 (DEV-SPEED DS6): the canonical
 //    checkout commits on `main` only; a linked worktree commits only when
@@ -30,9 +30,13 @@ if (process.env.ALLOW_BRANCH !== '1') {
   if (linked) {
     const slug = planWorktreeSlug(top, common);
     if (slug === null) problems.push(`this linked worktree (${top}) is not <repo>/.worktrees/<slug>; make one with git worktree add -b plan/<slug> .worktrees/<slug> origin/main`);
-    else if (rebasing ? rebaseHeadName(rebaseDir) !== `refs/heads/plan/${slug}` : branch !== `plan/${slug}`) {
+    else {
+      const release = /^release-((?:dryrun-)?v\d+\.\d+\.\d+)$/u.exec(slug)?.[1];
+      const expected = release === undefined ? `plan/${slug}` : `release/${release}`;
+      if (rebasing ? rebaseHeadName(rebaseDir) !== `refs/heads/${expected}` : branch !== expected) {
       const what = rebasing ? `a rebase of ${rebaseHeadName(rebaseDir) ?? 'a detached HEAD'}` : branch ? `branch "${branch}"` : 'detached';
-      problems.push(`HEAD is ${what}, not plan/${slug} (this worktree's plan branch)`);
+      problems.push(`HEAD is ${what}, not ${expected} (this worktree's branch)`);
+      }
     }
   } else if (branch !== 'main' && !rebasing) {
     problems.push(`HEAD is ${branch ? `branch "${branch}"` : 'detached'}, not main; plan work belongs in <repo>/.worktrees/<slug> on plan/<slug>`);
@@ -52,7 +56,7 @@ for (let i = 0; i < changed.length; i++) {
 }
 console.error('  - staged for THIS commit:');
 console.error(lines.length ? lines.join('\n') : '      (nothing)');
-printPeers(herdrPeers(), 'live in this repo: stage only your own paths');
+printPeers(peers(), 'live in this repo: stage only your own paths');
 
 const whitespace = spawnSync('git', ['diff', '--cached', '--check'], { encoding: 'utf8' });
 if (whitespace.status !== 0) {
@@ -73,9 +77,9 @@ const sizes = blobSizes(entries.map((entry) => entry.object));
 const problems = entries.flatMap((entry) => checkBlob(entry, sizes.get(entry.object) ?? 0));
 if (report('commit blocked', problems)) process.exit(1);
 
-// Ask files (docs/tasks/asks/) follow kit/scripts/asks.mjs's rules. It reads
+// Ask files (docs/tasks/asks/) follow src/scripts/.kit/asks.mjs's rules. It reads
 // the staged blobs through the inherited GIT_INDEX_FILE.
-const asksTool = 'kit/scripts/asks.mjs';
+const asksTool = 'src/scripts/.kit/asks.mjs';
 if (files.some((path) => /^docs\/tasks\/asks\/[^/]+\.md$/.test(path)) && existsSync(asksTool)) {
   if (spawnSync(process.execPath, [asksTool, 'check'], { stdio: 'inherit' }).status !== 0) process.exit(1);
 }
@@ -122,7 +126,24 @@ if (process.env.SKIP_JOURNAL !== '1' && changedLines >= JOURNAL_MIN_LINES) {
   }
 }
 
-if (files.some((path) => /^(\.githooks|\.agents\/hooks|\.claude\/hooks|kit\/scripts)\//.test(path))) {
+// FAST-RELEASE FR-A4 (J505): a kit-owned file says so in its header ("Kit-owned ... repo-kit ... never in a shard repo").
+// In 11-2026 eleven shard repos renamed a word inside publish.yml, publish-cook.yml and publish-shard.mjs by hand; the
+// kit's sync then called them diverged, its ci ran red four days and none of the kit's publish fixes reached them. A
+// staged edit or delete of a file whose committed copy carries the mark is refused, unless the kit's stamp makes it
+// (KIT_STAMP=1, which sync.sh sets). Escape hatch (J381): ALLOW_KIT_EDIT=1, named in the commit body.
+const KIT_OWNED = /Kit-owned[^\n]*(?:repo-kit|never in a shard repo)/u;
+if (process.env.KIT_STAMP !== '1' && process.env.ALLOW_KIT_EDIT !== '1' && !existsSync('kit.mjs')) {
+  const owned = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=MD']).split('\0').filter(Boolean).filter((path) => {
+    const committed = spawnSync('git', ['show', `HEAD:${path}`], { encoding: 'utf8', maxBuffer: 1 << 26 });
+    return committed.status === 0 && KIT_OWNED.test(committed.stdout.slice(0, 4096));
+  });
+  if (report('commit blocked: a kit-owned file is edited in repo-kit, never here (FAST-RELEASE FR-A4)', owned.length ? [
+    ...owned.map((path) => `${path}: change repo-kit's copy under files/, then stamp it (sync.sh sets KIT_STAMP=1)`),
+    'A real emergency: ALLOW_KIT_EDIT=1, named in the commit body (J381).',
+  ] : [])) process.exit(1);
+}
+
+if (files.some((path) => /^(\.githooks|\.agents\/hooks|\.claude\/hooks|kit\/scripts|src\/scripts\/\.kit)\//.test(path))) {
   const testsIn = (dir) => (existsSync(dir) ? readdirSync(dir).filter((name) => name.endsWith('.test.mjs')).map((name) => `${dir}/${name}`) : []);
   const suite = [...testsIn('.githooks'), ...testsIn('.agents/hooks/test')];
   console.error('  - hooks changed: running node --test .githooks/*.test.mjs .agents/hooks/test/*.test.mjs');
