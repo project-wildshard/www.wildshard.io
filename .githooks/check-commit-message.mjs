@@ -4,8 +4,10 @@
 //   - Body and trailers wrapped at 72 (a lone long token such as a URL
 //     is allowed).
 //   - AI commits end with exactly one `Assisted-by: AGENT:MODEL`
-//     trailer in the final trailer block. No `Co-Authored-By:` for an
-//     AI and no "Generated with" / robot banners.
+//     trailer in the final trailer block, AGENT exactly `Claude` or
+//     `Codex` (not `Claude Code`, `Claude-Code` or `claude`; meta
+//     META-CLEAN-2 C7). No `Co-Authored-By:` for an AI and no
+//     "Generated with" / robot banners.
 // SKIP_ATTRIB=1 drops only the trailer requirement (human-only commit).
 // Git-generated merge / revert / fixup / squash / amend messages skip.
 import { readFileSync } from 'node:fs';
@@ -15,7 +17,9 @@ import { resolve } from 'node:path';
 export const TYPES = ['feat', 'fix', 'docs', 'chore', 'refactor', 'test', 'perf', 'build', 'ci', 'style', 'revert'];
 const SUBJECT = new RegExp(`^(?:${TYPES.join('|')})(?:\\([a-z0-9][a-z0-9._/-]*\\))?!?: \\S.*$`);
 const TRAILER = /^[A-Za-z][A-Za-z0-9-]*: \S.*$/;
-const ASSISTED = /^Assisted-by: ([^:\s](?:[^:]*[^:\s])?):(\S+)$/;
+export const AGENTS = ['Claude', 'Codex'];
+const ASSISTED = new RegExp(`^Assisted-by: (${AGENTS.join('|')}):(\\S+)$`);
+const FORM = 'Assisted-by: Claude:<model> or Assisted-by: Codex:<model>, e.g. Assisted-by: Claude:claude-opus-5-5';
 const PLACEHOLDER = /^(unknown|actual-model|model|model_version|latest|default|auto|n\/a|null|undefined)$/i;
 const AI = /claude|codex|chatgpt|openai|anthropic|cursor|copilot|gemini/i;
 const SCISSORS = /^# -+ >8 -+$/;
@@ -59,7 +63,7 @@ export function validate(raw, { human = false } = {}) {
   }
 
   const assisted = lines.filter((line) => /^assisted-by:/i.test(line));
-  if (!assisted.length) return human ? null : 'End AI commits with Assisted-by: AGENT_NAME:MODEL_VERSION (SKIP_ATTRIB=1 for a human-only commit).';
+  if (!assisted.length) return human ? null : `End AI commits with ${FORM} (SKIP_ATTRIB=1 for a human-only commit).`;
   if (assisted.length > 1) return 'Use exactly one Assisted-by trailer.';
 
   const at = lines.indexOf(assisted[0]);
@@ -70,7 +74,7 @@ export function validate(raw, { human = false } = {}) {
     return 'Assisted-by must sit in the final trailer block, after a blank line.';
   }
   const match = ASSISTED.exec(assisted[0]);
-  if (!match) return 'Malformed trailer: Assisted-by: AGENT_NAME:MODEL_VERSION (the agent name has no colon).';
+  if (!match) return `Sign as ${FORM}; the agent name is exactly Claude or Codex.`;
   if (PLACEHOLDER.test(match[2])) return `Use the real model, not "${match[2]}".`;
   return null;
 }

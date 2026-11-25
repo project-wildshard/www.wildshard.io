@@ -59,7 +59,20 @@ describe('commit message', () => {
     assert.match(validate(ok('fix: x', '🤖 Generated with [Claude Code](https://claude.com)')), /banner/);
   });
   test('refuses a placeholder model', () => {
-    assert.match(validate('fix: x\n\nBody.\n\nAssisted-by: Claude Code:unknown\n'), /real model/);
+    assert.match(validate('fix: x\n\nBody.\n\nAssisted-by: Claude:unknown\n'), /real model/);
+  });
+  test('accepts Claude:<model> and Codex:<model>', () => {
+    assert.equal(validate('fix: x\n\nBody.\n\nAssisted-by: Claude:claude-opus-5-5\n'), null);
+    assert.equal(validate('fix: x\n\nBody.\n\nAssisted-by: Codex:gpt-6.2-sol\n'), null);
+  });
+  test('refuses any other agent name, and names the accepted form', () => {
+    for (const name of ['Claude Code', 'Claude-Code', 'claude-code', 'claude', 'codex', 'Cursor', 'Claude Opus']) {
+      const error = validate(`fix: x\n\nBody.\n\nAssisted-by: ${name}:claude-opus-5-5\n`);
+      assert.match(error ?? '', /Assisted-by: Claude:<model> or Assisted-by: Codex:<model>/, name);
+    }
+  });
+  test('a missing trailer names the accepted form', () => {
+    assert.match(validate('fix: x\n\nBody.\n'), /Assisted-by: Claude:<model>/);
   });
   test('refuses a trailer that is not in the final block', () => {
     assert.match(validate(`fix: x\n\n${TRAILER}\n\nMore body.\n`), /final trailer block/);

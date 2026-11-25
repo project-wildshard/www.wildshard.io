@@ -7,6 +7,12 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/session-brief.sh\"",
             "statusMessage": "Reading the session brief"
+          },
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/session-cleanup.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Stopping processes left by ended sessions"
           }
         ]
       }
@@ -80,6 +86,12 @@
     "SessionEnd": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/session-cleanup.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Stopping the ended session's processes"
+          },
           {
             "type": "command",
             "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/scratch-end.mjs\"",

@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const HOOKS = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = join(HOOKS, '..', 'kit', 'scripts');
-export const TRAILER = 'Assisted-by: Claude Code:claude-opus-5-5';
+export const TRAILER = 'Assisted-by: Claude:claude-opus-5-5';
 export const ok = (subject, body = 'Why this matters.') => `${subject}\n\n${body}\n\n${TRAILER}\n`;
 
 export const roots = [];
@@ -20,7 +20,7 @@ after(() => {
 
 // Drop GIT_* (a hook running this suite exports its own GIT_INDEX_FILE)
 // and every bypass flag, then isolate from the user's git config.
-const BYPASS = new Set(['SKIP_ATTRIB', 'SKIP_JOURNAL', 'SKIP_CHECK', 'SKIP_BUDGET', 'ALLOW_BRANCH', 'ALLOW_BIG', 'ALLOW_SECRET', 'PRECOMMIT_SOFT_S', 'PRECOMMIT_HARD_S', 'HERDR_ENV', 'HERDR_PANE_ID', 'CLAUDE_CODE_SESSION_ID', 'SKIP_HERDR_PEERS']);
+const BYPASS = new Set(['WS_PUSH_REFS', 'SKIP_ATTRIB', 'SKIP_JOURNAL', 'SKIP_CHECK', 'SKIP_BUDGET', 'ALLOW_BRANCH', 'ALLOW_BIG', 'ALLOW_SECRET', 'PRECOMMIT_SOFT_S', 'PRECOMMIT_HARD_S', 'HC_TERMINAL_ID', 'HC_TERMINAL_SOCKET', 'HC_SCOPE', 'HC_SESSION', 'HC_SOCKET', 'CLAUDE_CODE_SESSION_ID', 'SKIP_PEERS', 'KIT_STAMP', 'ALLOW_KIT_EDIT']);
 export const ENV = {
   ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_') && !BYPASS.has(key))),
   GIT_CONFIG_NOSYSTEM: '1',

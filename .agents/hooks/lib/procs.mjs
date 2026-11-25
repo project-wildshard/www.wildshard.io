@@ -1,6 +1,8 @@
 // Process table helpers for lane cleanup (meta MULTI-AGENT-TOOLING MA11,
 // kit copy for REPO-KIT RK-1): .agents/hooks/subagent-cleanup.mjs
-// (SubagentStop) uses them; meta's scripts/lane-sweep.mjs has its own copy.
+// (SubagentStop) and .agents/hooks/session-cleanup.mjs (SessionEnd and
+// SessionStart, meta META-CLEAN-2 C8) use them; meta's
+// scripts/lane-sweep.mjs has its own copy.
 //
 // A "lane root" is a directory a lane owns outright: a plan worktree
 // (<repo>/.worktrees/<slug>, <repo>/.claude/worktrees/<slug>) or a lane's
@@ -10,9 +12,9 @@
 // directory, for tests. Cleanup only ever matches processes by cwd under such a root, by
 // ancestry, or by a subagent's own background command; never by name.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readlinkSync, realpathSync, statSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, readlinkSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, sep } from 'node:path';
+import { basename, dirname, sep } from 'node:path';
 
 /** The one directory (real path) lane roots must sit in, or '' for anywhere. */
 export const laneScope = () => {
@@ -145,6 +147,73 @@ export function withDescendants(procs, pids) {
     stack.push(...(children.get(pid) ?? []));
   }
   return out;
+}
+
+// A land and its main-watch outlive the lane that started them (land.mjs pushes, waits on CI and fast-forwards main
+// for up to an hour; main-watch follows main's CI after it). Killing one mid-flight left lands dead with exit 144
+// (opus-gcm11, 2026-11-15). main-push.mjs is the other repos' land (meta AGENTS.md: land in the background). Matched
+// by the script node runs, never by a bare name. From meta's lib/procs.mjs, with main-push added.
+const LANDING = /\bnode\s+(?:\S*\/)?scripts\/(?:land|main-watch|main-push)\.mjs(?:\s|$)/;
+
+/** Every land.mjs, main-push.mjs or main-watch.mjs process, everything it started, and the shells between it and
+ * `stop` (the session), which carry its pipes. Cleanup never kills these. */
+export function landingSpared(procs, stop = 0) {
+  const landing = [...procs.values()].filter((proc) => LANDING.test(proc.command)).map((proc) => proc.pid);
+  const spared = withDescendants(procs, landing);
+  for (const pid of landing) {
+    for (const up of ancestry(procs, pid)) {
+      if (up === stop) break;
+      spared.add(up);
+    }
+  }
+  return spared;
+}
+
+// MINI-DEVEX MD3: a launchd-kept served world (engine serve-keep.mjs) and the phone runner (phone-runner.mjs) outlive
+// every lane by design. Each writes its own and its children's pids to ~/.cache/wildshard/kept/<label>.pids, one per
+// line; cleanup never kills those, nor what they started. Also matched by the script node runs, never by a bare name.
+const KEPT = /\bnode\s+(?:\S*\/)?scripts\/memory\/iphone\/(?:serve-keep|phone-runner)\.mjs(?:\s|$)/;
+export const keptDir = () => process.env.WS_KEPT_DIR || `${homedir()}/.cache/wildshard/kept`;
+
+/** A claude or codex session process (the one every subagent's shells run under). */
+export function isAgentSession(command) {
+  const argv0 = basename(command.split(' ')[0]);
+  if (argv0 === 'claude' || argv0 === 'codex') return true;
+  return (argv0 === 'node' || argv0 === 'bun') && /\/(?:claude|codex)(?:\.m?js)?(?:\s|$)/.test(command);
+}
+
+// A launchd job outlives every lane by design (meta mini-nightkill DF7: launchd's children have ppid 1 and no
+// terminal, like a `nohup` server). launchctl list names every job's pid in this user's domains.
+/** Pids of this user's running launchd jobs (`launchctl list`); WS_LAUNCHD_PIDS (comma list, may be empty) for tests. */
+export function launchdJobs() {
+  const forced = process.env.WS_LAUNCHD_PIDS;
+  if (forced !== undefined) return forced.split(',').map(Number).filter((pid) => pid > 1);
+  if (process.platform !== 'darwin') return [];
+  const list = spawnSync('launchctl', ['list'], { encoding: 'utf8', timeout: 5000 });
+  return (list.stdout || '').split('\n').map((line) => Number(line.split('\t')[0])).filter((pid) => Number.isInteger(pid) && pid > 1);
+}
+
+/** Every launchd job of this user and everything it started, except what runs under a claude or codex session (an
+ * iTerm2 window is a launchd job too, and its sessions' lanes are still cleaned). */
+export function launchdSpared(procs, jobs = launchdJobs()) {
+  const sessions = [...procs.values()].filter((proc) => isAgentSession(proc.command)).map((proc) => proc.pid);
+  const agents = withDescendants(procs, sessions);
+  return new Set([...withDescendants(procs, jobs.filter((pid) => procs.has(pid)))].filter((pid) => !agents.has(pid)));
+}
+
+/** Every kept process (KEPT, or a pid in keptDir()), every launchd job (launchdSpared), and everything they started. */
+export function keptSpared(procs, dir = keptDir()) {
+  const pids = [...procs.values()].filter((proc) => KEPT.test(proc.command)).map((proc) => proc.pid);
+  let files = [];
+  try {
+    files = readdirSync(dir).filter((name) => name.endsWith('.pids'));
+  } catch {}
+  for (const name of files) {
+    try {
+      for (const line of readFileSync(`${dir}/${name}`, 'utf8').split('\n')) if (procs.has(Number(line.trim()))) pids.push(Number(line.trim()));
+    } catch {}
+  }
+  return new Set([...withDescendants(procs, pids), ...launchdSpared(procs)]);
 }
 
 const alive = (pid) => {

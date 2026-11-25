@@ -61,6 +61,18 @@
     },
     {
       "event": "SessionEnd",
+      "script": ".agents/hooks/session-cleanup.mjs",
+      "status": "Stopping the ended session's processes",
+      "timeout": 10
+    },
+    {
+      "event": "SessionStart",
+      "script": ".agents/hooks/session-cleanup.mjs",
+      "status": "Stopping processes left by ended sessions",
+      "timeout": 10
+    },
+    {
+      "event": "SessionEnd",
       "script": ".agents/hooks/scratch-end.mjs",
       "status": "Reporting this session's scratch for manual cleanup",
       "timeout": 10
