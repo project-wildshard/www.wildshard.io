@@ -4,11 +4,27 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+/** The npm-bin-deps version installed in node_modules, or undefined when none is. */
+export function installedRunner(root = process.cwd()) {
+  try {
+    return JSON.parse(readFileSync(resolve(root, 'node_modules/npm-bin-deps/package.json'), 'utf8')).version;
+  } catch (error) {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  }
+}
+
 export function checkBinPins(root = process.cwd()) {
   const pins = JSON.parse(readFileSync(resolve(root, 'src/scripts/.kit/bin-pins.json'), 'utf8'));
   const pkg = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
   const problems = [];
   if (pkg.devDependencies?.['npm-bin-deps'] !== pins.runner) problems.push('npm-bin-deps must match the kit runner pin');
+  // QA 11-25 row 56: a checkout not reinstalled since the runner pin moved keeps the old npr, which rewrites
+  // .bin-deps from the repo's own pnpm settings the first time a bin runs, so a later cache-profile check goes red.
+  const installed = installedRunner(root);
+  if (installed !== undefined && installed !== pins.runner) {
+    problems.push(`node_modules has npm-bin-deps ${installed}, not the pinned ${pins.runner}: run pnpm install`);
+  }
   if (pkg.binDependenciesInstaller !== pins.installer) problems.push('binary installer must match the kit profile');
   // D34: the bins never take the repo's pnpm settings, so every repo resolves one shared cache entry.
   if ('projectSettings' in pins && pkg.binDependenciesProjectSettings !== pins.projectSettings) {
