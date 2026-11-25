@@ -6,7 +6,7 @@
 //
 // creates <repo>/tmp/<task>/ and tmp/<task>/.owner, then prints the folder's absolute path. .owner is JSON: the session
 // id ($CODEX_THREAD_ID, else $CLAUDE_SESSION_ID, else $CLAUDE_CODE_SESSION_ID, else $WS_LANE_NAME), the lane name, the
-// herdr pane ($HERDR_PANE_ID), the start time and the purpose. DK4's SessionEnd hook removes the folders whose .owner
+// hc terminal ($HC_TERMINAL_ID), the start time and the purpose. DK4's SessionEnd hook removes the folders whose .owner
 // names the ending session. J358 makes cleanup report-only; a human audits and copies before removal.
 //
 // <task> is one plain folder name: letters, digits, '.', '_' and '-', not starting with '.', never containing '/' or
@@ -17,7 +17,7 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const ROOT = resolve(import.meta.dirname, '..', '..', '..');
+const ROOT = resolve(import.meta.dirname, '../../..');
 const TASK = /^[A-Za-z0-9_-][A-Za-z0-9._-]*$/u;
 
 /** Why a task name is refused, or null when it is a plain folder name.
@@ -43,7 +43,7 @@ export function ownerRecord(task, purpose, env, now, row = null) {
     task,
     session: env.CODEX_THREAD_ID || env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID || lane,
     lane,
-    pane: env.HERDR_PANE_ID || null,
+    pane: env.HC_TERMINAL_ID || null,
     agent: env.CODEX_THREAD_ID ? 'codex' : env.CLAUDE_SESSION_ID || env.CLAUDE_CODE_SESSION_ID ? 'claude' : lane ? 'codex' : 'unknown',
     row,
     receiptOffset,

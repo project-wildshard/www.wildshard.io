@@ -166,7 +166,7 @@ if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.a
   };
   const days = Number(flag('--days') ?? DEFAULT_DAYS);
   if (!Number.isInteger(days) || days < 1) throw new Error('--days takes a whole number of days, 1 or more');
-  const root = resolve(flag('--root') ?? resolve(import.meta.dirname, '..', '..', '..'));
+  const root = resolve(flag('--root') ?? resolve(import.meta.dirname, '../../..'));
   if (args.includes('--live')) throw new Error('--live was removed by REPO-DISK J358: this command only reports leftovers');
   const { rows, planned } = sweep({ root, days });
   const keptRows = rows.filter(row => row.action === 'keep');

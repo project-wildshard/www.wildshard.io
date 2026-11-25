@@ -30,3 +30,6 @@ its verbs still named `kit/` until this one. The push gate checks both.
 
 The agent rules follow: `AGENTS.md` takes the kit's main-only block, and
 its landing section shrinks to the one deploy note that still applies.
+
+repo-kit's hand-copied cleanup scripts (scratch-dir, scratch-sweep) are
+re-copied in their lean shape.
