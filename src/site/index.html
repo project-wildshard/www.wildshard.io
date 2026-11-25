@@ -60,10 +60,17 @@
 </header>
 
 <div class="trailer bk">
-  <video id="trailer" controls autoplay muted loop playsinline preload="metadata" poster="/media/trailer-alpha-poster.webp" aria-label="{{@Trailer · description}}">
+  <video id="trailer" controls autoplay muted loop playsinline preload="metadata" poster="/media/trailer-alpha-2-poster.webp" aria-label="{{@Trailer · description}}">
     <source media="(min-width: 1024px)" src="%TRAILER_WIDE%" type="video/mp4">
     <source src="%TRAILER_PHONE%" type="video/mp4">
   </video>
+  <p class="trailer-cap">{{Trailer · caption}}</p>
+</div>
+<div class="trailer-alpha1">
+  <video controls muted loop playsinline preload="none" poster="%ALPHA1_POSTER%" aria-label="{{@Trailer · alpha 1 description}}">
+    <source src="%ALPHA1_WIDE%" type="video/mp4">
+  </video>
+  <p class="trailer-cap">{{Trailer · alpha 1 caption}}</p>
 </div>
 
 <main class="wrap">

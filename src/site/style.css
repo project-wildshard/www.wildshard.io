@@ -141,6 +141,9 @@
   }
   .trailer { margin: 0 var(--g); position: relative; }
   .trailer video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
+  .trailer-cap { margin: 6px 0 0; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
+  .trailer-alpha1 { margin: 18px var(--g) 0; max-width: 420px; }
+  .trailer-alpha1 video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
 
   .plate { margin: 18px 0 0; position: relative; }
   .plate img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
@@ -309,6 +312,7 @@
     .masthead .status { max-width: 640px; }
 
     .trailer { max-width: 1280px; margin: 56px auto 0; }
+    .trailer-alpha1 { max-width: 1280px; margin: 18px auto 0; padding-right: 860px; box-sizing: border-box; }
 
     /* every section: a still left column, the visuals on the right */
     section { padding: 150px var(--g) 0; display: grid; grid-template-columns: var(--side) minmax(0, 1fr); column-gap: 72px; align-items: start; }

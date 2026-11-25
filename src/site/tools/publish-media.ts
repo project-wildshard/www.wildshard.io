@@ -3,6 +3,7 @@
 //   node src/site/tools/publish-media.ts <folder>
 //
 // <folder> holds the encoded loops (kept out of git): `trailer-1280.mp4`, `trailer-1080.mp4` (the phone copy, 1920 × 1080;
+// a trailer that replaces another keeps the one before as `alpha1`, shown in a smaller slot (meta ALPHA-2-TRAILER AT13);
 // an older folder's `trailer-720.mp4` is taken when there is none) and, for any shards whose loops
 // change, `<slug>-card.mp4` (5:4, the phone card) and `<slug>-wide.mp4` (16:9, the desktop card). Each file is uploaded once,
 // under a content-hashed key (`site/media/<name>-<hash8>.mp4`) in the private R2 bucket wildshard-records, which the site's
@@ -34,10 +35,12 @@ interface Loop {
 
 interface Media {
   trailer: Trailer
+  /** the alpha 1 trailer, kept in a smaller slot under the current one (meta J520) */
+  alpha1?: Trailer
   loops: Record<string, Loop>
 }
 
-const POSTER = '/media/trailer-alpha-poster.webp' // Renamed when the alpha trailer replaced the loop, so cached phones fetch it
+const POSTER = '/media/trailer-alpha-2-poster.webp' // A new name per trailer, so cached phones fetch the new one
 
 const manifestPath = resolve(import.meta.dirname, '..', 'media.json')
 
@@ -114,6 +117,9 @@ function main(): void {
     .map(f => f.slice(0, -'-card.mp4'.length))
     .filter(s => existsSync(join(dir, `${s}-wide.mp4`)))
 
+  const before = existsSync(manifestPath)
+    ? (JSON.parse(readFileSync(manifestPath, 'utf8')) as Media)
+    : undefined
   const media: Media = {
     trailer: {
       mp4: publish(dir, 'trailer-1280.mp4', known),
@@ -129,9 +135,15 @@ function main(): void {
     },
     // Start from the loops the manifest already names: the folder only replaces the shards it holds (the page looks
     // loops up by slug, so their order doesn't matter)
-    loops: existsSync(manifestPath)
-      ? (JSON.parse(readFileSync(manifestPath, 'utf8')) as Media).loops
-      : {},
+    loops: before?.loops ?? {},
+  }
+  // The trailer this one replaces stays on the page as alpha 1; a re-run of the same trailer keeps the alpha 1 it had
+  const kept =
+    before?.trailer !== undefined && before.trailer.mp4 !== media.trailer.mp4
+      ? before.trailer
+      : before?.alpha1
+  if (kept !== undefined) {
+    media.alpha1 = kept
   }
   for (const slug of slugs) {
     media.loops[slug] = {

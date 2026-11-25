@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url'
 //   <!--gen:shardfile-->  facts.json's `shardfile`: an excerpt of the template's built shard.json (MS15), hand-kept
 //                         and checked in here, so the site builds when the game is down
 //   <!--gen:media-->      media.json: the trailer and shard loops, on R2 behind the Worker (MS11, tools/publish-media.ts);
-//                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags
+//                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags;
+//                         %ALPHA1_WIDE% / %ALPHA1_POSTER% the alpha 1 trailer's, in its smaller slot
 //   <!--gen:grid-->       /mmo's grid to scale and <!--gen:gridmini--> home's lit 5 × 5 (desktop only), both drawn from
 //                         facts.json's grid (MR11, MR5); %SEAM% sizes /mmo's seam from the same facts
 //   <!--gen:claimgrid-->  home's waitlist radios and <!--gen:buildgrid--> /build's picture of them, from the same grid
@@ -255,6 +256,16 @@ function generated(): Plugin {
         out = out
           .replace('%TRAILER_PHONE%', esc(mp4Phone))
           .replace('%TRAILER_WIDE%', esc(mp4))
+      }
+      if (out.includes('%ALPHA1_')) {
+        // The alpha 1 trailer, in its smaller slot under the current one
+        const { mp4, poster } = fields(fields(media)?.alpha1) ?? {}
+        if (typeof mp4 !== 'string' || typeof poster !== 'string') {
+          throw new Error('src/site/media.json has no alpha1.mp4 / poster')
+        }
+        out = out
+          .replace('%ALPHA1_WIDE%', esc(mp4))
+          .replace('%ALPHA1_POSTER%', esc(poster))
       }
       if (out.includes('<!--gen:shardfile-->')) {
         out = out.replace('<!--gen:shardfile-->', shardfileHtml())
