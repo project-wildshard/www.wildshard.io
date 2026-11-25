@@ -4,7 +4,7 @@ export interface SweepOptions { now?: number; dryRun?: boolean }
 export interface CompileCacheOptions extends SweepOptions { capBytes?: number; maxAgeMs?: number }
 /** What one compile cache prune found and removed. */
 export interface CompileCacheReport { files: number; beforeBytes: number; removed: number; keptBytes: number }
-/** Where the run folder lives (default: the repo holding src/scripts/) and which janitor script a sweep starts. */
+/** Where the run folder lives (default: the repo holding scripts/) and which janitor script a sweep starts. */
 export interface TemporaryRunOptions { root?: string; janitor?: string }
 /** Milliseconds since a path changed; a folder another process has just removed counts as new. */
 export function age(path: string, now: number): number;

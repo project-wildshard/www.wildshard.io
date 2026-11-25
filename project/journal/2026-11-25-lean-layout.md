@@ -33,3 +33,6 @@ its landing section shrinks to the one deploy note that still applies.
 
 repo-kit's hand-copied cleanup scripts (scratch-dir, scratch-sweep) are
 re-copied in their lean shape.
+
+`vite-tmp` now holds the kit's exact lean text, which repo-kit's org
+coverage test compares against.

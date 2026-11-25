@@ -16,7 +16,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const HOUR = 3_600_000, GIB = 1024 ** 3;
-const ROOT = resolve(import.meta.dirname, '..', '..', '..');
+const ROOT = resolve(import.meta.dirname, '../../..');
 /** Vitest's folder name: nanoid(), 21 characters of [A-Za-z0-9_-]. */
 const VITEST_FOLDER = /^[A-Za-z0-9_-]{21}$/u;
 const VITEST_CHILDREN = new Set(['client', 'ssr']);
