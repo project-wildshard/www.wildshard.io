@@ -78,7 +78,20 @@ export function snapshot() {
     const proc = match && procs.get(Number(match[1]));
     if (proc && MARKERS.some((name) => match[2].includes(`${name}=`))) proc.env = parseMarkers(match[2]);
   }
+  // Linux's ps has no -E: read the markers from /proc/<pid>/environ (only our own user's processes are readable).
+  if (process.platform === 'linux') for (const proc of procs.values()) proc.env = { ...proc.env, ...procEnviron(proc.pid) };
   return procs;
+}
+
+/** The marker variables of a Linux process, from /proc/<pid>/environ; {} when it is gone or not ours. */
+export function procEnviron(pid, read = (path) => readFileSync(path, 'utf8')) {
+  let text;
+  try {
+    text = read(`/proc/${pid}/environ`);
+  } catch {
+    return {};
+  }
+  return Object.fromEntries(text.split('\0').map((pair) => pair.split(/=(.*)/s)).filter(([name]) => MARKERS.includes(name)).map(([name, value]) => [name, value ?? '']));
 }
 
 /**
