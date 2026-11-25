@@ -67,6 +67,17 @@ test('a watch loop goes whole: the unreadable tail shares the marked ugrep\'s pr
   assert.match(result.kill[0].reason, /process group 310 with 311/);
 });
 
+// Meta QA 11-25 row 23: on Linux every own process's markers are readable, and a CI job runs its steps in one process
+// group, so the group rule is off there: the hook passes groupSweep false and only marked processes go.
+test('with the group rule off (Linux), only marked processes go, never their unmarked group', () => {
+  const procs = table(...base(),
+    row(320, 1, 'node -e setTimeout(() => {}, 300000)', { pgid: 8348 }),
+    row(321, 1, 'node -e setTimeout(() => {}, 300000)', { owner: 200, pgid: 8348 }),
+  );
+  assert.deepEqual(killed(select(procs, { now: NOW, groupSweep: false })), [321]);
+  assert.deepEqual(killed(select(procs, { now: NOW })), [320, 321]);
+});
+
 test('a live session\'s processes are left alone', () => {
   const result = select(table(...base()), { now: NOW });
   assert.deepEqual(killed(result), []);
@@ -138,6 +149,20 @@ test('a young orphan, a process with a terminal, an app, a land and a kept pid a
   assert.deepEqual(left(result), [901, 902, 903, 904, 905]);
 });
 
+// Meta QA 11-25 row 23: on a Linux runner the job's node is actions-runner/_work/_tool/node/..., so a marked
+// session's process run with it was spared as "the CI runner". Only the runner's own processes are.
+test('a job process under the runner\'s _work tree is not the runner; the runner and its externals are', () => {
+  const procs = table(...base(),
+    row(910, 1, '/home/runner/actions-runner/_work/_tool/node/26.13.1/arm64/bin/node -e setTimeout(() => {}, 300000)', { owner: 200 }),
+    row(911, 1, '/home/runner/actions-runner/bin/Runner.Worker spawnclient 1 2'),
+    row(912, 911, '/home/runner/actions-runner/externals/node20/bin/node /home/runner/actions-runner/_work/_actions/x/dist/index.js', { owner: 200 }),
+    row(913, 1, '/bin/bash /home/runner/actions-runner/run.sh', { owner: 200 }),
+  );
+  const result = select(procs, { now: NOW });
+  assert.deepEqual(killed(result), [910]);
+  assert.deepEqual(left(result), [912, 913]);
+});
+
 test('parseMarkers reads the environment after the command', () => {
   const line = 'node dev.mjs TERM=xterm CLAUDECODE=1 CLAUDE_PID=35321 CLAUDE_CODE_SESSION_ID=abc-1 HOME=/Users/x';
   assert.deepEqual(parseMarkers(line), { CLAUDECODE: '1', CLAUDE_PID: '35321', CLAUDE_CODE_SESSION_ID: 'abc-1' });
@@ -164,10 +189,7 @@ test('on Linux the markers come from /proc/<pid>/environ; a gone or foreign proc
 
 // End to end with real processes: a fake session process named `claude` starts three sleepers (its own, one from
 // another session id, one with no marker), then runs the hook as its SessionEnd. Only its own sleeper may die.
-// QA 11-25 row 23: on the Linux CI runner the real kill still failed after the /proc fix. There, a sleeper left alive
-// reports what the hook saw (its log, ps and /proc) and skips, until that row finds why; macOS still asserts.
-const LINUX = process.platform === 'linux';
-test('SessionEnd, for real: the ended session\'s process dies, the rest live', async (t) => {
+test('SessionEnd, for real: the ended session\'s process dies, the rest live', async () => {
   mkdirSync(WORK, { recursive: true });
   const claude = join(WORK, 'claude');
   // The kit is "type": "module"; the fake session is CommonJS.
@@ -198,17 +220,6 @@ setTimeout(() => {
       return false;
     }
   };
-  if (LINUX && alive(pids.own)) {
-    const environ = (pid) => { try { return readFileSync(`/proc/${pid}/environ`, 'utf8').split('\0').filter((pair) => /^CLAUDE/.test(pair)).join(' '); } catch (error) { return String(error.code); } };
-    const ps = spawnSync('ps', ['-o', 'pid,ppid,pgid,stat,tty,lstart,command', '-p', Object.values(pids).join(',')], { encoding: 'utf8' }).stdout;
-    let log = '';
-    try { log = readFileSync(LOG, 'utf8'); } catch {}
-    const report = [`row 23 diagnostic: pids ${JSON.stringify(pids)}`, `hook stderr: ${run.stderr}`, `ps:\n${ps}`, `own environ: ${environ(pids.own)}`, `cleanup log:\n${log}`].join('\n');
-    process.stderr.write(`${report}\n`);
-    t.diagnostic(report);
-    t.skip('the real SessionEnd kill fails on the Linux CI runner (QA 11-25 row 23)');
-    return;
-  }
   assert.equal(alive(pids.own), false, 'the ended session\'s sleeper is killed');
   assert.equal(alive(pids.other), true, 'a sleeper from another session id is left');
   assert.equal(alive(pids.none), true, 'a sleeper with no marker is left');

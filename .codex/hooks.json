@@ -23,6 +23,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.agents/hooks/pkill-guard.mjs\"",
+            "statusMessage": "Checking for a kill by name or pattern"
+          },
+          {
+            "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/.agents/hooks/guard-git-add.sh\"",
             "statusMessage": "Checking shared Git index safety"
           },

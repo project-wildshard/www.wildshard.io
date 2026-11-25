@@ -21,6 +21,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.agents/hooks/pkill-guard.mjs\""
+          },
+          {
+            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.agents/hooks/guard-git-add.sh\""
           },
           {

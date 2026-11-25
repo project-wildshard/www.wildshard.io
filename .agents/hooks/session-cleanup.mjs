@@ -49,7 +49,10 @@ const MARKERS = ['CLAUDECODE', 'CLAUDE_PID', 'CLAUDE_CODE_SESSION_ID'];
 const KEEP = /(?:^|\s)--keep(?:[\s=]|$)/;
 const HERDR = /(?:^|\/)herdr(?:\s|$)/;
 const APP = /^(?:\/System)?\/Applications\/|^\/Users\/[^/]+\/Applications\//;
-const RUNNER = /\bRunner\.(?:Listener|Worker)\b|\bactions-runner\b/;
+// The runner itself (its Listener and Worker, run.sh, bin/ and externals/), never what a job runs from its _work tree:
+// on a Linux runner the tool-cache node lives in actions-runner/_work/_tool, so a bare `actions-runner` spared every
+// job process there, a marked session's sleeper too (meta QA 11-25 row 23).
+const RUNNER = /\bRunner\.(?:Listener|Worker)\b|\/actions-runner\/(?:run(?:svc)?\.sh|bin\/|externals\/)/;
 const MIN_AGE_MS = 60_000;
 const cleanupLog = () => process.env.WS_CLEANUP_LOG || `${homedir()}/.cache/wildshard/cleanup.log`;
 const keepFile = () => process.env.WS_SWEEP_KEEP || `${homedir()}/.cache/wildshard/sweep-keep.txt`;
@@ -99,10 +102,10 @@ export function procEnviron(pid, read = (path) => readFileSync(path, 'utf8')) {
  * procs: Map pid -> { pid, ppid, pgid, start (ms), tty, command, env }.
  * ended: { pid, session } of the session ending now (SessionEnd), or null.
  * protect: pids never touched (the hook and its ancestry). spared: precomputed pids to spare, pid -> reason.
- * keep: pids or command fragments from sweep-keep.txt.
+ * keep: pids or command fragments from sweep-keep.txt. groupSweep: take a marked root's unmarked process group (macOS).
  * Returns { kill: [{ pid, owner, reason }], left: [{ pid, owner, reason }] }.
  */
-export function select(procs, { ended = null, protect = new Set(), spared = new Map(), keep = [], now = Date.now(), minAgeMs = MIN_AGE_MS } = {}) {
+export function select(procs, { ended = null, protect = new Set(), spared = new Map(), keep = [], now = Date.now(), minAgeMs = MIN_AGE_MS, groupSweep = true } = {}) {
   const agents = new Set([...procs.values()].filter((proc) => isAgentSession(proc.command)).map((proc) => proc.pid));
   const hosts = new Set();
   for (const pid of agents) for (let up = procs.get(pid)?.ppid; up > 1 && procs.has(up) && !hosts.has(up); up = procs.get(up).ppid) hosts.add(up);
@@ -142,8 +145,10 @@ export function select(procs, { ended = null, protect = new Set(), spared = new 
   }
   // macOS hides a platform binary's environment (/usr/bin/tail, /bin/sleep), so in `tail -F log | ugrep x` only ugrep
   // shows the marker. Claude Code runs each command in its own process group: the rest of that group goes with it.
+  // Linux shows every one of our processes' environment (/proc), so there the markers alone decide: a CI job runs all
+  // its steps in one process group, and the group rule would take the job's unmarked processes (meta QA 11-25 row 23).
   const groups = new Map();
-  for (const [pid, root] of roots) {
+  if (groupSweep) for (const [pid, root] of roots) {
     const { pgid } = procs.get(pid);
     if (pgid > 1 && !groups.has(pgid) && !spareWhy(procs.get(pid))) groups.set(pgid, { pid, root });
   }
@@ -236,7 +241,7 @@ function run({ event, session, sweep, kill }) {
   const sessionPid = [...protect].find((pid) => isAgentSession(procs.get(pid).command)) ?? 0;
   const ended = event === 'SessionEnd' && sessionPid ? { pid: sessionPid, session } : null;
   const minAgeMs = Number(process.env.WS_CLEANUP_MIN_AGE_MIN ?? 1) * 60_000;
-  const result = select(procs, { ended, protect, spared: sparedSet(procs, sessionPid), keep: readKeep(), minAgeMs });
+  const result = select(procs, { ended, protect, spared: sparedSet(procs, sessionPid), keep: readKeep(), minAgeMs, groupSweep: process.platform !== 'linux' });
   const describe = (item) => `${item.pid} session=${item.owner}${procs.get(item.owner) ? '' : ' (gone)'} ${item.reason}: ${short(procs.get(item.pid).command)}`;
   const tag = sweep ? 'sweep' : event;
   if (sweep && !kill) {
