@@ -52,8 +52,9 @@ Clouds and wind still move; say so.
 
 ## The nine cameras
 
-`cameras.json` holds `query` (`chunk=<slug>&mute=1&skipintro=1&nolock=1&sw=0`),
-`settings`, `fp`, `god` (`topUp`, `diagUp`, `diagOut`, `lookAhead`;
+`cameras.json` holds `zone` (the slug, entered by the tap with its
+neighbours: no URL names a zone, J522), `query`
+(`mute=1&skipintro=1&nolock=1&sw=0`), `settings`, `fp`, `god` (`topUp`, `diagUp`, `diagOut`, `lookAhead`;
 shorter for a small level) and `anchors` (`id`, `P`, `faceTo`). The
 first run resolves the nine and writes them back; every later round
 re-shoots them exactly. Example: engine `docs/look-loop.md`.
