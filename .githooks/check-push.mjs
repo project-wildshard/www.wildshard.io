@@ -4,6 +4,7 @@
 // on stdin: <local ref> <local sha> <remote ref> <remote sha>.
 import { readFileSync } from 'node:fs';
 import { hatchesSet, hatchRefusal, unnamedHatches } from './check-commit-message.mjs';
+import { branchCreate, refLines } from './branch-restore.mjs';
 import { advertisedTips, blobSizes, checkBlob, git, peers, outgoingRange, printPeers, report } from './lib.mjs';
 
 printPeers(peers(), 'share this repo: a red check below may be their WIP, not yours');
@@ -35,7 +36,10 @@ for (const commit of commits) {
 
 // J381 (meta QA 11-25 row 51): a push made with a SKIP_* or ALLOW_* variable set names each one, with its reason, in
 // a commit it sends.
-const hatches = hatchesSet();
+// ALLOW_BRANCH_RESTORE (row 113) re-creates a deleted branch whose published commits cannot be edited to name it; it
+// never applies to a main push, so there it is named like any other hatch.
+const restoreOnly = refs.length > 0 && refLines(refs.map((row) => row.join(' ')).join('\n')).every(branchCreate);
+const hatches = hatchesSet().filter((name) => !(restoreOnly && name === 'ALLOW_BRANCH_RESTORE'));
 if (hatches.length && commits.size) {
   const messages = [...commits].map((sha) => git(['log', '-1', '--format=%B', sha]));
   const unnamed = hatches.filter((name) => messages.every((message) => unnamedHatches(message, [name]).length));

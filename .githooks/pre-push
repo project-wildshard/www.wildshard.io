@@ -3,7 +3,8 @@
 #    lines on stdin). Bypasses: ALLOW_BIG=1, ALLOW_SECRET=1.
 # 2. AGENTS.md (J241): .githooks/agents-md.mjs, the same ref lines.
 # 3. Push lane (full `pnpm check`): .githooks/run-checks.mjs.
-#    Bypass: SKIP_CHECK=1.
+#    Bypass: SKIP_CHECK=1. A push that only re-creates deleted branches
+#    skips it (.githooks/branch-restore.mjs; ALLOW_BRANCH_RESTORE=1).
 # Enable once per clone: git config core.hooksPath .githooks
 set -euo pipefail
 hooks="$(git rev-parse --show-toplevel)/.githooks"
@@ -13,4 +14,5 @@ refs="$(cat)"
 printf '%s\n' "$refs" | node "$hooks/check-push.mjs" "$2"
 printf '%s\n' "$refs" | node "$hooks/agents-md.mjs" push
 export WS_PUSH_REFS="$refs"
+export WS_PUSH_DESTINATION="$2"
 exec node "$hooks/run-checks.mjs" push

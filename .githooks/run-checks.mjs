@@ -18,6 +18,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
+import { restoreVerdict } from './branch-restore.mjs';
 import { git } from './lib.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
 import { failureReport } from './gate-report.mjs';
@@ -37,6 +38,14 @@ if (lane === 'push') {
   const lines = (process.env.WS_PUSH_REFS ?? '').split('\n').map((line) => line.trim().split(/\s+/u)).filter((row) => row[0] !== '');
   if (lines.length > 0 && lines.every(([, local = '', remote = '']) => /^0+$/u.test(local) && /^refs\/heads\/(?:plan\/[a-z0-9][a-z0-9._-]*|release\/v\d+\.\d+\.\d+)$/u.test(remote))) {
     console.error(`  - delete-only push of ${lines.map(([, , remote]) => remote).join(', ')}: no commit leaves this machine; push lane skipped`);
+    process.exit(0);
+  }
+  // Meta QA 11-25 row 113 (J381): re-creating deleted branches at a sha the destination's main holds or the
+  // deleted-branches log recorded sends no new code (.githooks/branch-restore.mjs); ALLOW_BRANCH_RESTORE=1 is its
+  // hatch. Never a main push.
+  const restore = restoreVerdict(root, process.env.WS_PUSH_REFS ?? '');
+  if (restore.ok) {
+    console.error(`  - ${restore.reason}; push lane skipped`);
     process.exit(0);
   }
 }
