@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 /** A workflow deploys to Vercel when it runs or installs the Vercel CLI. */
 const DEPLOYS = /\bvercel(?:_cli)?\s+deploy\b|install\s+(?:--global|-g)\s+vercel\b|\bvercel@\d/;
 /** It prunes when a step runs the shared script that is not switched off. */
-const PRUNES = /^\s*(?:-\s+)?(?:run:\s*)?node\s+scripts\/prune-deployments\.mjs\b/m;
+const PRUNES = /^\s*(?:-\s+)?(?:run:\s*)?node\s+src\/scripts\/prune-deployments\.mjs\b/m;
 
 /** @param {string} text @returns {'none'|'ok'|'missing'} */
 export function verdict(text) {
@@ -34,7 +34,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   for (const row of missing) {
     console.error(`${row.file} deploys to Vercel and never runs node src/scripts/prune-deployments.mjs (meta VERCEL-SPEND-PLAN)`);
   }
-  if (missing.length > 0 || (rows.length > 0 && !existsSync(join(root, 'scripts', 'prune-deployments.mjs')))) {
+  if (missing.length > 0 || (rows.length > 0 && !existsSync(join(root, 'src', 'scripts', 'prune-deployments.mjs')))) {
     if (missing.length === 0) console.error('src/scripts/prune-deployments.mjs is missing; copy it from repo-kit');
     process.exitCode = 1;
   } else {

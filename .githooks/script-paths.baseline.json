@@ -1,0 +1,4 @@
+{
+ "about": "meta QA 11-25 row 82: script paths that point where nothing is, still carried; shrink only (node .githooks/script-paths.mjs --prune).",
+ "findings": []
+}

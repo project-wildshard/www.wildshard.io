@@ -110,8 +110,9 @@ function readSpec(root, path, required) {
     if (!EVENTS.claude.has(event) || !EVENTS.codex.has(event)) problems.push(`${at} event ${JSON.stringify(event)} is not one both tools fire`);
     if (TOOL_EVENTS.has(event) && !Object.hasOwn(MATCHERS, tools)) problems.push(`${at} needs "tools": "shell" or "edit"`);
     if (!TOOL_EVENTS.has(event) && tools !== undefined) problems.push(`${at} ${event} takes no "tools"`);
-    if (typeof script !== 'string' || isAbsolute(script) || script.split('/').includes('..') || !/^(?:\.agents\/hooks|scripts)\/[\w./-]+$/.test(script)) {
-      problems.push(`${at} script must be a path under .agents/hooks/ or scripts/`);
+    if (typeof script !== 'string' || isAbsolute(script) || script.split('/').includes('..') || !/^(?:\.agents\/hooks|(?:src\/)?scripts)\/[\w./-]+$/.test(script)) {
+      // a lean repo's scripts live in src/scripts/ (D31), the old layout's in the root folder
+      problems.push(`${at} script must be a path under .agents/hooks/ or the repo's scripts folder`);
     } else if (!RUNNERS[script.slice(script.lastIndexOf('.'))]) {
       problems.push(`${at} script must end in ${Object.keys(RUNNERS).join(', ')}`);
     } else if (!existsSync(join(root, script)) || !statSync(join(root, script)).isFile()) {

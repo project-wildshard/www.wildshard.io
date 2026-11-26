@@ -20,6 +20,7 @@ import { pathToFileURL } from 'node:url';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { git } from './lib.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
+import { failureReport } from './gate-report.mjs';
 
 const lane = process.argv[2];
 const root = git(['rev-parse', '--show-toplevel']).trim();
@@ -144,6 +145,33 @@ if (lane === 'push' && existsSync(heroFresh) && process.env.SKIP_HERO !== '1') {
     process.exit(1);
   }
 }
+// meta CHUNK-PARAM-REMOVAL CP23 (J522): no new `chunk` address param beyond the repo's shrink-only baseline
+// (.githooks/chunk-param-guard.mjs; engine runs its own in lint:game). Bypass: SKIP_CHUNK_GUARD=1.
+const chunkGuard = join(root, '.githooks/chunk-param-guard.mjs');
+if (lane === 'push' && existsSync(chunkGuard) && process.env.SKIP_CHUNK_GUARD !== '1') {
+  const { chunkGuardVerdict, refusal } = await import(pathToFileURL(chunkGuard).href);
+  const { added, enforced } = chunkGuardVerdict(pkgDir);
+  if (added.length && !enforced) console.error(`  - chunk-param-guard, report only until the repo records its baseline: ${added.join(', ')}`);
+  if (added.length && enforced) {
+    console.error(`\n  X push blocked: ${refusal(added)}\n    SKIP_CHUNK_GUARD=1 is a last resort (J381).\n`);
+    copy?.remove();
+    process.exit(1);
+  }
+}
+// Meta QA 11-25 row 82 (J505): no new script pointing where nothing is (a relative import, an undeclared package, a ROOT
+// off the package root, a missing read path) beyond the repo's shrink-only baseline (.githooks/script-paths.mjs).
+// Bypass: SKIP_SCRIPT_PATHS=1.
+const scriptPaths = join(root, '.githooks/script-paths.mjs');
+if (lane === 'push' && existsSync(scriptPaths) && process.env.SKIP_SCRIPT_PATHS !== '1') {
+  const { scriptPathsVerdict, refusal: pathRefusal } = await import(pathToFileURL(scriptPaths).href);
+  const { added, enforced } = scriptPathsVerdict(pkgDir);
+  if (added.length && !enforced) console.error(`  - script-paths, report only until the repo records its baseline: ${added.length} finding(s) (node .githooks/script-paths.mjs)`);
+  if (added.length && enforced) {
+    console.error(`\n  X push blocked: ${pathRefusal(added)}\n    SKIP_SCRIPT_PATHS=1 is a last resort (J381).\n`);
+    copy?.remove();
+    process.exit(1);
+  }
+}
 const run = ({ name, args }) => new Promise((done) => {
   const child = spawn('pnpm', ['run', '--silent', ...args], { cwd: pkgDir, env });
   let output = '';
@@ -159,7 +187,9 @@ const seconds = (Date.now() - started) / 1000;
 copy?.remove();
 
 const failed = results.filter((result) => result.code !== 0);
-for (const { name, output } of failed) console.error(`\n  X pnpm ${name} failed:\n${output.trim().replace(/^/gm, '    ')}`);
+// Meta QA 11-25 row 75: a long output goes whole to tmp/push-gate/, and the report ends with the failing step.
+const logOf = (name) => join(root, 'tmp', 'push-gate', `${lane}-${name.replaceAll(/[^\w.-]/gu, '-')}.log`);
+for (const { name, output } of failed) console.error(`\n${failureReport({ name, output, logPath: logOf(name) })}`);
 if (failed.length) {
   const fixer = scripts.fix ? 'pnpm fix fixes' : 'pnpm lint:fix / pnpm format fix';
   const fix = lane === 'commit' ? ` (${fixer} most of it)` : '';
