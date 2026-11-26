@@ -16,7 +16,12 @@
 //       (`join(root, 'scripts', file)`, `ROOT / 'scripts' / name`), a regex (`/^scripts\//`), a Python or shell
 //       climb counted from the old depth, a workflow's sparse checkout or `paths:`, a package.json script; and a
 //       `pnpm <x:y>` in shell, a workflow or package.json whose script the package no longer has. Every code file is
-//       read (.py, .sh and tests too, .agents/ aside), with .github/workflows/ and package.json.
+//       read (.py, .sh and tests too, .agents/ aside), with .github/workflows/ and package.json. A root climbed from a
+//       src/scripts/ or src/test/ file's own folder (meta QA 11-25 row 118: `resolve(import.meta.dirname, '..')`,
+//       `path.resolve(__dirname, '..')`, `new URL('../', import.meta.url)`, `$(dirname "$0")/..`, a `cd` there,
+//       `Path(__file__).parent.parent`, `os.path.dirname(os.path.dirname(__file__))`, a folder variable climbed again)
+//       is counted against the file's real depth: a root-named one (`toolsRoot`, `REPO`, a `cd`) must reach the repo
+//       or package root, and an unnamed or other one may not stop at src/.
 // Code inside strings is not this file's code: a template literal (nested ones too) and a quoted string that can't be a
 // module name (a `node -e` source, a worker body) are blanked first. A line that names a file the build writes beside
 // the script says so in a comment, `// script-paths: <why>`, and is not judged. A missing target the repo's .gitignore
@@ -205,9 +210,191 @@ const PATH_CALL = /\b(?:join|resolve|resolvePath|pathResolve|Path|mkdirSync|exis
 const REGEX = /(?:^|[\^(|:]|(?<!\\)\/)(kit\\\/scripts|test\\\/tooling|scripts)\\\//gu; // script-paths: the moved folders themselves
 /** A run of a namespaced package script (`pnpm test:hooks`, `['pnpm','run','--silent','check:asks']`): never a pnpm command. */
 const PNPM_RUN = /\bpnpm\s+(?:run\s+)?(?:--silent\s+)?([a-z][\w-]*:[\w:-]+)|\[\s*['"]pnpm['"]\s*,\s*(?:['"]run['"]\s*,\s*)?(?:['"]--silent['"]\s*,\s*)?['"]([a-z][\w-]*:[\w:-]+)['"]/gu;
-/** A Python or shell climb to the repo root, assigned to ROOT, REPO or REPO_ROOT. */
-const PY_CLIMB = /^\s*(ROOT|REPO|REPO_ROOT)\s*=.*?Path\(__file__\)(?:\.resolve\(\))?(?:((?:\.parent(?!s))+)|\.parents\[(\d+)\])/mu;
-const SH_CLIMB = /^\s*(ROOT|REPO|REPO_ROOT)=.*?\$\(dirname\s+(?:--\s+)?"?\$(?:0|\{BASH_SOURCE\[0\]\}|BASH_SOURCE)"?\)((?:\/\.\.)*)/mu;
+/** A name that holds a repo root: `ROOT`, `toolsRoot`, `REPO`, `repoDir`, `checkout`; a shell `cd` lands the run there. */
+const ROOT_LIKE = /root|repo|checkout|^cd$/iu;
+/** The calls that put path parts together (JavaScript and Python's os.path), and the one-argument ones that keep the
+ *  folder (`resolve(x)`, `fileURLToPath(x)`, `os.path.abspath(x)`). */
+const JOINS = /^(?:path\.|posix\.|os\.path\.)?(?:join|resolve|resolvePath|pathResolve)$/u;
+const KEEPS = /^(?:path\.|posix\.|os\.path\.|url\.)?(?:resolve|resolvePath|pathResolve|fileURLToPath|normalize|abspath|realpath|normpath|String)$/u;
+const DIRNAME = /^(?:path\.|posix\.|os\.path\.)?dirname$/u;
+/** Where a call starts: a path call, `new URL(`, `Path(`, a dirname. */
+const CALL_START = /(?<![\w$.])(?:new\s+URL|(?:path\.|posix\.|os\.path\.|url\.)?[A-Za-z_$][\w$]*)\s*\(/gu;
+
+/** The index just past the parenthesis closing the one at `open`, or -1. @param {string} text @param {number} open */
+function closing(text, open) {
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === '(' || text[i] === '[' || text[i] === '{') depth++;
+    else if (text[i] === ')' || text[i] === ']' || text[i] === '}') {
+      depth--;
+      if (depth === 0) return i + 1;
+    } else if (text[i] === '\n' && depth > 3) return -1;
+  }
+  return -1;
+}
+
+/** The top-level arguments of a call's inside. @param {string} inside */
+function argumentsOf(inside) {
+  const parts = [];
+  let depth = 0, from = 0;
+  for (let i = 0; i < inside.length; i++) {
+    const ch = inside[i];
+    if (ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === ')' || ch === ']' || ch === '}') depth--;
+    else if (ch === ',' && depth === 0) {
+      parts.push(inside.slice(from, i).trim());
+      from = i + 1;
+    }
+  }
+  parts.push(inside.slice(from).trim());
+  return parts.filter((part) => part !== '');
+}
+
+/**
+ * How many folders up from the file an expression lands (0: the file, 1: its folder, 2: the folder above), when it is
+ * a pure climb: the script's own place (`import.meta.dirname`, `__dirname`, `import.meta.url`, `__file__`, a variable
+ * holding one) with only `..` parts, dirnames, parents and wrappers that keep the folder. Null for anything else.
+ * @param {string} expression @param {Map<string, number>} known
+ * @returns {number | null}
+ */
+export function climbOf(expression, known) {
+  let rest = expression.trim();
+  let up = null;
+  // the head: a place, a variable or a call
+  const place = /^(?:import\.meta\.dirname|__dirname)\b/u.exec(rest) ?? /^(?:import\.meta\.(?:url|filename)|__filename|__file__)\b/u.exec(rest);
+  if (place !== null) {
+    up = /dirname/u.test(place[0]) ? 1 : 0;
+    rest = rest.slice(place[0].length);
+  } else if (/^Path\(/u.test(rest)) {
+    const end = closing(rest, 4);
+    if (end === -1) return null;
+    up = climbOf(rest.slice(5, end - 1), known);
+    rest = rest.slice(end);
+  } else {
+    const call = /^(new\s+URL|(?:path\.|posix\.|os\.path\.|url\.)?[A-Za-z_$][\w$]*)\s*\(/u.exec(rest);
+    if (call !== null) {
+      const open = call[0].length - 1, end = closing(rest, open);
+      if (end === -1) return null;
+      const args = argumentsOf(rest.slice(open + 1, end - 1)), name = call[1];
+      if (/^new\s+URL$/u.test(name)) {
+        const dots = /^['"`]((?:\.\.?\/?)+)['"`]$/u.exec(args[0] ?? '');
+        if (dots === null || args.length !== 2 || climbOf(args[1], known) !== 0) return null;
+        up = 1 + (dots[1].match(/\.\./gu) ?? []).length;
+      } else if (DIRNAME.test(name) && args.length === 1) {
+        const inner = climbOf(args[0], known);
+        up = inner === null ? null : inner + 1;
+      } else if (JOINS.test(name) && args.length > 1) {
+        const inner = climbOf(args[0], known);
+        if (inner === null || !args.slice(1).every((arg) => /^['"]\.\.?(?:\/\.\.?)*\/?['"]$/u.test(arg))) return null;
+        up = inner + args.slice(1).join('').split('..').length - 1;
+      } else if (KEEPS.test(name) && args.length === 1) up = climbOf(args[0], known);
+      else return null;
+      rest = rest.slice(end);
+    } else {
+      const name = /^[A-Za-z_$][\w$]*/u.exec(rest)?.[0];
+      if (name === undefined || !known.has(name)) return null;
+      up = known.get(name) ?? null;
+      rest = rest.slice(name.length);
+    }
+  }
+  if (up === null) return null;
+  // the tail: .resolve(), .absolute(), .parent, .parents[N], .href, .pathname
+  for (;;) {
+    const step = /^\s*\.(?:(resolve|absolute)\(\)|(parent)(?![\w[])|parents\[(\d+)\]|(href|pathname)\b)/u.exec(rest);
+    if (step === null) break;
+    if (step[2] !== undefined) up++;
+    else if (step[3] !== undefined) up += Number(step[3]) + 1;
+    rest = rest.slice(step[0].length);
+  }
+  return rest.trim() === '' ? up : null;
+}
+
+/**
+ * Every pure climb in a code file, with the folder it lands on and the name it is given (`const toolsRoot = …`,
+ * `cwd: …`, `ROOT=…`, a shell `cd`): JavaScript and TypeScript (`resolve(import.meta.dirname, '..')`,
+ * `path.resolve(__dirname, '..')`, `new URL('../', import.meta.url)`, a variable climbed again, aliased joins such as
+ * `resolve as absolute`), Python (`Path(__file__).parent.parent`, `os.path.dirname(os.path.dirname(__file__))`) and shell
+ * (`$(dirname "$0")/..`, `cd "$(dirname "$0")/.."`, a folder variable then `"$DIR/.."`).
+ * @param {string} file @param {string} raw @param {string} text the file with its comments blanked
+ * @returns {{ at: number, to: string, name: string, written: string }[]}
+ */
+export function climbs(file, raw, text) {
+  const depthTo = (/** @type {number} */ up) => {
+    let dir = file;
+    for (let k = 0; k < up; k++) dir = dir === '.' || dir.startsWith('..') ? posix.join(dir, '..') : posix.dirname(dir);
+    return dir;
+  };
+  /** The name a value at `at` is given on its line: `NAME =`, `NAME:` or a `cd`. */
+  const nameAt = (/** @type {string} */ body, /** @type {number} */ at) => {
+    const before = body.slice(body.lastIndexOf('\n', at - 1) + 1, at);
+    return /([A-Za-z_$][\w$]*)\s*(?:=(?![=>])|:(?!:))[^=:]*$/u.exec(before)?.[1] ?? (/\bcd\s+(?:--\s+)?"?$/u.test(before) ? 'cd' : '');
+  };
+  /** @type {{ at: number, to: string, name: string, written: string }[]} */
+  const found = [];
+  if (/\.(?:sh|bash)$/u.test(file)) {
+    /** @type {Map<string, number>} */
+    const folders = new Map();
+    const here = String.raw`\$\(\s*dirname\s+(?:--\s+)?"?\$(?:0|\{0\}|\{BASH_SOURCE\[0\]\}|BASH_SOURCE)"?\s*\)`;
+    for (let pass = 0; pass < 2; pass++) {
+      const refs = [...folders.keys()].map((name) => String.raw`\$\{?${name}\}?`);
+      const climb = new RegExp(String.raw`(${[here, ...refs].join('|')})((?:\/\.\.)*)(?![\w/.-]*\/[\w-])`, 'gu');
+      for (const match of text.matchAll(climb)) {
+        const base = new RegExp(here, 'u').test(match[1]) ? 1 : folders.get(/\w+/u.exec(match[1].slice(1))?.[0] ?? '');
+        if (base === undefined) continue;
+        const up = base + (match[2].match(/\.\./gu) ?? []).length, name = nameAt(text, match.index);
+        const line = text.slice(text.lastIndexOf('\n', match.index - 1) + 1, text.indexOf('\n', match.index) === -1 ? undefined : text.indexOf('\n', match.index));
+        // a folder variable (DIR="$(cd "$(dirname "$0")" && pwd)") is climbed again later: remember it
+        if (name !== '' && name !== 'cd' && new RegExp(String.raw`^\s*(?:export\s+|local\s+|readonly\s+)?${name}=`, 'u').test(line)) folders.set(name, up);
+        if (pass === 1 && match[2] !== '') found.push({ at: match.index, to: depthTo(up), name, written: match[0] });
+      }
+    }
+    return found;
+  }
+  const python = file.endsWith('.py');
+  const body = python ? text : statements(text);
+  /** @type {Map<string, number>} */
+  const known = new Map();
+  // a node:path import may rename a join (`import { resolve as absolute } from 'node:path'`)
+  const aliases = [...body.matchAll(/\b(join|resolve|dirname)\s+as\s+([A-Za-z_$][\w$]*)/gu)].map((m) => [m[2], m[1]]);
+  const unalias = (/** @type {string} */ part) => aliases.reduce((out, [alias, real]) => out.replaceAll(new RegExp(String.raw`(?<![\w$.])${alias.replaceAll('$', '\\$')}\s*\(`, 'gu'), `${real}(`), part);
+  for (let pass = 0; pass < 3; pass++) {
+    const seen = known.size;
+    // a variable holding a place: const here = import.meta.dirname; ROOT = Path(__file__).parent; root = resolve(here, '..')
+    for (const match of body.matchAll(/(?:\b(?:const|let|var)\s+|^\s*)([A-Za-z_$][\w$]*)\s*(?::\s*string\s*)?=(?![=>])\s*/gmu)) {
+      const from = match.index + match[0].length;
+      let end = from, depth = 0;
+      while (end < body.length && !(depth === 0 && /[,;\n]/u.test(body[end]))) {
+        if ('([{'.includes(body[end])) depth++;
+        else if (')]}'.includes(body[end])) depth--;
+        if (depth < 0) break;
+        end++;
+      }
+      const up = climbOf(unalias(body.slice(from, end)), known);
+      if (up !== null) known.set(match[1], up);
+    }
+    if (known.size === seen) break;
+  }
+  const names = [...known.keys()].map((name) => name.replaceAll('$', '\\$'));
+  const head = new RegExp(String.raw`(?<![\w$.])(?:import\.meta\.dirname|__dirname|Path\(|new\s+URL\s*\(|(?:path\.|posix\.|os\.path\.|url\.)?[A-Za-z_$][\w$]*\s*\(${names.length > 0 ? `|(?:${names.join('|')})\\b` : ''})`, 'gu');
+  let past = 0;
+  for (const match of body.matchAll(head)) {
+    if (match.index < past) continue;
+    // the longest pure climb starting here: a call through its closing parenthesis, then any .parent tail
+    let end = match.index + match[0].length;
+    if (match[0].endsWith('(')) end = closing(body, end - 1);
+    if (end === -1) continue;
+    const tail = /^(?:\s*\.(?:resolve\(\)|absolute\(\)|parent(?![\w[])|parents\[\d+\]|href\b|pathname\b))*/u.exec(body.slice(end))?.[0] ?? '';
+    const written = body.slice(match.index, end + tail.length);
+    // a Python path joined on (`… / 'x'`) or a JavaScript member read off it is not the climb's end
+    if (/^\s*(?:\/(?![/*])|\.\w)/u.test(body.slice(end + tail.length))) continue;
+    const up = climbOf(unalias(written), known);
+    if (up === null) continue;
+    past = end + tail.length;
+    const climbed = up - (known.get(/^[A-Za-z_$][\w$]*/u.exec(written)?.[0] ?? '') ?? 1);
+    if (up >= 2 && (climbed > 0 || /\.\.|parent|dirname/u.test(written))) found.push({ at: match.index, to: depthTo(up), name: nameAt(body, match.index), written: written.replaceAll(/\s+/gu, ' ') });
+  }
+  return found;
+}
 
 /** The text with JavaScript comments blanked (line lengths kept), quotes and templates read as strings: unlike code(), a
  *  string holding `/*` or `//` (a glob, a URL) is not a comment. @param {string} text */
@@ -252,7 +439,6 @@ function hashless(text) {
  */
 export function movedFindings({ paths, read, exists }) {
   const moves = LEAN_MOVES.filter(([from, to]) => !paths.some((path) => path.startsWith(`${from}/`)) && exists(to));
-  if (moves.length === 0) return [];
   /** @type {string[]} */
   const findings = [];
   /** A finding when `path` is under a moved folder and only the new place holds it. */
@@ -311,6 +497,18 @@ export function movedFindings({ paths, read, exists }) {
       const line = text.slice(0, at).split('\n').length - 1;
       return MARKED.test(lines[line] ?? '') || (!manifest && ABOVE.test(lines[line - 1] ?? ''));
     };
+    // a root climbed from the script's own folder, counted against its real depth (QA 11-25 rows 91 and 118):
+    // judged in every src/scripts/ and src/test/ file, even where a stray scripts/ file keeps that move from counting
+    if (!manifest && !workflow && LEAN_MOVES.some(([, to]) => file.startsWith(`${to}/`))) {
+      for (const climb of climbs(file, raw, text)) {
+        if (marked(climb.at)) continue;
+        const home = packageDir(file), name = (/** @type {string} */ at) => (at === '.' ? 'the repo root' : at);
+        const rooted = ROOT_LIKE.test(climb.name), source = /src|source/iu.test(climb.name);
+        if (climb.to === home || climb.to === '.' || !(rooted || (climb.to === 'src' && !source))) continue;
+        findings.push(`${file}: moved climb ${climb.name === '' ? climb.written : climb.name} is ${name(climb.to)}, not ${name(home)}`);
+      }
+    }
+    if (moves.length === 0) continue;
     // a path written out: 'scripts/x.mjs', './scripts/x' in a `node -e` source, "$REPO/scripts/x.py", `${root}/scripts/x`
     for (const match of text.matchAll(MOVED_PATH)) {
       const [, lead, dots, path, slash] = match, at = match.index + lead.length;
@@ -346,16 +544,6 @@ export function movedFindings({ paths, read, exists }) {
     // a regex naming the folder: /^scripts\//
     for (const match of text.matchAll(REGEX)) {
       if (!marked(match.index)) judge(file, match[1].replaceAll('\\/', '/'), `${match[1]}\\/`);
-    }
-    // a climb counted from the old depth: ROOT = Path(__file__).parent in a tool one folder deeper now, REPO=$(dirname $0)/..
-    const climb = PY_CLIMB.exec(text) ?? SH_CLIMB.exec(text);
-    if (climb !== null && !marked(climb.index) && moves.some(([, to]) => file.startsWith(`${to}/`))) {
-      const up = climb[3] !== undefined ? Number(climb[3]) + 1
-        : climb[2]?.startsWith('.parent') ? climb[2].split('.parent').length - 1 : 1 + (climb[2]?.match(/\.\./gu) ?? []).length;
-      let dir = file;
-      for (let k = 0; k < up; k++) dir = posix.dirname(dir);
-      const home = packageDir(file), name = (/** @type {string} */ at) => (at === '.' ? 'the repo root' : at);
-      if (dir !== home) findings.push(`${file}: moved climb ${climb[1]} is ${name(dir)}, not ${name(home)}`);
     }
   }
   return [...new Set(findings)];
