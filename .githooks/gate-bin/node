@@ -1,0 +1,10 @@
+#!/bin/sh
+# Keep ordinary pnpm and tooling calls on the real Node without a second startup.
+for arg in "$@"; do
+  case "$arg" in
+    --test|*vitest.mjs|*/vitest/dist/cli.js)
+      exec "$WS_GATE_NODE" "${0%/*}/../gate-test-command.mjs" "$@"
+      ;;
+  esac
+done
+exec "$WS_GATE_NODE" "$@"

@@ -17,6 +17,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { gateTestEnvironment } from './gate-workers.mjs';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { restoreVerdict } from './branch-restore.mjs';
 import { git } from './lib.mjs';
@@ -131,7 +132,8 @@ if (copy === null && !existsSync(join(pkgDir, 'node_modules'))) {
 
 // Hooks export GIT_INDEX_FILE and friends; tools that shell out to git
 // (knip, tests that build repos) must see a normal environment.
-const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+const env = lane === 'push' ? gateTestEnvironment(cleanEnv) : cleanEnv;
 // Install a missing shared tool cache from its committed lock before checks.
 // Frozen mode refuses stale pins instead of silently rewriting the checkout.
 if (manifest.binDependencies !== undefined) {
