@@ -1,8 +1,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { cpSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { cpSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { ENV, ok, roots, sandbox } from './test-helpers.mjs';
 
 describe('pre-commit hook', () => {
@@ -103,14 +104,16 @@ describe('pre-commit hook', () => {
   test('a separate Git dir never makes its parent folder a canonical checkout', () => {
     const { root, git, commit } = sandbox();
     commit({ 'a.txt': 'a\n' }, MSG);
-    // Move the Git dir out of the checkout: <root>/.git becomes a gitfile.
-    const store = `${root}-store`;
-    roots.push(store);
-    git(['init', '-q', `--separate-git-dir=${store}`]);
+    // Keep the relocated Git store and its sibling worktree in a private fixture.
+    const outside = mkdtempSync(join(tmpdir(), 'repo-hooks-separate-git-'));
+    roots.push(outside);
+    const store = join(outside, 'git-store');
+    const relocated = git(['init', '-q', `--separate-git-dir=${store}`]);
+    assert.equal(relocated.status, 0, relocated.stderr);
     // A worktree placed under the store's parent folder is not the canonical checkout's .worktrees/.
-    const fake = join(dirname(store), '.worktrees', 'foo');
-    roots.push(join(dirname(store), '.worktrees'));
-    git(['worktree', 'add', '-q', '-b', 'plan/foo', fake]);
+    const fake = join(outside, '.worktrees', 'foo');
+    const linked = git(['worktree', 'add', '-q', '-b', 'plan/foo', fake]);
+    assert.equal(linked.status, 0, linked.stderr);
     cpSync(join(root, '.githooks'), join(fake, '.githooks'), { recursive: true });
     writeFileSync(join(fake, 'b.txt'), 'b\n');
     const run = (args) => spawnSync('git', args, { cwd: fake, encoding: 'utf8', env: ENV });
