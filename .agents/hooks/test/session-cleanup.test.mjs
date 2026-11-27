@@ -1,8 +1,9 @@
 // meta META-CLEAN-2 C8 (kit port, QA 11-25 row 3): the SessionEnd / SessionStart cleanup hook
-// (.agents/hooks/session-cleanup.mjs). The selection is a pure function fed
-// with fake process rows, so nothing real is spawned or killed here.
+// (.agents/hooks/session-cleanup.mjs). Selection tests use fake process rows;
+// the SessionEnd integration test owns its sleepers.
 // Run: pnpm test:agent-hooks
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { dirname, join, resolve } from 'node:path';
 import { chmodSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { after, test } from 'node:test';
@@ -16,13 +17,7 @@ const NOW = Date.parse('2026-11-25T12:00:00Z');
 const HOUR = 3_600_000;
 const LOG = join(repoDir, 'tmp/session-cleanup-test.log');
 const WORK = join(repoDir, `tmp/session-cleanup-test-${process.pid}`);
-const started = new Set();
 after(() => {
-  for (const pid of started) {
-    try {
-      process.kill(pid, 'SIGKILL');
-    } catch {}
-  }
   rmSync(LOG, { force: true });
   rmSync(WORK, { recursive: true, force: true });
 });
@@ -187,43 +182,78 @@ test('on Linux the markers come from /proc/<pid>/environ; a gone or foreign proc
   assert.deepEqual(procEnviron(8, () => { throw Object.assign(new Error('EACCES'), { code: 'EACCES' }); }), {});
 });
 
-// End to end with real processes: a fake session process named `claude` starts three sleepers (its own, one from
-// another session id, one with no marker), then runs the hook as its SessionEnd. Only its own sleeper may die.
-test('SessionEnd, for real: the ended session\'s process dies, the rest live', async () => {
+// The fake session stays outside the gate's protected process tree, but parents its sleepers so it can reap them.
+test('SessionEnd, for real: the ended session\'s process dies, the rest live', { timeout: 30_000 }, async (context) => {
   mkdirSync(WORK, { recursive: true });
   const claude = join(WORK, 'claude');
-  // The kit is "type": "module"; the fake session is CommonJS.
   writeFileSync(join(WORK, 'package.json'), '{"type":"commonjs"}\n');
-  writeFileSync(claude,`#!/usr/bin/env node
+  writeFileSync(claude, String.raw`
+const assert = require('node:assert/strict');
 const { spawn, spawnSync } = require('node:child_process');
-// Each sleeper is orphaned (its sh exits) in its own process group (set -m): run under a land or main-push, a child
-// of this fake session would be spared as part of that land's tree, which is the hook working, not this case.
-const sleeper = (env) => Number(spawnSync('/bin/sh', ['-c', 'set -m; "$0" -e "setTimeout(() => {}, 300000)" </dev/null >/dev/null 2>&1 & echo $!', process.execPath], { env, encoding: 'utf8' }).stdout.trim());
+const { once } = require('node:events');
+
+const children = [];
+const signal = AbortSignal.timeout(25_000);
+const sleeper = (env) => {
+  const child = spawn(process.execPath, ['-e', 'process.stdout.write("ready\\n"); setTimeout(() => {}, 300000)'],
+    { env, detached: true, stdio: ['ignore', 'pipe', 'ignore'] });
+  children.push(child);
+  return child;
+};
 const marked = (session) => ({ ...process.env, CLAUDECODE: '1', CLAUDE_PID: String(process.pid), CLAUDE_CODE_SESSION_ID: session });
-const plain = { PATH: process.env.PATH };
-const own = sleeper(marked('fake-end')), other = sleeper(marked('fake-other')), none = sleeper(plain);
-setTimeout(() => {
-  process.stdout.write(JSON.stringify({ own, other, none }) + '\\n');
-  spawnSync(process.execPath, [process.argv[2]], { input: JSON.stringify({ hook_event_name: 'SessionEnd', session_id: 'fake-end' }), stdio: ['pipe', 'inherit', 'inherit'] });
-}, 300);
+
+async function main() {
+  // The test releases this pipe after the launcher exits and we are reparented.
+  await once(process.stdin, 'data', { signal });
+  process.stdin.pause();
+  const own = sleeper(marked('fake-end'));
+  const other = sleeper(marked('fake-other'));
+  const none = sleeper({ PATH: process.env.PATH });
+  await Promise.all(children.map(child => once(child.stdout, 'data', { signal })));
+
+  const exit = once(own, 'exit', { signal });
+  const hook = spawnSync(process.execPath, [process.argv[2]], {
+    input: JSON.stringify({ hook_event_name: 'SessionEnd', session_id: 'fake-end' }),
+    stdio: ['pipe', 'inherit', 'inherit'],
+    timeout: 10_000,
+  });
+  const [, killedBy] = await exit;
+  assert.equal(hook.status, 0, hook.error?.message);
+  assert.match(killedBy, /^SIG(?:TERM|KILL)$/u);
+  assert.equal(process.kill(other.pid, 0), true, 'a sleeper from another session id is left');
+  assert.equal(process.kill(none.pid, 0), true, 'a sleeper with no marker is left');
+  console.log(JSON.stringify({ own: own.pid }));
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+}).finally(() => {
+  for (const child of children) if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+});
 `);
-  chmodSync(claude, 0o755);
-  const env = { ...process.env, WS_CLEANUP_LOG: LOG, WS_CLEANUP_MIN_AGE_MIN: '1000000', WS_LAUNCHD_PIDS: '', WS_SWEEP_KEEP: join(WORK, 'none') };
-  const run = spawnSync(process.execPath, [claude, HOOK], { env, encoding: 'utf8', timeout: 20_000 });
-  const pids = JSON.parse(run.stdout.trim().split('\n')[0]);
-  for (const pid of Object.values(pids)) started.add(pid);
-  const alive = (pid) => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  assert.equal(alive(pids.own), false, 'the ended session\'s sleeper is killed');
-  assert.equal(alive(pids.other), true, 'a sleeper from another session id is left');
-  assert.equal(alive(pids.none), true, 'a sleeper with no marker is left');
-  assert.match(readFileSync(LOG, 'utf8'), new RegExp(`killed ${pids.own} session=\\d+ its session fake-end ended`));
+  const launcher = spawn(process.execPath, ['-e', `
+    const { spawn } = require('node:child_process');
+    const session = spawn(process.execPath, process.argv.slice(1), {
+      detached: true, stdio: [3, 'inherit', 'inherit'],
+    });
+    session.unref();
+  `, claude, HOOK], {
+    env: { ...process.env, WS_CLEANUP_LOG: LOG, WS_CLEANUP_MIN_AGE_MIN: '1000000', WS_LAUNCHD_PIDS: '', WS_SWEEP_KEEP: join(WORK, 'none') },
+    stdio: ['ignore', 'pipe', 'pipe', 'pipe'],
+  });
+  let stdout = '', stderr = '';
+  launcher.stdout.setEncoding('utf8').on('data', chunk => { stdout += chunk; });
+  launcher.stderr.setEncoding('utf8').on('data', chunk => { stderr += chunk; });
+  const closed = once(launcher, 'close', { signal: context.signal });
+  // Register both waits before release. The launcher's pipes stay open until the fake session finishes.
+  const [launched] = await once(launcher, 'exit', { signal: context.signal });
+  assert.equal(launched, 0, stderr);
+  launcher.stdio[3].end('start\n');
+  await closed;
+  assert.ok(stdout.trim(), stderr);
+  const { own } = JSON.parse(stdout);
+  assert.match(readFileSync(LOG, 'utf8'), new RegExp(`killed ${own} session=\\d+ its session fake-end ended`));
 });
 
 test('a land, a main-push and a main-watch, and what they started, are spared; the session itself is not', () => {
