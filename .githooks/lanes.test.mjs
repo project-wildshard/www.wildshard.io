@@ -64,7 +64,7 @@ describe('check lanes', () => {
   });
   test('lint and format see only the staged code files under src/ and kit/', () => {
     const box = sandbox();
-    toolchain(box, { ...pass, lint: record('lint.args'), 'format:check': record('format.args') });
+    toolchain(box, { ...pass, lint: record(join(box.root, 'lint.args')), 'format:check': record(join(box.root, 'format.args')) });
     box.write('unstaged.ts', 'export {};\n');
     const result = box.commit({ 'src/a.ts': 'export {};\n', 'src/b.json': '{}\n', 'c.md': '# c\n', 'docs/d.json': '{}\n' }, MSG);
     assert.equal(result.status, 0, result.stderr);

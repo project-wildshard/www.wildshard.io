@@ -21,6 +21,7 @@ import { gateTestEnvironment } from './gate-workers.mjs';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { restoreVerdict } from './branch-restore.mjs';
 import { git } from './lib.mjs';
+import { stagedCheckCommit, stagedCheckTree } from './staged-check-tree.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
 import { failureReport } from './gate-report.mjs';
 
@@ -93,18 +94,18 @@ if (lane === 'push') {
   }
 }
 // The package is at the repo root; its kit configs live in kit/ (J329).
-const pkgDir = copy?.path ?? root;
+const stagedTree = lane === 'commit' ? stagedCheckTree(root) : null;
+let pkgDir = copy?.path ?? root;
 const pkgPath = join(pkgDir, 'package.json');
-const manifest = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : {};
+const manifest = stagedTree?.manifest ?? (existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : {});
 const scripts = manifest.scripts ?? {};
 
 /** @type {{ name: string, args: string[] }[]} */
 const jobs = [];
-if (lane === 'commit') {
+if (stagedTree !== null) {
   // Staged code under src/ and kit/ (J329), passed relative to the
   // repo root (the package root). Code outside them (.githooks, docs) has its own checks.
-  const staged = git(['diff', '--cached', '--name-only', '-z', '--diff-filter=ACMR']).split('\0').filter(Boolean)
-    .filter((path) => /^(?:src|kit)\//u.test(path));
+  const staged = stagedTree.files.filter((path) => /^(?:src|kit)\//u.test(path));
   const lint = staged.filter((path) => LINTABLE.test(path));
   const format = staged.filter((path) => FORMATTABLE.test(path));
   if (scripts.lint && lint.length) jobs.push({ name: 'lint', args: ['lint', ...lint] });
@@ -128,6 +129,11 @@ if (!jobs.length) {
 if (copy === null && !existsSync(join(pkgDir, 'node_modules'))) {
   console.error(`\n  X ${lane} blocked: node_modules is missing. Run pnpm install, then pnpm exec npr install --frozen when binDependencies are declared.\n`);
   process.exit(1);
+}
+
+if (stagedTree !== null) {
+  copy = makeGateCopy(root, stagedCheckCommit(root, stagedTree), {say: () => {}});
+  pkgDir = copy.path;
 }
 
 // Hooks export GIT_INDEX_FILE and friends; tools that shell out to git
