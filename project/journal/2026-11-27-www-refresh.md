@@ -16,3 +16,10 @@ saga in place of Coming worlds).
   the download lines come from the format's tiers (J338). Map labels
   moved to `tools/zones.ts`, with a test that the labels and the
   grid's zones are the same set.
+
+- WW2, the words. A glossary comment tops COPY.md (zone, shardfile,
+  the grid, open plot, Enter the MMO, Zone Select, cleanroom), and
+  tools/words.ts lists the retired words. Its test counts what is left
+  (179 under 137 headings at the start) and enforces once WW15 makes
+  SITE_WORDS=enforce the default. The bare word shard is retired for a
+  place (J535); shardfile, shard.json and the shard-* repos stay.

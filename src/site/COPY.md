@@ -12,6 +12,21 @@ Every piece of text on wildshard.io lives in this file.
 - To publish: commit it (the site redeploys itself on push), or run `pnpm deploy:site`.
 -->
 
+<!--
+Glossary: one word for each thing, the word the game uses (J535; meta WWW-REFRESH WW2).
+
+- zone: a place on the grid you walk into and play (the game's ENTER ZONE and Zone Select). Never "shard".
+- shardfile: the one file a creator builds and uploads for a zone. One shard format for everyone (J364).
+- the grid: the 5 × 5 of cells the zones and open plots sit on, with roads between them.
+- open plot: a cell no zone holds yet; a placeholder for the next zone. Never featured as content.
+- Enter the MMO, Zone Select: the two ways in from the title screen (J387).
+- creator: whoever builds a zone; an author is the same person once uploads open.
+- cleanroom: a zone rebuilt as a standalone game first, to find its quality bar (the cleanroom saga).
+
+Retired words (tools/words.ts lists them, and its test finds them): shard for a place, single-player alpha, seven
+shards, revision, ?chunk=, code shard, data shard, first-party, Infinite Wildshard, Shard Select.
+-->
+
 # Page
 
 ## Page · title
