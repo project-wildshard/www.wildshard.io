@@ -31,3 +31,17 @@ saga in place of Coming worlds).
   script and the world's frame still work. Preview left the doors for
   Explore until the fix-preview plan settles. (WW1's note says five
   validation actions; it was four.)
+
+- WW4, the zone cards. Ten cards, one per zone on the live grid, in
+  the order Driftwood, Nalati, Mirror Salt (the three a phone shows in
+  full), then Sky Reach, Pine, Glowfen, Brasscap, Dunes, Nine Dragon,
+  Mossgate. The four new zones' card and wide images are cut from each
+  repo's own captures (shard-brasscap src/thumbs, shard-glowfen and
+  shard-mirror-salt src/card, sharddev's mossgate card); Mirror Salt is
+  cropped below an in-world banner to keep its race arches. Their lines
+  come from the engine CHANGELOG and each zone's own quest strings.
+  Every Play link is play.wildshard.io/slug/<slug>; all ten answer on
+  prod with their names. The Template card is gone (Mossgate is the
+  template, J434); /play/ and /build/ point at Mossgate's picture until
+  WW9 and WW11. Element shots of a tall section leave off-screen tiles
+  unpainted in headless shell; shoot with a tall viewport.

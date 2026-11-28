@@ -193,15 +193,15 @@ Explore the map →
 
 ## Shards · question
 
-show me the shards I can play today
+show me the zones I can play today
 
 ## Shards · title
 
-Seven shards. Seven looks. One engine.
+Ten zones. Ten looks. One world.
 
 ## Shards · grid note
 
-The grid · in testing
+The grid · live
 
 ## Driftwood Isle · prompt
 
@@ -217,7 +217,7 @@ Driftwood Isle
 
 ## Driftwood Isle · line
 
-A bright low-poly island in a toon ocean: pier, sailboat, shrine and wreck.
+A bright island in a toon ocean: a pier, a wreck, and a drowned sailor who guards the hold key.
 
 ## Nalati Grasslands · prompt
 
@@ -233,7 +233,7 @@ Nalati Grasslands
 
 ## Nalati Grasslands · line
 
-The painted steppe on horseback. Tame horses, open the Golden King's kurgan.
+A painted steppe on horseback. Tame horses, open the Golden King's kurgan.
 
 ## Sky Reach · prompt
 
@@ -251,8 +251,6 @@ Sky Reach
 
 Grassy islands over a sea of cloud, joined by glowing bridges only a hoverboard can ride.
 
-
-<!-- On phones only the three above show in full; the four below open from the "+ 4 more shards" button. -->
 
 ## Pine Hollow · prompt
 
@@ -300,23 +298,71 @@ Nine Dragon Stack
 
 ## Nine Dragon Stack · line
 
-Lantern Square, halfway up a neon city stacked 500 metres high.
+Lantern Square, halfway up a neon city stacked 500 metres high. Grapple up.
 
-## The Template · prompt
+## Mirror Salt · prompt
 
-start me a new shard
+a salt flat like a mirror, a land-sail graveyard to build a racer from, and the Salt Cup to win
 
-## The Template · image description
+## Mirror Salt · image description
 
-The Template in the game: a grey hut on a grey floor
+Mirror Salt in the game: race arches standing in a mirror of salt water at dusk
 
-## The Template · name
+## Mirror Salt · name
 
-The Template
+Mirror Salt
 
-## The Template · line
+## Mirror Salt · line
 
-The greybox every new shard starts from.
+Build a racer from the land-sail graveyard, then beat Sorrel Vane through the arches in the Salt Cup.
+
+## Glowfen · prompt
+
+a fen at night, all fireflies and still water, with a shrine whose lanterns you light one by one
+
+## Glowfen · image description
+
+Glowfen in the game: fireflies over still black water under a full moon
+
+## Glowfen · name
+
+Glowfen
+
+## Glowfen · line
+
+A fen at night under a full moon. Carry spirit lanterns through the fireflies and light the shrine.
+
+## Brasscap Mesa · prompt
+
+a frontier mesa with a shooting arena, and a Dust Wyrm under the sand
+
+## Brasscap Mesa · image description
+
+Brasscap Mesa in the game: a gunslinger on a porch looking down a red-rock frontier street
+
+## Brasscap Mesa · name
+
+Brasscap Mesa
+
+## Brasscap Mesa · line
+
+A red-rock frontier town. Shoot the arena, mind the ammo cache, then bring down the Dust Wyrm.
+
+## Mossgate Hollow · prompt
+
+start me a new zone
+
+## Mossgate Hollow · image description
+
+Mossgate Hollow in the game: a mossy stone cottage and a stepping-stone path at sunset
+
+## Mossgate Hollow · name
+
+Mossgate Hollow
+
+## Mossgate Hollow · line
+
+Light three beacons and put down the Barrow Warden. Every new zone starts as a copy of this one.
 
 ## Shards · play link
 
@@ -330,13 +376,17 @@ Build
 
 Loop
 
+## Shards · still tag
+
+Still
+
 ## Shards · more button
 
-+ 4 more shards
++ 7 more zones
 
 ## Shards · more page link
 
-Every shard in full →
+Every zone in full →
 
 # How shards fit together
 

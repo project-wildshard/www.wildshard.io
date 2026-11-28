@@ -30,3 +30,22 @@ test('the grid holds ten zones and fifteen open plots, each with a name', () => 
   assert.equal(facts.cells.length - zones.length, 15)
   for (const c of facts.cells) assert.ok(facts.names[c.slug], c.slug)
 })
+
+// WW4: home shows one card per zone, and each card's Play link opens that zone by its share link (engine
+// src/client/app/slug-path.ts); open plots are never featured as content.
+test('home has one card per zone, each playing its own /slug/ link', () => {
+  const home = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
+  const cards = [
+    ...home.matchAll(/<li class="shard[^"]*" data-cell="(?<slug>[^"]+)">/gu),
+  ].map(m => m.groups?.slug ?? '')
+  assert.deepEqual(
+    cards.toSorted((a, b) => a.localeCompare(b)),
+    zones.toSorted((a, b) => a.localeCompare(b)),
+  )
+  for (const slug of zones) {
+    assert.ok(
+      home.includes(`href="%PLAY_URL%slug/${slug}"`),
+      `no Play link for ${slug}`,
+    )
+  }
+})
