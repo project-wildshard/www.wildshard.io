@@ -159,3 +159,11 @@ saga in place of Coming worlds).
   the new map). The site title and description say the line; the map
   page says zones. The sitemap already lists the five pages; the 404
   copy needed nothing.
+
+- WW15, the deploy. None of today's refresh was live: every site-deploy
+  since 11-25 17:46 failed. deploy.sh builds from git archive of
+  src/site/ alone, and vite.config.ts imports src/scripts/.kit/
+  vite-tmp.mjs; when the kit moved from the root's scripts/.kit, the old
+  relative path stopped resolving into the real repo from the export.
+  deploy.sh now archives an EXPORT list (src/site plus the kit file) at
+  repo paths, and deploy-export.test.ts guards it.
