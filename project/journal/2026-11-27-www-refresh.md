@@ -105,3 +105,17 @@ saga in place of Coming worlds).
   line is the guide's budget-download rule. Tools: the CLI, Explore,
   the four skills, format.wildshard.io, and bringing a one-shot across
   (next, J536's default wording).
+
+- WW9, /play/. Ten zone articles in the home order, each fact from
+  meta support/www-refresh/fact-checks.md (each zone's own src/, not
+  its README): the Drowned Captain, one dune ray and a crank, Aqbars the
+  only snow leopard, Nine Dragon with no fights and no practice dummy,
+  and new Mirror Salt, Brasscap, Glowfen and Mossgate entries. The
+  singleplayer badges (Open, Early, Experimental) are gone: every zone
+  is on the grid; Mossgate is tagged the template. Every article links
+  its slug and its repo. The touch diagram loses the Horse button the
+  game doesn't show, and the controls name what is keys only. Live
+  today is the MMO (the Signal Dunes capture replaces the concept
+  painting, deleted); coming next is cleanroom, founding builders and
+  one-shots. /build/'s install size is 694 MB measured (npx new 0.8.1,
+  pnpm install, check pass in 21 s), so about 700 MB.

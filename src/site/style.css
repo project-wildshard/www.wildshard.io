@@ -834,3 +834,5 @@ footer { flex-wrap: wrap; }
 .hero.hero2 .gets li { padding: 9px 12px; border-left: 2px solid var(--violet); background: rgba(143, 227, 255, .04); font-size: 15px; line-height: 1.35; color: #c6dbea; }
 .hero.hero2 .gets li strong { color: var(--ink); }
 @media (min-width: 1024px) { .hero.hero2 .gets li { font-size: 17px; } }
+.pl-shard h3 .go { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.pl-shard h3 a.repo { color: var(--mute); border-color: var(--cyan-line); box-shadow: none; }

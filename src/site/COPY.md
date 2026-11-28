@@ -176,10 +176,6 @@ An MMO in your browser, made of zones on one grid. Each zone is its own game, wi
 - Fight, quest and ride, on your phone or at your desk.
 - Every zone is built from one shard format, so anyone can add the next one.
 
-## Mockup · tag
-
-GPT mockup
-
 ## What · map description
 
 Concept map, drawn by code: the whole world after a hundred zones, every plot ringed by roads, placeholder plots at the edge and the void beyond
@@ -1125,11 +1121,11 @@ Play now ↗
 
 ## Play page · title
 
-Play · Project Wildshard
+Play · Wildshard
 
 ## Play page · description
 
-What it is like to play Project Wildshard: seven shards in seven looks, growing into one world, free in your browser.
+What it is like to play Wildshard: an MMO of ten zones in ten looks, with other players, free in your browser.
 
 ## Play · question
 
@@ -1137,55 +1133,42 @@ what is it like to play?
 
 ## Play · title
 
-Play the world.
+Play the MMO.
 
 ## Play · intro
 
-Seven shards today, each its own world and its own look. Free, in your browser, on your phone or desktop.
+Ten zones on one grid, each its own world and its own look, with other players in them. Free, in your browser, on your phone or desktop.
 
 ## Play · verbs
 
-- Explore seven shards, each with its own look and its own rules.
-- Fight with a sword, a bow, a whip or a war fan: lock on, dodge, charge a heavy.
-- Ride a horse you broke yourself, or the hoverboard every shard gives you.
-- Follow each quest to its boss, and earn a title on the way.
+- Explore ten zones, each with its own look and its own rules.
+- Fight with a sword, a bow, a whip, a war fan or a lever-action: lock on, dodge, charge a heavy.
+- Ride a horse you broke yourself, a land-sail, a log raft or the hoverboard.
+- Follow each quest to its boss, with other players, chat and voice.
 
-# Play page · every shard in full (sources: each shard's README in src/shards/, its plan in docs/plans/, docs/SHARDS.md)
+# Play page · every zone in full (source: meta docs/plans/support/www-refresh/fact-checks.md, each zone's own src/)
 
-<!-- The badges are the game's own (Settings ▸ Developer plays the Experimental ones). Names, images and the Play / Build
-links are the home page's entries. Each "facts" line starts with its **label**. -->
+<!-- Names, images and the Play links are the home page's entries; each zone also links its repo. Each "facts" line starts with its **label**. -->
 
 ## Play · shards question
 
-show me every shard, in full
+show me every zone, in full
 
 ## Play · shards title
 
-Seven shards, in full.
+Ten zones, in full.
 
 ## Play · shards intro
 
-One engine, seven worlds, and no two look alike. Here's what you carry, fight and find in each one.
+One engine, ten worlds, and no two look alike. Here's what you carry, fight and find in each one.
 
 ## Play · shards index label
 
-The seven shards
+The ten zones
 
-## Play · badge open
+## Play · badge template
 
-Open to all
-
-## Play · badge early
-
-Early access
-
-## Play · badge experimental
-
-Experimental
-
-## Play · badge developer
-
-Developer only
+The template
 
 ## Play · Driftwood Isle look
 
@@ -1197,11 +1180,11 @@ A small island in a bright toon ocean: a pier, a sailboat, a ring shrine in the 
 
 ## Play · Driftwood Isle facts
 
-- **Carry** A wooden sword and the hoverboard. An iron sword waits on the wreck's deck.
-- **Fight** Reef crabs, coconut monkeys, wild boar, and a drowned sailor who walks at night.
-- **Find** Fifteen pieces of sea glass, treasure on the seabed (swim down for it), a zipline ride.
-- **Quest** The Sealed Ring: Wendell the castaway, three glyph shards and the Ring Shrine.
-- **Boss** Captain Brine, the Drowned Captain.
+- **Carry** A wooden sword and the hoverboard. An iron sword waits on the wreck's rack.
+- **Fight** Reef crabs, coconut monkeys and their grey elder, boar, brown and black bears, and a drowned sailor in the hold.
+- **Find** Fifteen pieces of sea glass (a charm for every five), a pearl necklace, a zipline ride, Maren's trade counter.
+- **Quest** The Sealed Ring: Wendell the castaway, three glyph shards from the lookout, the hold and the sea cave, then the Ring Shrine.
+- **Boss** The Drowned Captain.
 
 ## Play · Pine Hollow look
 
@@ -1213,10 +1196,10 @@ A boreal forest round a sheltered hollow: a ranger's cabin, a pond under a grani
 
 ## Play · Pine Hollow facts
 
-- **Carry** A crossbow and the hoverboard; later a lever-action rifle and the Warden's Longbow.
+- **Carry** A crossbow and the hoverboard; later a lever-action rifle by the cabin, and the Warden's longbow.
 - **Hunt** Deer, boar, elk and bear, some in rare coats; four elites; moss-grown thralls after dark.
-- **Find** The fire lookout's zipline, a canoe, the bear cave, amber resin; a journal and a trophy wall to fill.
-- **Quest** The Warden's Hollow: relight the ranger's three waystone lanterns. The lodge posts contracts.
+- **Find** Thirty pieces of amber resin, eight carved tokens, the fire lookout's zipline, a canoe; a journal and a trophy wall to fill.
+- **Quest** The Warden's Hollow, for Hale. The lodge posts eleven contracts.
 - **Boss** The Antler King.
 
 ## Play · Nalati Grasslands look
@@ -1225,15 +1208,15 @@ Painterly
 
 ## Play · Nalati Grasslands text
 
-A high Tian Shan steppe, painted: the braided Kunes river, the nomad camp, the golden Sky Grassland and Snow Lotus Valley, each zone in its own colour, to a Kazakh score.
+A high Tian Shan steppe, painted: the braided Kunes river, the nomad camp, the golden Sky Grassland and Snow Lotus Valley, each in its own colour.
 
 ## Play · Nalati Grasslands facts
 
 - **Carry** A bow, a sabre and a spear, and the hoverboard.
 - **Ride** Break a wild stallion, name it, whistle it to you and hunt from the saddle. Win a round of kokpar.
-- **Fight** Wolves, snow leopards, balbal warriors at dusk, ghost riders by night and five named elites.
-- **Quest** Three chapters for Baqyt Ata, the camp elder: Tulpar, The Golden King, Father of the Wind.
-- **Bosses** The Golden King in his kurgan, and Jel Ata, the Storm Titan, who comes with the storm.
+- **Fight** Wolf packs, balbal warriors at dusk, ghost riders by night, and five named elites, Aqbars the Pale, a snow leopard, among them.
+- **Quest** Three chapters for Baqyt Ata, the camp elder.
+- **Bosses** The Golden King in his kurgan, and Jel Ata, the Storm Titan.
 
 ## Play · Signal Dunes look
 
@@ -1246,10 +1229,10 @@ Dark orange dunes just after sunset, under an orange band fading up to indigo an
 ## Play · Signal Dunes facts
 
 - **Carry** A braided leather bullwhip and the hoverboard.
-- **Whip** A light crack, a heavy double crack, a pull that yanks a creature or a lever, a crack that lights a brazier.
-- **Fight** Dune rays gliding against the dusk, burrowing skitterers in packs, charging dune striders.
-- **Quest** Sefa the caravan scout: the buried caravan's logbook, oil from the dry well, three braziers, the signal fire.
-- **Boss** The Dune Matriarch rises at the fire's signal: sweeping dives, a sandstorm, then down within the whip's reach.
+- **Whip** A light crack, a heavy double crack that yanks or staggers, a pull that turns the well's crank, a crack that lights a brazier.
+- **Fight** A dune ray gliding against the dusk, burrowing sand skitterers in packs, charging dune striders.
+- **Quest** The signal, for Sefa: light the signal fire on the far crest.
+- **Boss** The Dune Matriarch.
 
 ## Play · Sky Reach look
 
@@ -1263,8 +1246,8 @@ Eight grassy islands over a sea of cloud at golden hour. Rope bridges carry you 
 
 - **Carry** A war fan and the hoverboard. Swing to slash, hold for a sweep, GUST to blow creatures back, and off the edge.
 - **Fight** Drift rays, sky goats you can gust off an island, gale wisps that shove you toward the drop.
-- **Quest** The bridge-keeper's notes, the roost cleared, three wind vanes turned by GUST, the bridge raised to the storm crown.
-- **Boss** The Storm Roc: walls of wind that push you to the edge, diving strikes, then grounded on the crown.
+- **Quest** The crown bridge, for Old Tamsin: ride the updraft and the rising islets to the storm crown.
+- **Boss** The Storm Roc.
 
 ## Play · Nine Dragon Stack look
 
@@ -1272,24 +1255,77 @@ Jiehua neon: ruled lines and neon
 
 ## Play · Nine Dragon Stack text
 
-Lantern Square, halfway up a city stacked 500 metres high: wet granite, a cinnabar gate, neon calligraphy, the Yamen Well dropping into silk fog. Today a fragment: the square, the Well's rim, the stair-street.
+Lantern Square, halfway up a city stacked 500 metres high: wet granite, a cinnabar gate, neon calligraphy, the Yamen Well dropping into silk fog.
 
 ## Play · Nine Dragon Stack facts
 
-- **Carry** The Neon Jian, a straight sword with a glowing edge, and the Fei Zhua, a grapple on your wrist.
+- **Carry** The Neon Jian, a straight sword with a glowing edge, the Fei Zhua, a grapple on your wrist, and the hoverboard.
 - **Move** Zip up to dragon hooks, climb the stair-street, cross the Well on its catwalks, through the crowd.
-- **Fight** No creatures yet: the gate's combat check is a practice dummy.
-- **Planned** The whole city, nine strata from the clouds down.
-
-## Play · The Template look
-
-Greybox
-
-## Play · The Template text
-
-The greybox every new shard starts from: a road in from each edge, a set piece at every entry, a hover test course, a ziggurat, an overpass. Grey on purpose: an author's world begins here.
+- **Play** A grapple playground and a timed parkour course. No creatures.
 
 # Play page · the controls (sources: src/game/inputContexts.ts, src/engine/player/TouchControls.ts, src/engine/ui/styles/touch.css)
+
+## Play · Mirror Salt look
+
+Dusk on a salt mirror
+
+## Play · Mirror Salt text
+
+A flooded salt flat at dusk, flat as a mirror, with race arches standing in it and a graveyard of land-sails at its edge.
+
+## Play · Mirror Salt facts
+
+- **Ride** Land-sails and a two-seat salt buggy.
+- **Race** The Salt Cup, for The Marshal: a licence run, then three heats to the Canyon Drop against Sorrel Vane.
+- **Fight** Salt skaters, brine crabs, dust hounds, glass wisps, mesa vultures, and the Brine King.
+- **Find** Ten lost race pennants.
+- **Boss** The Salt Colossus.
+
+## Play · Brasscap Mesa look
+
+Red-rock western
+
+## Play · Brasscap Mesa text
+
+A railway depot in a red-rock canyon, and a trail down through three bandit camps to a pit in the sand.
+
+## Play · Brasscap Mesa facts
+
+- **Carry** Sheriff Brass's lever-action, a scattergun and a long rifle.
+- **Fight** Tin bandits, rushers and brawlers, and dust wyrmlings.
+- **Quest** Brasscap Mesa, for Sheriff Brass: three camps down the canyon, with side quests on the way.
+- **Boss** The Dust Wyrm.
+
+## Play · Glowfen look
+
+Moonlight and fireflies
+
+## Play · Glowfen text
+
+A mangrove fen under a full moon, all fireflies and still black water, with a shrine at its heart.
+
+## Play · Glowfen facts
+
+- **Find** Six spirit lanterns, carried one by one to the shrine.
+- **Ride** A log raft down the channel.
+- **Together** One offering count the whole zone shares.
+- **Quest** Light the shrine.
+- **Fight** None: Glowfen is for wandering.
+
+## Play · Mossgate Hollow look
+
+Storybook moss
+
+## Play · Mossgate Hollow text
+
+The zone every new zone starts from: a mossy hollow with a cottage, standing stones, braziers and a beacon on Lookout Ridge.
+
+## Play · Mossgate Hollow facts
+
+- **Carry** A moss blade and a hut lantern.
+- **Fight** Grey blobs, mosslings, wisps, boar and barrow crawlers; the elites Greyback and Gritmaw.
+- **Quest** Relight the Hollow, for The Lamplighter.
+- **Boss** The Barrow Warden.
 
 ## Play · controls question
 
@@ -1318,10 +1354,6 @@ Diagram
 ## Play · hud pause
 
 Pause
-
-## Play · hud horse
-
-Horse
 
 ## Play · hud hover
 
@@ -1367,11 +1399,12 @@ Attack
 
 - **Move** A stick under your left thumb. Push it all the way forward to sprint.
 - **Look** Drag anywhere on the right half of the screen.
-- **Attack** Tap for a combo; hold to charge a heavy and let go to swing. A bow: hold to draw.
+- **Attack** Tap for a combo; hold to charge a heavy and let go to swing.
 - **Jump, dodge** Right thumb, just above the bar.
 - **Lock** Appears when something is in reach, or tap the enemy. Flick to switch targets.
 - **Use** A wide button appears when there's someone to talk to or something to open.
-- **Edge** Hover rides the board, Swap changes weapon; in Nalati, Horse calls yours.
+- **Edge** Hover rides the board, Swap changes weapon.
+- **Keys only, for now** Aiming, drawing a bow, the spear, diving, the grapple and calling your horse.
 
 ## Play · desktop pane
 
@@ -1379,40 +1412,46 @@ desktop · keyboard and mouse
 
 ## Play · desktop controls
 
-- `W` `A` `S` `D` move · `Shift` sprint · the mouse looks
-- `Left click` or `F` attack · `Right click` heavy, or aim
-- `Space` jump · `V` dodge · `Z` or `Middle click` lock on
+- `W` `A` `S` `D` or the arrows move · `Shift` sprint · the mouse looks
+- `Left click` attack · `Right click` heavy, or aim
+- `Space` jump · `V` or `Left Alt` dodge · `Z` or `Middle click` lock on
 - `E` use, talk · `Q` swap · `1` to `9` pick a weapon
 - `H` hoverboard · `R` reload
-- `Tab` bag · `M` map · `J` journal · `Esc` pause
+- `I` bag · `M` map · `J` journal · `Esc` pause
+- `B` voice · click the chat box to talk · `F1` or `/` every key
 - Swimming: `Space` dive · `Shift` surface
 - In the saddle: `Shift` gallop · `X` whistle your horse · hold `G` to offer your hand
+- Sky Reach: `G` GUST · Nalati: `C` crouch
 
 ## Play · desktop note
 
-Every key can be rebound in Settings.
+Most keys can be rebound in Settings, on desktop.
 
-# Play page · live today, coming next (sources: project/archive/2026-11-04-shard-platform.md, docs/design/mmo/MMO-REQUIREMENTS.md, src/game/grid/menu.ts)
+# Play page · live today, coming next (source: meta docs/plans/support/www-refresh/fact-checks.md)
 
 ## Play · next question
 
-can I play with friends yet?
+can I play with friends?
 
 ## Play · next title
 
-Live today. Next, together.
+Live today: one world, together.
 
 ## Play · next intro
 
-Today it's a single-player alpha, on the engine the MMO is built on. Next: one world, and other players in it.
+It's an MMO: one world on one server, with other players in every zone. Send a friend a zone's link and meet there.
 
-## Play · concept description
+## Play · together description
 
-Concept painting: two players on a jungle shard of ruins and waterfalls, a highway crossing to a volcanic shard beyond
+The MMO online in Signal Dunes: other players on the dunes at dusk
 
-## Play · concept caption
+## Play · together tag
 
-Where it's going, not the game today: two players on a jungle shard, the next shard's volcano across the road.
+In engine
+
+## Play · together caption
+
+The MMO online, in Signal Dunes.
 
 ## Play · live label
 
@@ -1420,20 +1459,21 @@ Live today
 
 ## Play · live
 
-- Driftwood Isle, Pine Hollow and Nalati Grasslands, open to everyone: free, on phone and desktop.
-- Sky Reach, Signal Dunes and Nine Dragon Stack are Experimental: still being built, and shown locked in the game until they open.
-- Quests, loot and feats in every open shard; your progress saves on your device.
+- {=zones} zones and {=plots} open plots on one grid, open to everyone: free, on phone and desktop.
+- Other players in every zone, with world chat, nearby chat and voice.
+- Play as a guest, or sign in by email link or passkey to keep your name, like Name#1234.
+- Walk the road between zones; at a zone's gate, a short count and a loading screen take you in.
+- Every zone has its own link to share: play.wildshard.io/slug/ and the zone's name.
 
 ## Play · coming label
 
-Coming for players
+Coming next
 
 ## Play · coming
 
-- **One world, in testing:** all {=shardsWord} shards on one {=side} × {=side} grid with {=plots} open plots, joined by a road: ride from one into the next, no loading screen. Behind Settings ▸ Developer for now.
-- **Travel, not teleport:** the hoverboard at 30 m/s on the road, 14 m/s inside a shard. No fast travel.
-- **Multiplayer:** play a shard with other people, on a server that runs the rules. Rooms of 32; a full shard opens a copy and keeps your party together.
-- **You travel too:** your name, with a title beneath it, and chat: everyone, this shard, and nearby.
+- **The cleanroom saga:** every zone raised to the bar of a standalone game.
+- **Zones by founding builders,** on the grid's open plots.
+- **Whole one-shot games brought across,** mechanics and all.
 
 ## Play · mmo page link
 
@@ -1461,7 +1501,7 @@ No app store: it's a web app. Add it once and it opens full screen, in portrait,
 ## Play · install perks
 
 - Full screen, no browser bars.
-- A shard you've loaded once plays offline.
+- A zone you've loaded once plays offline.
 
 # Play page · the end
 
@@ -1475,7 +1515,7 @@ Your turn.
 
 ## Play · end text
 
-Free, in your browser, on your phone or desktop. No account, nothing to install.
+Free, in your browser, on your phone or desktop. No account needed, nothing to install.
 
 ## Play · end button
 
@@ -1487,7 +1527,7 @@ opens the game in a new tab
 
 ## Play · build link
 
-Next: build a shard of your own →
+Next: build a zone of your own →
 
 # Build page (wildshard.io/build/)
 
@@ -1585,7 +1625,7 @@ Six steps. Anyone can do the first five today; the sixth is open to founding bui
 
 ## Build · step 1 text
 
-One command makes a repo of your own: Mossgate Hollow as one three.js scene, its quests and proof tape, the guide and the Claude skills. The install is about 580 MB, and the first `dev` fetches the game once (about 300 MB more).
+One command makes a repo of your own: Mossgate Hollow as one three.js scene, its quests and proof tape, the guide and the Claude skills. The install is about 700 MB, and the first `dev` fetches the game once (about 300 MB more).
 
 ## Build · step 1 command
 
