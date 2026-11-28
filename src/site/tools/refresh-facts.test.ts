@@ -22,6 +22,7 @@ import { readFacts } from './facts.ts'
 import {
   FACTS_FILE,
   factsText,
+  gridFromCatalogue,
   readFormat,
   readRaw,
   refreshed,
@@ -29,7 +30,8 @@ import {
 import { schemaPathCount } from './schema-paths.ts'
 
 // The committed facts against the pinned @wildshard/format: a format bump that
-// moves a number fails here until `pnpm site:facts` rewrites it.
+// moves a number fails here until `pnpm site:facts` rewrites it. The grid comes
+// from the live catalogue, which tests never reach: these keep the committed one.
 
 const format = await readFormat()
 const raw = readRaw(FACTS_FILE)
@@ -43,22 +45,49 @@ test('facts.json holds what the pinned format says', () => {
 })
 
 test('a refresh replaces the numbers and keeps the hand-maintained parts', () => {
-  const stale = { ...raw, schemaPaths: 1, memory: { explorerMB: 1 } }
+  const stale = { ...raw, schemaPaths: 1, download: { fineMB: 1 } }
 
   const next = factsText(refreshed(stale, format))
 
   assert.equal(next, readFileSync(FACTS_FILE, 'utf8'))
 })
 
-test('a refresh stops when the hand-maintained parts no longer fit', () => {
-  const short = { ...raw, grid: { cells: [] } }
-  const oldShard = { ...raw, shardfile: { version: '0.0' } }
+test('a refresh stops on a cell off the grid or a slug with no name', () => {
+  const far = gridFromCatalogue([
+    { slug: 'glowfen', name: 'Glowfen', grid: { column: 9, row: 0 } },
+  ])
+  const nameless = { ...raw, names: {} }
 
-  assert.throws(() => refreshed(short, format), /0 grid cells/u)
-  assert.throws(() => refreshed(oldShard, format), /update it by hand/u)
+  assert.throws(() => refreshed(raw, format, far), /off the format's grid/u)
+  assert.throws(() => refreshed(nameless, format), /has no name/u)
 })
 
-test('no two shards share a cell', () => {
+test('the catalogue becomes cells: column is x, row is z, open plots are plots', () => {
+  const grid = gridFromCatalogue([
+    {
+      slug: 'driftwood-isle',
+      name: 'Driftwood Isle',
+      grid: { column: 0, row: 0 },
+    },
+    {
+      slug: 'open-plot-coral-drift',
+      name: 'Open Plot · Coral Drift',
+      grid: { column: 1, row: -2 },
+    },
+    { slug: 'open-plot-thin-ice', name: 'Open Plot · Thin Ice', grid: null },
+  ])
+
+  assert.deepEqual(grid.cells, [
+    { x: 0, z: 0, slug: 'driftwood-isle', plot: false },
+    { x: 1, z: -2, slug: 'open-plot-coral-drift', plot: true },
+  ])
+  assert.deepEqual(Object.keys(grid.names), [
+    'driftwood-isle',
+    'open-plot-coral-drift',
+  ])
+})
+
+test('no two zones share a cell', () => {
   const { cells } = readFacts(FACTS_FILE)
 
   assert.equal(new Set(cells.map(c => cellName(c))).size, cells.length)

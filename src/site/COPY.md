@@ -800,6 +800,22 @@ Sky Reach
 
 9 Dragon
 
+## Map · Brasscap
+
+Brasscap
+
+## Map · Glowfen
+
+Glowfen
+
+## Map · Mirror Salt
+
+Mirror Salt
+
+## Map · Mossgate
+
+Mossgate
+
 ## Map · your wish
 
 Your wish

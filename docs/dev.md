@@ -70,31 +70,36 @@ goes in `tmp/<task>/` and is deleted when done.
 ## Refreshing the site's facts
 
 `src/site/facts.json` is the one source for what the site says about
-the game, and for the grid the waitlist form and `/build` draw. A
-refresh needs no game checkout. The build reads only this file.
+the game, and for the grid the waitlist form and `/build` draw. The
+build reads only this file. `pnpm site:facts` rewrites it from the
+live catalogue and the pinned format (`--offline` keeps the grid).
 
-| Field | Source | How it changes |
-| --- | --- | --- |
-| `grid.cellSize`, `grid.pitch` | `@wildshard/format`: `CHUNK_SIZE`, `CONTENT_CAPS.pitch` | bump the pin, `pnpm site:facts` |
-| `memory` | `@wildshard/format`: `MEMORY_GATES` | bump the pin, `pnpm site:facts` |
-| `schemaPaths` | `@wildshard/format`: paths in `ShardfileSchema` | bump the pin, `pnpm site:facts` |
-| `grid.cells` | **by hand**, until the catalogue is the real placement (J61) | edit it, then the steps below |
-| `grid.road` | **by hand**: the engine's `ROAD_WIDTH`; the format has no road width (`ENTRY_ASPHALT` is a depth), and the engine has no tag | edit it |
-| `shardfile` | **by hand**: an excerpt of the template's built `shard.json`, until `shard-templates` ships it | edit it |
+- `grid.cells`, `names`: api.wildshard.io `/api/catalogue`, each placed
+  shard's `grid` and `name`. `pnpm site:facts`.
+- `grid.cellSize`, `grid.pitch`, `grid.road`: `@wildshard/format`'s
+  `CHUNK_SIZE`, `CONTENT_CAPS.pitch`, `ROAD_WIDTH`. Bump the pin, then
+  `pnpm site:facts`.
+- `download`: `@wildshard/format`'s medium and large `BUDGET_TIERS`
+  bandwidth, J338's 50 MB and 100 MB. Bump the pin, `pnpm site:facts`.
+- `schemaPaths`: the paths in `ShardfileSchema`. Bump the pin,
+  `pnpm site:facts`.
+- `mmo`: **by hand**: seats (J409) and the memory lines from engine
+  `budgets/caps.json` (J410, J445). Its `$source` says where.
+- `shardfile`: **by hand**: an excerpt of a zone's built `shard.json`.
 
-`pnpm test` fails when `facts.json` falls behind the pinned format, and
-`pnpm site:facts` stops when the grid's size or the excerpt's `version`
-no longer fit the format. Nothing can see a wrong placement, road or
-excerpt: those were last checked against singleplayer at `1e55422db9`,
-by reading its source. Commit the result here; the push deploys it.
+`pnpm test` fails when `facts.json` falls behind the pinned format,
+or when a zone on the grid has no map label or a label names a zone no
+longer there (`tools/zones.test.ts`). `pnpm site:facts` stops on a cell
+off the format's grid or a slug with no name. Commit the result here;
+the push deploys it.
 
 ### Moving a shard on the grid
 
 The form is drawn from `grid.cells`. api-server refuses claims from
 its own copy, `src/server/routes/waitlist-grid.json`, so change both:
 
-1. Edit `grid.cells` here and push. A new shard also needs its map label
-   in `src/site/vite.config.ts` and `COPY.md`, or the build stops.
+1. Run `pnpm site:facts` here and push. A new zone also needs its map
+   label in `src/site/tools/zones.ts` and `COPY.md`, or the test stops.
 2. In api-server, run `pnpm site:grid ../www.wildshard.io/src/site/facts.json`
    and push.
 

@@ -7,6 +7,8 @@
 //   buildGridHtml(cells, label)  /build's picture, <!--gen:buildgrid-->
 import type { FactCell } from './facts.ts'
 
+export { MAP_LABEL } from './zones.ts'
+
 const COLUMNS = 'ABCDE'
 const MID = (COLUMNS.length - 1) / 2
 /** The open plot /build points at as "yours?" */

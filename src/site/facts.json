@@ -1,11 +1,53 @@
 {
-  "$doc": "The site's facts: the site reads only this file. `pnpm site:facts` writes grid.cellSize, grid.pitch, memory and schemaPaths from @wildshard/format. grid.road, grid.cells and shardfile are hand-maintained (docs/dev.md).",
+  "$doc": "The site's facts: the site reads only this file. `pnpm site:facts` writes grid (cells from api.wildshard.io's catalogue; cellSize, pitch, road from @wildshard/format), names, download and schemaPaths. mmo, shardfile and timeline are kept by hand, each with its source (docs/dev.md).",
   "format": "wildshard-site-facts/1",
   "grid": {
     "cellSize": 500,
     "pitch": 562.5,
     "road": 15,
     "cells": [
+      {
+        "x": -2,
+        "z": 2,
+        "slug": "open-plot-jungle-ziggurat",
+        "plot": true
+      },
+      {
+        "x": -1,
+        "z": 2,
+        "slug": "mirror-salt",
+        "plot": false
+      },
+      {
+        "x": 0,
+        "z": 2,
+        "slug": "open-plot-saltwind-lighthouse",
+        "plot": true
+      },
+      {
+        "x": 1,
+        "z": 2,
+        "slug": "open-plot-starfall-observatory",
+        "plot": true
+      },
+      {
+        "x": 2,
+        "z": 2,
+        "slug": "open-plot-sky-harbor",
+        "plot": true
+      },
+      {
+        "x": -2,
+        "z": 1,
+        "slug": "open-plot-frostline-peaks",
+        "plot": true
+      },
+      {
+        "x": -1,
+        "z": 1,
+        "slug": "glowfen",
+        "plot": false
+      },
       {
         "x": 0,
         "z": 1,
@@ -15,7 +57,19 @@
       {
         "x": 1,
         "z": 1,
-        "slug": "open-plot-1-1",
+        "slug": "mossgate",
+        "plot": false
+      },
+      {
+        "x": 2,
+        "z": 1,
+        "slug": "open-plot-clockwork-canyon",
+        "plot": true
+      },
+      {
+        "x": -2,
+        "z": 0,
+        "slug": "open-plot-coral-drift",
         "plot": true
       },
       {
@@ -37,28 +91,40 @@
         "plot": false
       },
       {
+        "x": 2,
+        "z": 0,
+        "slug": "open-plot-mosslight-ruins",
+        "plot": true
+      },
+      {
+        "x": -2,
+        "z": -1,
+        "slug": "open-plot-lantern-bayou",
+        "plot": true
+      },
+      {
+        "x": -1,
+        "z": -1,
+        "slug": "brasscap-mesa",
+        "plot": false
+      },
+      {
         "x": 0,
         "z": -1,
         "slug": "far-reach",
         "plot": false
       },
       {
-        "x": -1,
-        "z": 1,
-        "slug": "open-plot-night-market",
-        "plot": true
-      },
-      {
-        "x": -1,
-        "z": -1,
-        "slug": "open-plot-showcase-template",
-        "plot": true
-      },
-      {
         "x": 1,
         "z": -1,
         "slug": "nine-dragon-stack",
         "plot": false
+      },
+      {
+        "x": 2,
+        "z": -1,
+        "slug": "open-plot-ember-forge",
+        "plot": true
       },
       {
         "x": -2,
@@ -81,7 +147,7 @@
       {
         "x": 1,
         "z": -2,
-        "slug": "open-plot-desert-ruin",
+        "slug": "open-plot-night-market",
         "plot": true
       },
       {
@@ -89,80 +155,16 @@
         "z": -2,
         "slug": "open-plot-alien-plain",
         "plot": true
-      },
-      {
-        "x": -2,
-        "z": -1,
-        "slug": "open-plot-lantern-bayou",
-        "plot": true
-      },
-      {
-        "x": 2,
-        "z": -1,
-        "slug": "open-plot-ember-forge",
-        "plot": true
-      },
-      {
-        "x": -2,
-        "z": 0,
-        "slug": "open-plot-coral-drift",
-        "plot": true
-      },
-      {
-        "x": 2,
-        "z": 0,
-        "slug": "open-plot-mosslight-ruins",
-        "plot": true
-      },
-      {
-        "x": -2,
-        "z": 1,
-        "slug": "open-plot-frostline-peaks",
-        "plot": true
-      },
-      {
-        "x": 2,
-        "z": 1,
-        "slug": "open-plot-clockwork-canyon",
-        "plot": true
-      },
-      {
-        "x": -2,
-        "z": 2,
-        "slug": "open-plot-jungle-ziggurat",
-        "plot": true
-      },
-      {
-        "x": -1,
-        "z": 2,
-        "slug": "open-plot-thin-ice",
-        "plot": true
-      },
-      {
-        "x": 0,
-        "z": 2,
-        "slug": "open-plot-saltwind-lighthouse",
-        "plot": true
-      },
-      {
-        "x": 1,
-        "z": 2,
-        "slug": "open-plot-starfall-observatory",
-        "plot": true
-      },
-      {
-        "x": 2,
-        "z": 2,
-        "slug": "open-plot-sky-harbor",
-        "plot": true
       }
     ]
   },
-  "memory": {
-    "explorerMB": 1200,
-    "loadingMB": 1800
+  "mmo": {
+    "$source": "Kept by hand. seats: J409 (32 a zone). loadingMB and playingTargetMB: engine budgets/caps.json, memory/loading/* (J410, a refusal) and memory/playing/* (J445, a target, never a refusal).",
+    "seats": 32,
+    "loadingMB": 1500,
+    "playingTargetMB": 1000
   },
-  "schemaPaths": 8674,
+  "schemaPaths": 11701,
   "shardfile": {
     "version": "0.1",
     "identity": {
@@ -186,5 +188,36 @@
       "tickMicros": 5000
     },
     "runtime": null
+  },
+  "names": {
+    "brasscap-mesa": "Brasscap Mesa",
+    "driftwood-isle": "Driftwood Isle",
+    "far-reach": "Sky Reach",
+    "glowfen": "Glowfen",
+    "mirror-salt": "Mirror Salt",
+    "mossgate": "Mossgate Hollow",
+    "nalati-grasslands": "Nalati Grasslands",
+    "nine-dragon-stack": "Nine Dragon Stack",
+    "open-plot-alien-plain": "Open Plot · Pastel Alien Plain",
+    "open-plot-clockwork-canyon": "Open Plot · Clockwork Canyon",
+    "open-plot-coral-drift": "Open Plot · Coral Drift",
+    "open-plot-ember-forge": "Open Plot · Ember Forge",
+    "open-plot-fossil-badlands": "Open Plot · Fossil Badlands",
+    "open-plot-frostline-peaks": "Open Plot · Frostline Peaks",
+    "open-plot-jungle-ziggurat": "Open Plot · Jungle Ziggurat",
+    "open-plot-lantern-bayou": "Open Plot · Lantern Bayou",
+    "open-plot-mosslight-ruins": "Open Plot · Mosslight Ruins",
+    "open-plot-night-market": "Open Plot · Night Market",
+    "open-plot-patchwork-fairground": "Open Plot · Patchwork Fairground",
+    "open-plot-saltwind-lighthouse": "Open Plot · Saltwind Lighthouse",
+    "open-plot-sky-harbor": "Open Plot · Sky Harbor",
+    "open-plot-sky-race": "Open Plot · Floating Island Race",
+    "open-plot-starfall-observatory": "Open Plot · Starfall Observatory",
+    "pine-hollow": "Pine Hollow",
+    "sunscar-dunes": "Signal Dunes"
+  },
+  "download": {
+    "fineMB": 50,
+    "hardMB": 100
   }
 }

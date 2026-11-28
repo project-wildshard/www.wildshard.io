@@ -30,6 +30,10 @@ const SCHEMAS = new Set([
   'unknown',
 ])
 const ACTIONS = new Set([
+  'gt_value',
+  'some_item',
+  'readonly',
+  'non_empty',
   'check',
   'finite',
   'integer',

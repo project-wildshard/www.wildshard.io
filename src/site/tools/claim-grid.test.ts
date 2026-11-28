@@ -18,9 +18,9 @@ import type { FactCell } from './facts.ts'
 
 const site = new URL('../', import.meta.url)
 const { cells } = readFacts(new URL('facts.json', site).pathname)
-// D2, the Template's (1,1), is an open plot since it left the grid (meta
-// TEMPLATE-E2E TR-13, J434).
-const TAKEN = ['C2', 'B3', 'C3', 'D3', 'C4', 'D4']
+// The live grid (meta WWW-REFRESH WW1, from api.wildshard.io's catalogue on
+// 2026-11-27): ten zones, Mirror Salt alone in the top row.
+const TAKEN = ['B1', 'B2', 'C2', 'D2', 'B3', 'C3', 'D3', 'B4', 'C4', 'D4']
 const label = (c: FactCell): string => `{{${c.slug}}}`
 const shardOn = (name: string): string | undefined =>
   cells.find(c => cellName(c) === name)?.slug
@@ -43,6 +43,7 @@ test('the shards sit where the facts put them', () => {
   assert.deepEqual(takenCells(cells), TAKEN)
   assert.equal(shardOn('C3'), 'driftwood-isle')
   assert.equal(shardOn('D4'), 'nine-dragon-stack')
+  assert.equal(shardOn('B1'), 'mirror-salt')
 })
 
 test('the form offers every open plot and no shard', () => {
@@ -54,8 +55,9 @@ test('the form offers every open plot and no shard', () => {
     offered.filter(cell => TAKEN.includes(cell)),
     [],
   )
-  assert.ok(offered.includes('B2'))
-  assert.ok(offered.includes('B4'))
+  assert.ok(offered.includes('A1'))
+  assert.ok(offered.includes('E5'))
+  assert.ok(!offered.includes('B2'))
   assert.ok(!offered.includes('D4'))
   assert.match(html, /<i>C3<\/i><b>\{\{driftwood-isle\}\}/u)
   assert.match(html, /<i>D4<\/i><b>\{\{nine-dragon-stack\}\}/u)

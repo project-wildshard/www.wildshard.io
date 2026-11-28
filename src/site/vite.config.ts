@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 import { viteTmpRoot } from '../scripts/.kit/vite-tmp.mjs'
-import { buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
+import { MAP_LABEL, buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
 import { fillGames } from './tools/games.ts'
@@ -66,15 +66,6 @@ function esc(s: string): string {
 }
 
 // ---- MR11 / MR5 · the grid, drawn from facts.json ---------------------------------------------------
-/** each shard's short map label (a COPY.md entry); every other cell is an open plot */
-const MAP_LABEL: Readonly<Record<string, string>> = {
-  'driftwood-isle': 'Map · Driftwood',
-  'pine-hollow': 'Map · Pine',
-  'nalati-grasslands': 'Map · Nalati',
-  'sunscar-dunes': 'Map · Dunes',
-  'far-reach': 'Map · Sky Reach',
-  'nine-dragon-stack': 'Map · Nine Dragon',
-}
 function label(c: FactCell): string {
   const k = MAP_LABEL[c.slug]
   if (k === undefined) {
