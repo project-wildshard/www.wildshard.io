@@ -119,3 +119,17 @@ saga in place of Coming worlds).
   painting, deleted); coming next is cleanroom, founding builders and
   one-shots. /build/'s install size is 694 MB measured (npx new 0.8.1,
   pnpm install, check pass in 21 s), so about 700 MB.
+
+- WW10, /mmo/. Every block from meta support/www-refresh/fact-checks.md.
+  The flow ends in a plot and a link (founding builders first); check,
+  not validate, then the API's cook. The shardfile is a manifest over
+  35 hashed sections, format 0.1.0.6, saveRevision, no 'trusted code'.
+  Budgets: 100 MB hard, 50 fine, 1.5 GB loading refuses, 1 GB playing
+  target; entrances may be over water, a lift or a portal. Sandbox is
+  ABI v1 (256 KiB memory, 400K fuel a call, 2M a decision tick, v2
+  queries); the unconfirmed determinism gate is gone. The grid: zone
+  entry with the 5-to-0 count, a 7x7 platform, no 'no loading screen'.
+  Layers are the repos (zone, sharddev, engine, shard-format), checked
+  against engine package.json. Multiplayer is live: queue, guests,
+  Name#1234, voice up to 8; no per-zone seat count (WW17). The road has
+  seven milestones: four done, uploads and cleanroom in progress.

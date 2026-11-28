@@ -1895,11 +1895,11 @@ ask for an invite · claim an open plot
 
 ## MMO page · title
 
-The MMO · Project Wildshard
+The MMO · Wildshard
 
 ## MMO page · description
 
-How Project Wildshard becomes one world: the shardfile, the grid, the engine and the honest road to the MMO.
+How Wildshard works: the shardfile, the budgets, the sandbox, the grid, multiplayer, and the road so far.
 
 ## MMO · question
 
@@ -1911,14 +1911,14 @@ How the MMO works.
 
 ## MMO · intro
 
-The technical side, for the curious and for authors: what a shard is, how shards fit together, and how far along the road we are.
+The technical side, for builders and the curious: what a zone is made of, how zones become one world, and how far along the road we are.
 
-<!-- MS31. Every claim on this page comes from a doc or the code; each block's note says where. Status as of 2026-10-27 (E506).
+<!-- Every claim on this page comes from a doc or the code: meta docs/plans/support/www-refresh/fact-checks.md, surveyed 2026-11-27.
      {=name} numbers come from facts.json; docs/dev.md says what writes it and what is kept by hand. -->
 
 ## MMO · status
 
-**Today:** a single-player alpha: seven shards, all built from data, on a {=side} × {=side} grid in testing. **Next:** multiplayer, uploads, creator keys. Every part below says which it is.
+**Live:** an MMO of {=zones} zones and {=plots} open plots on one grid, on one server. **Now:** founding builders upload to the test world. **Next:** the cleanroom saga. Every part below says which it is.
 
 <!-- The flow: MMO-REQUIREMENTS A2, A3, S1, W6; docs/SHARDFILE.md (the build product); src/sdk/cli.ts (new, dev, build, validate). -->
 
@@ -1926,9 +1926,9 @@ The technical side, for the curious and for authors: what a shard is, how shards
 
 From your machine to the grid, in four steps
 
-## MMO · tag planned
+## MMO · tag founding
 
-Planned · not built yet
+Founding builders first
 
 ## MMO · flow 1 label
 
@@ -1936,11 +1936,11 @@ Planned · not built yet
 
 ## MMO · flow 1 title
 
-Build anything
+Build it with Claude
 
 ## MMO · flow 1 text
 
-Claude or any coding agent writes the code, with any tool you like. The code stays home; only its output ships.
+Claude Code writes the zone as three.js in a repo of your own. The source stays with you; only the shardfile ships.
 
 ## MMO · flow 2 label
 
@@ -1952,7 +1952,7 @@ A shardfile
 
 ## MMO · flow 2 text
 
-`wildshard build` bakes it into data, assets and sandboxed WebAssembly.
+`wildshard build` bakes it into data, assets and sandboxed WebAssembly, every file named by its hash.
 
 ## MMO · flow 3 label
 
@@ -1960,11 +1960,11 @@ A shardfile
 
 ## MMO · flow 3 title
 
-Checked before play
+Checked, then cooked
 
 ## MMO · flow 3 text
 
-`wildshard validate` runs on your machine the check the server will run.
+`wildshard check` runs the format's checks and the budgets on your machine. The API runs them again, and its cook makes every texture ready for a phone.
 
 ## MMO · flow 4 label
 
@@ -1972,17 +1972,17 @@ Checked before play
 
 ## MMO · flow 4 title
 
-Placed by the server
+A plot and a link
 
 ## MMO · flow 4 text
 
-Upload it with your creator key; the server gives it a cell and everyone walks in.
+An upload to the test world takes a free open plot and gets its own link. The team places zones on the live world.
 
 <!-- The shardfile: docs/SHARDFILE.md ("Shardfile 0.x", its section table), docs/api/SHARDFILE.md (coverage line), the shardfile excerpt in site/facts.json. -->
 
 ## MMO · shardfile question
 
-what is a shard, exactly?
+what is a zone, exactly?
 
 ## MMO · shardfile title
 
@@ -1990,11 +1990,11 @@ The shardfile.
 
 ## MMO · shardfile intro
 
-One sealed package: a `shard.json`, and every other file named by its SHA-256. No three.js objects, no functions, no custom shaders: only data the engine reads.
+One sealed package: a `shard.json` manifest, and every other file named by its SHA-256. No functions and no custom shaders: data the engine reads, and sandboxed WebAssembly.
 
 ## MMO · shardfile note
 
-The template's real shard.json: `runtime: null` means no trusted code at all
+The head of Mossgate Hollow's live shard.json, read from the grid: the template every new zone starts from
 
 ## MMO · shardfile sections label
 
@@ -2002,22 +2002,21 @@ What else is in a shard.json?
 
 ## MMO · shardfile sections
 
-- `identity`: slug, name, author, revision, seed. Never a grid position: placement is the server's.
-- `look`: sky, sun, fog and grade, from the platform's fixed families, with a day cycle.
-- `sim` and `state`: a 60 Hz fixed step, and named shared and per-player fields, each public, owner-only or host-only.
-- `creatures`, `encounters`, `quests`, `items`: brains, packs, bosses and their phases, quest graphs and loot, as rows.
-- `edge` and `entryways`: four edge profiles, and an 8 m opening at the middle of every edge, at road height.
-- `tiles`, `files`, `budgets`: 62.5 m and 125 m tiles, every file's bytes, triangles and draws, and the caps it promises.
+- `identity`: slug, name, author, save revision. Never a grid position: placement is the platform's.
+- `requires` and `admission`: the engine it needs, and the caps and budgets it promises.
+- `build`, `cook` and `preparation`: the source it came from, and what the server's cook made of it.
+- `sections`: 35 hashed parts, each with its schema: the look from fixed families with a day cycle, a 60 Hz sim, state that is public, owner-only or host-only, four edge profiles, 62.5 m and 125 m tiles, creatures, encounters, quests, the ledger.
+- `runtime: null`: no engine-side code at all.
 
 ## MMO · shardfile sections note
 
-Version 0.1: {=schemaPaths} schema paths, every one in the generated reference. An unknown key fails.
+Format 0.1.0.6: {=schemaPaths} schema paths, and `wildshard schema` prints any of them. An unknown key fails.
 
 <!-- Budgets: docs/SHARDFILE.md "Budget-first admission", its section table (budgets, entryways), "Minimal singleplayer load"; src/engine/core/config.ts CONTENT_CAPS. -->
 
 ## MMO · budgets question
 
-how is a stranger's shard safe on my phone?
+how is a stranger's zone safe on my phone?
 
 ## MMO · budgets title
 
@@ -2025,19 +2024,19 @@ Budgets first.
 
 ## MMO · budgets intro
 
-Nothing loads until it fits. A shard declares what it costs, and admission checks the real bytes against it before anyone plays it.
+Nothing loads until it fits. A zone declares what it costs, and admission checks the real bytes against it before anyone plays it.
 
 ## MMO · budgets terminal path
 
-~/shards/my-shard
+~/shard-my-zone
 
 ## MMO · budgets command
 
-wildshard validate my-shard
+wildshard check .
 
 ## MMO · budgets command output
 
-prints a report card: memory at the worst spot, draws, triangles, script CPU and fuel, download size, time to playable
+prints a report card: download, memory, draws, triangles, script CPU and fuel
 
 ## MMO · budgets step 1
 
@@ -2061,7 +2060,7 @@ Hard caps
 
 ## MMO · budgets step 3 text
 
-Library ≤ 25 MB in memory, 8 MB to download; simulation ≤ 25 MB and 2 MB. Each shard: {=memoryPlaying} playing, {=memoryLoading} loading.
+A download of {=downloadFine} is fine and {=downloadHard} is the most. Phone memory while loading: {=memoryLoading} refuses; {=memoryPlaying} while playing is the target.
 
 ## MMO · budgets step 4
 
@@ -2069,7 +2068,7 @@ Four roads in
 
 ## MMO · budgets step 4 text
 
-An 8 m opening mid-edge, flat, clear and dry. Miss one: "illegal shard".
+An 8 m entrance mid-edge at road height: on the ground, over water, a lift or a portal. Miss one and the zone is refused.
 
 ## MMO · budgets step 5
 
@@ -2077,17 +2076,17 @@ A measured run
 
 ## MMO · budgets step 5 text
 
-The simulation runs headless for 240 ticks to measure script CPU and fuel.
+The simulation runs headless for 240 ticks, 60 to warm up and three windows of 60, to measure script CPU and fuel.
 
 ## MMO · budgets note
 
-Built for the phone: an iPhone at 30 fps, inside {=memoryPlaying} a shard
+Built for the phone: memory is modelled for a phone, engine included
 
 <!-- The sandbox: docs/SCRIPT-ABI.md; MMO-REQUIREMENTS R1, R3, R4 and §7 O4 (AssemblyScript first). -->
 
 ## MMO · sandbox question
 
-can a shard run its own code?
+can a zone run its own code?
 
 ## MMO · sandbox title
 
@@ -2107,19 +2106,19 @@ the most one module can be
 
 ## MMO · sandbox stat 2
 
-4 MiB
+256 KiB
 
 ## MMO · sandbox stat 2 label
 
-of memory, at most
+of memory, at most, and it can't grow
 
 ## MMO · sandbox stat 3
 
-2M
+400K
 
 ## MMO · sandbox stat 3 label
 
-fuel per call, 8M a tick for all of them
+fuel per call by default, 2M a decision tick
 
 ## MMO · sandbox stat 4
 
@@ -2127,23 +2126,23 @@ fuel per call, 8M a tick for all of them
 
 ## MMO · sandbox stat 4 label
 
-clocks, randomness, network, DOM or files
+clocks, network, DOM or files; randomness only from seeded streams
 
 ## MMO · sandbox points
 
-- **It only touches its own shard.** It writes its declared fields, spawns, moves and sends events within limits, and asks the world four things: raycast, overlap, nearest walkable point, path.
+- **It only touches its own zone.** It writes its declared fields and sends commands within limits, and asks the world: walkable, path, ray, overlap, nearest, sight.
 - **A runaway is stopped, not waited on.** Every loop pays fuel. On a trap nothing it wrote is kept, and after three failures the module is switched off.
-- **The same result everywhere.** Every float is guarded, so the same bytes give the same answer in Node and in Safari's WebKit: a gate checks it on every push.
+- **The server owns the game.** A zone's sim scripts run on the server, about ten decisions a second; its view scripts run on the page.
 
 ## MMO · sandbox note
 
-Script ABI v0 · AssemblyScript first; other languages can target the same interface later
+Script ABI v1 · AssemblyScript first; other languages can target the same interface later
 
 <!-- The grid: drawn and counted from facts.json's grid at build time; src/engine/core/config.ts (the road), MMO-REQUIREMENTS W1–W8, docs/GRID-SIMULATION.md (6 m / 10 m, four sims, the 23.75 m verges). -->
 
 ## MMO · grid question
 
-how do shards become one world?
+how do zones become one world?
 
 ## MMO · grid title
 
@@ -2151,11 +2150,11 @@ The grid.
 
 ## MMO · grid intro
 
-Every shard is a {=cellSize} m cube, built alone, then placed on the grid. Between cells runs a {=gap} m gap with a {=road} m road down its middle: centres sit {=pitch} m apart.
+Every zone is a {=cellSize} m cube, built alone, then placed on the grid. Between cells runs a {=gap} m gap with a {=road} m road down its middle: centres sit {=pitch} m apart.
 
 ## MMO · grid map description
 
-Today's grid to scale: a {=side} by {=side} of {=cellSize} metre cells with the road between them. Driftwood Isle in the middle, Pine Hollow north, the Template north-east, Signal Dunes west, Nalati east, Sky Reach south, Nine Dragon south-east, and {=plots} open plots round them.
+Today's grid to scale: a {=side} by {=side} of {=cellSize} metre cells with the road between them. Driftwood Isle in the middle, Pine Hollow north, Mossgate Hollow north-east, Glowfen north-west, Mirror Salt north of Glowfen, Signal Dunes west, Nalati east, Sky Reach south, Nine Dragon south-east, Brasscap Mesa south-west, and {=plots} open plots round them.
 
 ## MMO · grid open plot
 
@@ -2175,15 +2174,15 @@ N ↑
 
 ## MMO · grid map caption
 
-Today's grid, to scale: {=shardsWord} shards and {=plots} open plots, in testing.
+Today's grid, to scale: {=zonesWord} zones and {=plots} open plots, live.
 
 ## MMO · seam description
 
-A seam, to scale: a shard's edge, a {=verge} metre verge, the {=road} metre road, a {=verge} metre verge, the next shard
+A seam, to scale: a zone's edge, a {=verge} metre verge, the {=road} metre road, a {=verge} metre verge, the next zone
 
 ## MMO · seam shard
 
-shard
+zone
 
 ## MMO · seam strip
 
@@ -2203,9 +2202,9 @@ The platform builds each verge from both neighbours' edges, so the seam always m
 
 ## MMO · grid points
 
-- **No loading screen.** The next shard gets ready while you're on the road. You enter its simulation 6 m before its edge and leave 10 m after, so a border never flickers.
-- **The crossroads is the worst case.** Where four shards meet, four corners are within ~{=corner} m, so every budget is proven there. At most four shard simulations are in memory.
-- **Each shard owns its frame.** Inside, it sets the sky, sun, fog, grade and post. On the road, the neutral road look.
+- **The road is free; zones have gates.** At a zone's road entrance a 10 m buffer counts down from 5, "Preparing to enter". Step out and it resets; at 0 the loading screen opens.
+- **A 7 × 7 platform.** The inner 5 × 5 holds today's zones and open plots; a new zone on the test world takes a free plot on the outer ring.
+- **Each zone owns its frame.** Inside, it sets the sky, sun, fog, grade and post.
 
 <!-- The layers: AGENTS.md "Engine layers" (E405), docs/ENGINE.md, src/sdk/cli.ts; MMO-REQUIREMENTS T2–T4; SHARD-PLATFORM M3 (27dd969127, 2026-10-23: every shard at zero custom source, 98,854 lines cut). -->
 
@@ -2219,61 +2218,61 @@ Four layers.
 
 ## MMO · layers intro
 
-The code is four packages, and imports only point down. Guards in the repo refuse anything that points up or sideways.
+Each layer is its own repo, and imports only point down: a zone builds on the SDK, the SDK on the engine, the engine on the format.
 
 ## MMO · layer 4 name
 
-src/shards/<slug>
+shard-<zone>
 
 ## MMO · layer 4 text
 
-One folder per shard. A shard never imports another.
+One repo per zone. A zone never imports another.
 
 ## MMO · layer 3 name
 
-@wildshard/sdk
+sharddev
 
 ## MMO · layer 3 text
 
-What authors build against: the shardfile schema, the `wildshard` CLI and the runtime facades.
+What builders use: the `wildshard` CLI, the SDK, the build, the upload, the local game and a kit of shared creatures.
 
 ## MMO · layer 2 name
 
-@wildshard/game
+@wildshard/engine
 
 ## MMO · layer 2 text
 
-Knows it is Wildshard, never a particular shard. Holds what two or more shards share.
+Client, server and cook: rendering, physics, input, audio, the game server. Knows no particular zone: content arrives as data.
 
 ## MMO · layer 1 name
 
-@wildshard/engine
+@wildshard/shard-format
 
 ## MMO · layer 1 text
 
-Rendering, physics, input, audio. Knows no game and no shard: content arrives as data.
+The format and its checks: what a shardfile may hold, and every refusal.
 
 ## MMO · layers today
 
-**The game is the console, a shard the cartridge:** data, baked art and small sandboxed scripts, run the same way for every shard. Every shard you can play was rebuilt so: about 99,000 lines of one-off code, down to zero.
+**The game is the console, a zone the cartridge:** data, baked art and small sandboxed scripts, run the same way for every zone. Every zone you can play was rebuilt so in October: about 99,000 lines of one-off code, down to zero.
 
-<!-- Multiplayer, as planned (not built): MMO-REQUIREMENTS M1, M2, M6, M8, M9; OCTOBER-BACKLOG saga 3 ("no live plan yet"); SHARD-PLATFORM M1 (headless sim). -->
+<!-- Multiplayer, live since 11-12: meta docs/plans/support/www-refresh/fact-checks.md (engine src/server). -->
 
 ## MMO · together question
 
-how will we play together?
+how do we play together?
 
 ## MMO · together title
 
-Multiplayer, as planned.
+Multiplayer, live.
 
 ## MMO · together intro
 
-Not built yet: today every shard is single player. This is the design the shardfile is built to fit.
+Live since 12 Nov: one world on one server. Every zone's simulation runs there, and the server decides what's shared.
 
 ## MMO · net description
 
-Planned: your phone sends inputs to the shard's room on the server, which runs the shared simulation and sends the shared state back
+Your phone sends inputs to the server, which runs every zone's simulation and sends the shared state back
 
 ## MMO · net phone
 
@@ -2281,7 +2280,7 @@ Your phone
 
 ## MMO · net phone text
 
-predicts only your own character
+sends your inputs, draws the shared world
 
 ## MMO · net up
 
@@ -2293,47 +2292,47 @@ inputs →
 
 ## MMO · net room
 
-The room
+The server
 
 ## MMO · net room text
 
-the shard's simulation, headless, on the server
+every zone's simulation, headless
 
 ## MMO · together points
 
-- **The server decides everything shared:** creatures, combat, loot, quests. Hits are settled against what you saw.
-- **Rooms of up to 32.** A full shard opens a copy and keeps parties together.
-- **Two wallets.** Your name, title, cosmetics and catalogue gear travel; a shard's own coins and items stay in it, so no shard can break the economy.
-- **One ledger.** Only what the server saw can grant a reward, and only once: a dropped connection never pays twice.
+- **The server decides everything shared:** creatures, combat, loot, quests. A hit is settled against where you saw the target.
+- **A full world queues you,** with your place in line and a wait, and holds a freed seat for the head of the line.
+- **Guests welcome.** Sign in by email link or passkey to keep a name like Name#1234.
+- **World chat, nearby chat and voice.** Voice is peer to peer, within a zone, up to 8 at once.
+- **Two wallets, one ledger.** A zone's coins and bag stay in it; catalogue items and achievements travel with you, and a reward is granted once.
 
 ## MMO · together today
 
-**Already true:** the simulation runs without a renderer (the template's runs in Node), and every `shard.json` declares a `serverBudget`, a promise for the server that doesn't exist yet.
+**Under the hood:** one world, run by four server workers, and each zone's `serverBudget` is read by the server.
 
 <!-- Ownership and pricing: MMO-REQUIREMENTS O1, O4, O6, O7, O9, O10, U5. -->
 
 ## MMO · own question
 
-who owns a shard, and what does it cost?
+who owns a zone, and what does it cost?
 
 ## MMO · own title
 
-Yours. Free.
+Free to build. Free to play.
 
 ## MMO · own intro
 
-You keep the rights to what you build. Uploading gives Wildshard a licence to host it and show it in the world.
+Playing is free. Building is free with your own Claude, and uploads are never charged.
 
 ## MMO · own points
 
-- Playing is free. Building is free with your own agent. Uploads are never charged.
-- Your creator key is your author identity: it signs your uploads.
-- A renovated shard keeps its original author's name; a remix of a public shard credits it automatically.
-- The first authors to upload become Founding Authors, with a plaque on their shard.
+- `wildshard account` makes your account key; the first upload of a slug makes that zone yours.
+- Founding builders upload to the test world first; the team places zones on the live world.
+- The first builders to upload become Founding Authors, with a plaque on their zone.
 
 ## MMO · own note
 
-Promised in the MMO's requirements (O9, O10, U5). Uploads and keys aren't built yet.
+Account keys and uploads are built today; founding builders are invited first.
 
 <!-- The road: MMO-REQUIREMENTS §5 (milestones), SHARD-PLATFORM (M3 100 % on 2026-10-23; the grid behind Developer, src/game/grid/menu.ts GRID_GATES_PASSED; the crossing and loading-speed mini plans open), OCTOBER-BACKLOG ("no live plan yet for multiplayer or the API server"). No dates (§1.1). -->
 
@@ -2347,7 +2346,7 @@ The honest road.
 
 ## MMO · road intro
 
-States, not dates: the milestones, read from the plans as of 27 October 2026.
+States, not dates: the milestones, read from the plans as of 27 November 2026.
 
 ## MMO · road done
 
@@ -2355,7 +2354,7 @@ States, not dates: the milestones, read from the plans as of 27 October 2026.
 
 ## MMO · road testing
 
-in testing
+in progress
 
 ## MMO · road todo
 
@@ -2367,15 +2366,15 @@ The package
 
 ## MMO · road 1 text
 
-The template boots from its shardfile with no trusted code, and its simulation runs in Node with no renderer.
+Format 0.1.0.6: a zone boots from its shardfile with no engine-side code, and its simulation runs with no renderer.
 
 ## MMO · road 2 title
 
-Every shard on the format
+Every zone on the format
 
 ## MMO · road 2 text
 
-Every shard is data, baked assets and sandboxed scripts.
+All ten zones are data, baked assets and sandboxed scripts, each in its own repo.
 
 ## MMO · road 3 title
 
@@ -2383,7 +2382,7 @@ The grid
 
 ## MMO · road 3 text
 
-A {=side} × {=side}: {=shardsWord} shards, {=plots} open plots, one road. Developer only; crossing and loading are being made faster.
+A {=side} × {=side} of {=zones} zones and {=plots} open plots, live, entered from one road.
 
 ## MMO · road 4 title
 
@@ -2391,23 +2390,31 @@ Multiplayer
 
 ## MMO · road 4 text
 
-Two players in one shard on an authoritative server. Designed; no plan yet.
+One world on one server since 12 Nov: guests, chat, voice and a queue.
 
 ## MMO · road 5 title
 
-Uploads and creator keys
+Uploads by founding builders
 
 ## MMO · road 5 text
 
-An outside author uploads a validated shard and it appears on the grid.
+Account keys and uploads are built; invited builders upload to the test world first.
 
 ## MMO · road 6 title
 
-The first player-built grid
+The cleanroom saga
 
 ## MMO · road 6 text
 
-Twenty-five shards live, most of them built by players, and profiles that travel.
+Every zone raised to the bar of a standalone game.
+
+## MMO · road 7 title
+
+The first player-built grid
+
+## MMO · road 7 text
+
+A grid of zones, most of them built by players.
 
 ## MMO · next label
 
@@ -2415,7 +2422,7 @@ Where next
 
 ## MMO · next build
 
-Build a shard →
+Build a zone →
 
 ## MMO · next build note
 
@@ -2427,7 +2434,7 @@ Play →
 
 ## MMO · next play note
 
-every shard in full
+every zone in full
 
 # Map page (wildshard.io/map/: the world-map concept, art/world-map/round-4-plots, E506 MR4)
 
