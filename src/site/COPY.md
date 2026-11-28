@@ -129,21 +129,28 @@ Build
 
 ## Hero · build line
 
-Every zone is its own repo, built with Claude Code and checked against a phone's budget before it joins the grid. Creator keys open next.
+Build a zone with Claude Code, in its own repo. We run the MMO for it: the server, chat, voice, sign-in, phones and a link to share.
+
+## Hero · build gets
+
+- **Start** from a template with its own Claude skills: `wildshard new`
+- **Walk it** in the real game as you save: `wildshard dev`
+- **Check it** against a phone's budgets: `wildshard check`
+- **Share it** with a link once it's on the test world
 
 ## Hero · author button
 
-Become a creator
+Become a founding builder
 
 ## Hero · author button note
 
-join the waitlist for a creator key
+upload to the test world first
 
 # Trailer
 
 ## Hero · status
 
-**Live:** an MMO of {=zones} zones and {=plots} open plots on one grid. **Next:** the cleanroom saga, every zone rebuilt to the bar of a standalone game.
+**Live:** an MMO of {=zones} zones and {=plots} open plots on one grid. **Now:** founding builders upload to the test world. **Next:** the cleanroom saga, every zone raised to the bar of a standalone game.
 
 ## Trailer · description
 
@@ -368,6 +375,10 @@ Relight the Hollow: braziers, standing stones, the beacon on Lookout Ridge, then
 
 Play ↗
 
+## Shards · repo link
+
+Repo ↗
+
 ## Shards · build link
 
 Build
@@ -382,7 +393,7 @@ Still
 
 ## Shards · more button
 
-+ 7 more zones
++ 6 more zones
 
 ## Shards · more page link
 
@@ -392,15 +403,15 @@ Every zone in full →
 
 ## Together · question
 
-how do ten zones make one MMO?
+what does my zone get?
 
 ## Together · title
 
-One format. One world.
+You build the zone. We run the MMO.
 
 ## Together · intro
 
-The engine is the console and each zone a cartridge: one shardfile of data, models, images, sound and sandboxed scripts, never code of its own. The engine runs every zone the same way, and the cook turns each one into packs that load fast on a phone. So zones from different hands sit side by side under one set of rules, and none can break another.
+A one-shot game is yours alone. A zone on Wildshard gets everything an MMO needs, and you build none of it.
 
 ## Together · package heading
 
@@ -438,10 +449,12 @@ Read from Mossgate Hollow's live shardfile: the template every new zone starts f
 
 ## Grow · points
 
-- Walk from zone to zone: the road between them is free, and a gate counts you in.
-- Keep one name, like Name#1234, in every zone.
-- Meet other players in every zone, with world and nearby chat.
-- Every zone passes the same phone budgets before it goes live.
+- A server that runs the fights, loot and quests for everyone in your zone.
+- Other players walking in from the road, with world chat, nearby chat and voice.
+- Sign-in by email link or passkey, guests welcome, one name like Name#1234 everywhere.
+- Phones and desktops, from the Home Screen, and a loaded zone even offline.
+- Hosting, a cook that makes every texture ready for a phone, and roads to the zones next door.
+- A link to share: play.wildshard.io/slug/your-zone.
 
 # How a shard is made
 
@@ -495,11 +508,15 @@ Walk it in your browser as you build
 
 ## How · step 6
 
-`wildshard upload` sends it to a channel (when uploads open)
+`wildshard upload` puts it on the test world with a link to share (founding builders first)
 
 ## How · more page link
 
 What building a zone is like →
+
+## How · story
+
+**Mirror Salt** was a pitch picked at random on 16 Nov. Claude built it in its own repo, and it was first uploaded on 17 Nov: a three-heat race for the Salt Cup, with a boss in the canyon.
 
 # How a shard is made · Thin Ice, inside step 3
 
@@ -848,15 +865,15 @@ I want to build one
 
 ## Author · title
 
-Become a creator.
+Become a founding builder.
 
 ## Author · intro
 
-Join the waitlist for a creator key. Tell us the zone you'd build, and claim the open plot you'd build it on.
+Founding builders upload to the test world first and get a link to share. Tell us the zone you'd build, and claim the open plot you'd build it on.
 
 ## Author · founding authors
 
-**Founding creators:** the first creators to upload get a permanent Founding Author title and a plaque on their zone.
+**Founding builders:** the first creators to upload get a permanent Founding Author title and a plaque on their zone.
 
 ## Author · form path
 
@@ -888,7 +905,7 @@ Tap an open plot to claim it; the {=zonesWord} zones are taken
 
 ## Author · send button
 
-Join the waitlist
+Ask for an invite
 
 ## Author · send button note
 
@@ -896,7 +913,7 @@ enter ↵
 
 ## Author · privacy note
 
-We only use your email to tell you when creator keys open.
+We only use your email to send your invite and to tell you when uploads open wider.
 
 ## Author · discord button
 
@@ -912,7 +929,7 @@ or write to
 
 ## Author · error no email
 
-Add your email, so we can tell you when keys open.
+Add your email, so we can send your invite.
 
 ## Author · error bad email
 
@@ -924,7 +941,7 @@ Tell us what you would build: one line is enough.
 
 ## Author · thanks
 
-You're on the list. We'll write when creator keys open.
+You're on the list. We'll write with your invite.
 
 ## Author · sending
 
@@ -1004,7 +1021,7 @@ What can I play today?
 
 ## FAQ · 1 answer
 
-The MMO: {=zonesWord} zones on one grid, with other players, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Not open yet: creator keys and uploads.
+The MMO: {=zonesWord} zones on one grid, with other players, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Every zone also has its own link to share.
 
 ## FAQ · 2 question
 
@@ -1037,6 +1054,14 @@ What can't a zone do?
 ## FAQ · 5 answer
 
 Run JavaScript or shaders, reach your browser or another zone, go over its phone budgets, or block the roads into it. A shardfile holds data, models, images, sound and sandboxed WebAssembly, and the platform checks each one before it joins the grid.
+
+## FAQ · 6 question
+
+Can I upload a zone today?
+
+## FAQ · 6 answer
+
+Founding builders can: invited builders upload to the test world and get a link to share. Anyone can build and walk a zone on their own machine today, with `wildshard new` and `wildshard dev`. Uploads open wider after.
 
 # FAQ · install it (the last answer)
 

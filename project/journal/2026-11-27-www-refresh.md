@@ -82,3 +82,14 @@ saga in place of Coming worlds).
   as no cell (the API never 400s a taken cell; the plan's done-when
   follows the code). The words say creator, zone and open plot;
   Founding Author stays.
+
+- WW16 (home), builder first. Jake 11-27 ~21:50: recruit builders; J536
+  keeps the two equal doors, so the words move. The Build door says we
+  run the MMO for your zone and lists start, walk, check, share; its
+  button is Become a founding builder (J536 (2): invited builders upload
+  to staging). The lead cards are Driftwood, Mirror Salt, Brasscap and
+  Nalati (the trailer's best frames), each with Play and its repo.
+  "You build the zone. We run the MMO." replaces the cartridge block,
+  which moved to /mmo/ only. Mirror Salt's story (random pitch 16 Nov,
+  J395; first upload 17 Nov) sits under the creator steps. The waitlist
+  asks for an invite; the FAQ answers whether you can upload today.
