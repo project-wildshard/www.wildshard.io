@@ -159,7 +159,7 @@
     ]
   },
   "mmo": {
-    "$source": "Kept by hand. seats: J409 (32 a zone). loadingMB and playingTargetMB: engine budgets/caps.json, memory/loading/* (J410, a refusal) and memory/playing/* (J445, a target, never a refusal).",
+    "$source": "Kept by hand. seats: one cap on the whole world, not a zone: engine v0.1.100 src/server/host/dedicated/workerTable.ts:10 (production seats 32, the WORLD_SEATS default), world.ts:934 (the door counts seated and loading players across every cell), src/scripts/vps/setup.sh:234 (production.env WORLD_SEATS=32). J409 asks 32 a zone; meta QA 2026-11-26 row 74 owns that engine change. loadingMB and playingTargetMB: engine budgets/caps.json, memory/loading/* (J410, a refusal) and memory/playing/* (J445, a target, never a refusal).",
     "seats": 32,
     "loadingMB": 1500,
     "playingTargetMB": 1000

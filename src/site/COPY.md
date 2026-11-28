@@ -1029,7 +1029,7 @@ What can I play today?
 
 ## FAQ · 1 answer
 
-The MMO: {=zonesWord} zones on one grid, with other players, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Every zone also has its own link to share.
+The MMO: {=zonesWord} zones on one grid, shared by up to {=seats} players at once, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Every zone also has its own link to share.
 
 ## FAQ · 2 question
 
@@ -2313,7 +2313,7 @@ every zone's simulation, headless
 ## MMO · together points
 
 - **The server decides everything shared:** creatures, combat, loot, quests. A hit is settled against where you saw the target.
-- **A full world queues you,** with your place in line and a wait, and holds a freed seat for the head of the line.
+- **Up to {=seats} players in the world at once.** A full world queues you, with your place in line and a wait, and holds a freed seat for the head of the line.
 - **Guests welcome.** Sign in by email link or passkey to keep a name like Name#1234.
 - **World chat, nearby chat and voice.** Voice is peer to peer, within a zone, up to 8 at once.
 - **Two wallets, one ledger.** A zone's coins and bag stay in it; catalogue items and achievements travel with you, and a reward is granted once.

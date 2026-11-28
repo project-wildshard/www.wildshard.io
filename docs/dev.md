@@ -83,7 +83,8 @@ live catalogue and the pinned format (`--offline` keeps the grid).
   bandwidth, J338's 50 MB and 100 MB. Bump the pin, `pnpm site:facts`.
 - `schemaPaths`: the paths in `ShardfileSchema`. Bump the pin,
   `pnpm site:facts`.
-- `mmo`: **by hand**: seats (J409) and the memory lines from engine
+- `mmo`: **by hand**: seats (engine `WORLD_SEATS`, one cap on the
+  whole world) and the memory lines from engine
   `budgets/caps.json` (J410, J445). Its `$source` says where.
 - `shardfile`: the template zone's (Mossgate Hollow's) live `shard.json`,
   read from its shardfile on the API by the catalogue's hash (J507).

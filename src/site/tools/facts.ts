@@ -103,7 +103,7 @@ function serviceText(raw: Record<string, unknown>): Record<string, string> {
   const gb = (mb: number): string => `${num(mb / 1000)} GB`
   const mb = (n: number): string => `${num(n)} MB`
   return {
-    seats: String(number(mmo.seats, 'mmo.seats')), // 32 a zone (J409)
+    seats: String(number(mmo.seats, 'mmo.seats')), // 32 in the whole world (engine WORLD_SEATS)
     memoryPlaying: gb(number(mmo.playingTargetMB, 'mmo.playingTargetMB')), // 1 GB, a target (J445)
     memoryLoading: gb(number(mmo.loadingMB, 'mmo.loadingMB')), // 1.5 GB, the refusal (J410)
     downloadFine: mb(number(download.fineMB, 'download.fineMB')), // J338
