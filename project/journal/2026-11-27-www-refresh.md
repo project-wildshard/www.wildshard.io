@@ -45,3 +45,14 @@ saga in place of Coming worlds).
   template, J434); /play/ and /build/ point at Mossgate's picture until
   WW9 and WW11. Element shots of a tall section leave off-screen tiles
   unpainted in headless shell; shoot with a tall viewport.
+
+- WW5, one world and the FAQ. The shard.json excerpt is no longer a
+  hand-kept copy of a retired template: site:facts finds Mossgate's
+  live hash in the catalogue, fetches /api/shardfiles/<hash> (a brotli
+  tar on R2; R2 sends Content-Encoding: br, so fetch has usually
+  unpacked it), reads shard.json from the tar and keeps format,
+  shardVersion, identity, requires.engine and admission.authorCaps.
+  The copy drops what never shipped (co-editing, renovating abandoned
+  zones, two wallets, native apps) and says what the format holds
+  (J364, J525). The Thin Ice GPT mockup in the creator steps is
+  replaced by Glowfen in engine (D40), on home and on /build/.

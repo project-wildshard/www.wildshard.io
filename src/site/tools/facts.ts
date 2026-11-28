@@ -4,7 +4,7 @@
 // no new dependency. This file turns the raw numbers into the words COPY.md shows.
 //   readFacts(file)      what src/site/vite.config.ts does
 // COPY.md says {=name} where a number belongs (src/site/tools/copy.ts fills it); the grid pictures read `cells`; the
-// shardfile peek (MS15) reads `shardfile`, an excerpt of the template's built shard.json.
+// shardfile peek (MS15) reads `shardfile`, an excerpt of the template zone's live shard.json (WW5).
 import { readFileSync } from 'node:fs'
 
 /** One cell of the grid the site draws: a shard, or an open plot waiting for an author */

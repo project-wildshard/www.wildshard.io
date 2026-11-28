@@ -26,6 +26,8 @@ import {
   readFormat,
   readRaw,
   refreshed,
+  shardfileExcerpt,
+  tarFile,
 } from './refresh-facts.ts'
 import { schemaPathCount } from './schema-paths.ts'
 
@@ -58,7 +60,10 @@ test('a refresh stops on a cell off the grid or a slug with no name', () => {
   ])
   const nameless = { ...raw, names: {} }
 
-  assert.throws(() => refreshed(raw, format, far), /off the format's grid/u)
+  assert.throws(
+    () => refreshed(raw, format, { grid: far, shardfile: {} }),
+    /off the format's grid/u,
+  )
   assert.throws(() => refreshed(nameless, format), /has no name/u)
 })
 
@@ -113,4 +118,57 @@ test('a schema the walk does not know stops it', () => {
     () => schemaPathCount(pipe(string(), trim())),
     /unknown action at \$: trim/u,
   )
+})
+
+// WW5: the excerpt is read from the template zone's live shardfile (J507: by slug, never a stored copy). These use
+// a made-up tar and shard.json; the live read is `pnpm site:facts`.
+function tarOf(files: Record<string, string>): Uint8Array {
+  const blocks: Buffer[] = []
+  for (const [name, body] of Object.entries(files)) {
+    const head = Buffer.alloc(512)
+    head.write(name, 0, 'latin1')
+    head.write(`${body.length.toString(8).padStart(11, '0')}\0`, 124, 'latin1')
+    head.write('ustar', 257, 'latin1')
+    const data = Buffer.alloc(Math.ceil(body.length / 512) * 512)
+    data.write(body, 0, 'utf8')
+    blocks.push(head, data)
+  }
+  blocks.push(Buffer.alloc(1024))
+  return Buffer.concat(blocks)
+}
+
+test('a tar gives up the file whose path ends as asked', () => {
+  const tar = tarOf({ 'blobs/a.bin': 'x'.repeat(700), 'shard.json': '{"a":1}' })
+
+  assert.equal(tarFile(tar, 'shard.json')?.toString('utf8'), '{"a":1}')
+  assert.equal(tarFile(tar, 'missing.json'), undefined)
+})
+
+test('the excerpt keeps the fields the site shows, in the file’s words', () => {
+  const excerpt = shardfileExcerpt({
+    format: 'wildshard.shardfile',
+    shardVersion: '1.2.3',
+    identity: { author: 'A', name: 'Made-up Zone', slug: 'made-up' },
+    requires: { engine: '9.9.9' },
+    admission: { authorCaps: { players: 4 } },
+  })
+
+  assert.deepEqual(excerpt, {
+    format: 'wildshard.shardfile',
+    shardVersion: '1.2.3',
+    identity: { author: 'A', name: 'Made-up Zone', slug: 'made-up' },
+    requires: { engine: '9.9.9' },
+    admission: { authorCaps: { players: 4 } },
+  })
+  assert.throws(() => shardfileExcerpt({ format: 'x' }), /lacks format/u)
+})
+
+test('the committed excerpt is the template zone’s', () => {
+  assert.deepEqual(Object.keys(raw.shardfile ?? {}), [
+    'format',
+    'shardVersion',
+    'identity',
+    'requires',
+    'admission',
+  ])
 })

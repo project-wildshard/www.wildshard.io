@@ -85,7 +85,9 @@ live catalogue and the pinned format (`--offline` keeps the grid).
   `pnpm site:facts`.
 - `mmo`: **by hand**: seats (J409) and the memory lines from engine
   `budgets/caps.json` (J410, J445). Its `$source` says where.
-- `shardfile`: **by hand**: an excerpt of a zone's built `shard.json`.
+- `shardfile`: the template zone's (Mossgate Hollow's) live `shard.json`,
+  read from its shardfile on the API by the catalogue's hash (J507).
+  `pnpm site:facts`; `--offline` keeps the committed one.
 
 `pnpm test` fails when `facts.json` falls behind the pinned format,
 or when a zone on the grid has no map label or a label names a zone no

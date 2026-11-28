@@ -1,5 +1,5 @@
 {
-  "$doc": "The site's facts: the site reads only this file. `pnpm site:facts` writes grid (cells from api.wildshard.io's catalogue; cellSize, pitch, road from @wildshard/format), names, download and schemaPaths. mmo, shardfile and timeline are kept by hand, each with its source (docs/dev.md).",
+  "$doc": "The site's facts: the site reads only this file. `pnpm site:facts` writes grid (cells from api.wildshard.io's catalogue; cellSize, pitch, road from @wildshard/format), names, download, schemaPaths and shardfile (the template zone's live shard.json). mmo and timeline are kept by hand, each with its source (docs/dev.md).",
   "format": "wildshard-site-facts/1",
   "grid": {
     "cellSize": 500,
@@ -166,28 +166,22 @@
   },
   "schemaPaths": 11701,
   "shardfile": {
-    "version": "0.1",
+    "format": "wildshard.shardfile",
+    "shardVersion": "0.1.22",
     "identity": {
       "author": "Wildshard",
-      "name": "Template shard",
-      "revision": 2,
-      "seed": 357,
-      "slug": "template"
+      "name": "Mossgate Hollow",
+      "slug": "mossgate"
     },
     "requires": {
-      "sdk": "0.1"
+      "engine": "0.1.84"
     },
-    "authorCaps": {
-      "players": 32,
-      "speed": 15
-    },
-    "serverBudget": {
-      "commandsPerTick": 32,
-      "entities": 100,
-      "memory": 16000000,
-      "tickMicros": 5000
-    },
-    "runtime": null
+    "admission": {
+      "authorCaps": {
+        "players": 32,
+        "speed": 15
+      }
+    }
   },
   "names": {
     "brasscap-mesa": "Brasscap Mesa",

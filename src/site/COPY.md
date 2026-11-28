@@ -392,19 +392,19 @@ Every zone in full →
 
 ## Together · question
 
-how do ten strangers' shards make one MMO?
+how do ten zones make one MMO?
 
 ## Together · title
 
-Many authors. One world.
+One format. One world.
 
 ## Together · intro
 
-The game is the console, a shard the cartridge: data, baked assets and small sandboxed scripts, never code of its own. The engine runs every shard the same way, so worlds by different authors sit side by side with one player and one set of rules, and none can break another.
+The engine is the console and each zone a cartridge: one shardfile of data, models, images, sound and sandboxed scripts, never code of its own. The engine runs every zone the same way, and the cook turns each one into packs that load fast on a phone. So zones from different hands sit side by side under one set of rules, and none can break another.
 
 ## Together · package heading
 
-every shard is
+every shardfile is
 
 ## Together · holds 1
 
@@ -412,15 +412,15 @@ data the engine reads, never code it trusts
 
 ## Together · holds 2
 
-baked assets inside fixed budgets
+models, images and sound inside a phone's budget
 
 ## Together · holds 3
 
-behaviour in a sandbox (wasm)
+behaviour in a sandbox (WebAssembly)
 
 ## Together · never holds
 
-code that can reach another shard, or your browser
+JavaScript, shaders, or anything that can reach another zone or your browser
 
 ## Together · more page link
 
@@ -428,20 +428,20 @@ How the MMO works →
 
 ## Together · shardfile title
 
-template · shard.json (excerpt)
+Mossgate Hollow · shard.json (excerpt)
 
 ## Together · shardfile note
 
-The template's real shard.json
+Read from Mossgate Hollow's live shardfile: the template every new zone starts from.
 
 # How shards fit together · the points under the package
 
 ## Grow · points
 
-- Co-edit with friends.
-- Renovate abandoned shards.
-- Your name and title travel with you.
-- Two wallets, so no shard can break the economy.
+- Walk from zone to zone: the road between them is free, and a gate counts you in.
+- Keep one name, like Name#1234, in every zone.
+- Meet up to {=seats} players in each zone, with world and nearby chat.
+- Every zone passes the same phone budgets before it goes live.
 
 # How a shard is made
 
@@ -451,55 +451,55 @@ how do I make one?
 
 ## How · title
 
-Claude, or any coding agent, is the level editor.
+Claude Code is the level editor.
 
 ## How · terminal path
 
-~/shards/my-shard
+~/shard-my-zone
 
 ## How · step 1
 
-Get a creator key (when keys open)
+`wildshard new` copies Mossgate Hollow into a repo of your own
 
 ## How · step 1 terminal
 
-key ws_live_•••••••• ✓ signed in as you
+✓ new zone from mossgate · src/, GUIDE.md, its Claude skills
 
 ## How · step 2
 
-Install the Wildshard skill and SDK in Claude or any coding agent
+Open it in Claude Code: the zone's skills come with it
 
 ## How · step 3
 
-Describe it. Your agent builds it on a floating cube
+Describe it. Claude builds it, and `wildshard dev` reloads it as you save
 
 ## How · step 3 prompt
 
-a frozen fjord where you are the last ferryman
+make the shrine lanterns brighten one by one as the quest moves along
 
 ## How · step 3 terminal
 
-· carving the fjord · freezing the bay · placing the village
+· three lanterns bound to the quest · ✓ dev reloaded
 
 ## How · step 4
 
-`wildshard build` and `validate` check every budget and edge
+`wildshard check` gives one verdict, with a report card against phone budgets
 
 ## How · step 4 terminal
 
-✓ budgets · ✓ edges · ✓ package
+✓ budgets · ✓ roads in · ✓ cook
 
 ## How · step 5
 
-Walk it locally
+Walk it in your browser as you build
 
 ## How · step 6
 
-Upload it to the world (when uploads open)
+`wildshard upload` sends it to a channel (when uploads open)
 
 ## How · more page link
 
-What building a shard is like →
+What building a zone is like →
 
 # How a shard is made · Thin Ice, inside step 3
 
@@ -509,23 +509,27 @@ The line
 
 ## Sentence · the line
 
-a frozen fjord where you are the last ferryman
+make the shrine lanterns brighten one by one as the quest moves along
 
 ## Sentence · step 5 label
 
-In view
+In engine
+
+## How · in engine tag
+
+In engine · Glowfen
 
 ## Sentence · step 5 image description
 
-First-person view of the village
+Glowfen in the game: fireflies over still water under a full moon
 
 ## Sentence · step 5 caption
 
-First-person views before a line of the level is built.
+Glowfen's shrine lanterns, in engine.
 
 ## Sentence · note
 
-Our own dry run · concept images, not the built shard
+Glowfen, as it plays today
 
 # The journey
 
@@ -913,7 +917,7 @@ What can I play today?
 
 ## FAQ · 1 answer
 
-Any browser, desktop or phone; no install, no account. Not here yet: multiplayer, uploads, creator keys.
+The MMO: {=zonesWord} zones on one grid, up to {=seats} players in each, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Not open yet: creator keys and uploads.
 
 ## FAQ · 2 question
 
@@ -921,37 +925,37 @@ Is it free?
 
 ## FAQ · 2 answer
 
-Playing is free, in your browser. Building is free too: bring your own coding agent. We never charge for uploading a shard.
+Playing is free, in your browser. Building is free too: the SDK is on npm, and you bring your own Claude Code. We never charge for uploading a zone.
 
 ## FAQ · 3 question
 
-Which agent can build a shard?
+Which agent can build a zone?
 
 ## FAQ · 3 answer
 
-Any of them: Claude Code, Codex, Cursor, OpenCode, whatever you use. In our experience Claude Opus 5.5 makes the best shards today.
+We build every zone with Claude Code, and each zone's repo comes with its own Claude skills. The commands are plain `wildshard` commands, so any coding agent can drive them.
 
 ## FAQ · 4 question
 
-Who owns my shard?
+Who owns my zone?
 
 ## FAQ · 4 answer
 
-You do. You keep the rights to what you build; uploading lets us host it and show it in the world. Abandoned shards can be renovated by new authors, and your name stays on as the original author.
+You do. You keep the rights to what you build; uploading lets us host it and show it in the world. Today every zone is the Wildshard team's, each in its own public repo.
 
 ## FAQ · 5 question
 
-What can't a shard do?
+What can't a zone do?
 
 ## FAQ · 5 answer
 
-Run code that can touch your browser, go over its budgets, block the roads into it, or mint loot that breaks other shards: a shard ships data and baked assets, checked by the validator before it can join the grid.
+Run JavaScript or shaders, reach your browser or another zone, go over its phone budgets, or block the roads into it. A shardfile holds data, models, images, sound and sandboxed WebAssembly, and the platform checks each one before it joins the grid.
 
 # FAQ · install it (the last answer)
 
 ## FAQ · shardfile question
 
-What's inside a shard?
+What's inside a shardfile?
 
 ## Install · title
 
@@ -977,7 +981,7 @@ Want it on your phone like an app? Add it to your Home Screen:
 
 ## Install · apps note
 
-iOS and Android apps: coming
+No app store: the Home Screen version is the app.
 
 # Top bar and footer (every page but the home page has the bar; every page has the footer)
 
