@@ -93,3 +93,15 @@ saga in place of Coming worlds).
   which moved to /mmo/ only. Mirror Salt's story (random pitch 16 Nov,
   J395; first upload 17 Nov) sits under the creator steps. The waitlist
   asks for an invite; the FAQ answers whether you can upload today.
+
+- WW11 under WW16, /build/ as the builder page. "Build a zone. We run
+  the MMO." The start command is npx @wildshard/cli new my-zone (0.8.1,
+  proven in tmp: it wrote Mossgate as src/, the guide, the four skills;
+  the file list on the page is that repo's). Thin Ice's GPT chain and
+  its four images are gone; Mirror Salt's story replaces it (one of four
+  pitches picked at random 16 Nov, J395; on staging 17 Nov). validate
+  became check; the budgets are the real ones (100 MB hard, 50 fine,
+  J338; 1.5 GB loading, J410; 1 GB playing target, J445); the refusal
+  line is the guide's budget-download rule. Tools: the CLI, Explore,
+  the four skills, format.wildshard.io, and bringing a one-shot across
+  (next, J536's default wording).

@@ -1493,29 +1493,29 @@ Next: build a shard of your own →
 
 ## Build page · title
 
-Build · Project Wildshard
+Build a zone · Wildshard
 
 ## Build page · description
 
-What it is like to build a shard of Project Wildshard, for one shared world, with Claude or any coding agent.
+Build a zone of the Wildshard MMO with Claude Code: start from a working zone, walk it in the real game, check it against a phone's budgets, and share it with a link.
 
 ## Build · question
 
-what is it like to build one?
+what is it like to build a zone?
 
 ## Build · title
 
-Build a shard.
+Build a zone. We run the MMO.
 
 ## Build · intro
 
-Describe a world to Claude or any coding agent. It builds a shard you can walk, and one day everyone else can too.
+Your zone is a three.js world in a repo of your own, written with Claude Code. Wildshard runs everything around it: the server, the other players, chat, voice, sign-in, phones, hosting and a link to share.
 
-<!-- The top: an example session (illustrative, not a real log), what's real today, and who does what. -->
+<!-- The top: an example session (illustrative, not a real log), what's true today, and who does what. -->
 
 ## Build · session path
 
-~/shards/my-shard · an example
+~/shard-my-zone · an example
 
 ## Build · session prompt
 
@@ -1523,27 +1523,27 @@ a lighthouse on a storm coast, and a keeper who won't leave
 
 ## Build · session line 1
 
-· `wildshard new my-shard`: the template, one 500 m cell
+· `wildshard new`: a copy of Mossgate Hollow, the guide, the skills
 
 ## Build · session line 2
 
-· three pitches and a look, for you to pick
+· the coast, the lighthouse and the keeper, as a three.js scene
 
 ## Build · session line 3
 
-· the grey world first: a road in from every edge
+· `wildshard dev`: walk it in the real game as it saves
 
 ## Build · session line 4
 
-✓ `wildshard validate`: every budget, every edge
+✓ `wildshard check`: phone budgets, every road in
 
 ## Build · session line 5
 
-· `wildshard dev`: walk it in your browser
+· `wildshard upload --channel staging`: a link to share
 
 ## Build · status
 
-**Today:** the SDK and its checks build every shard of our own alpha, with no exceptions. **When creator keys open:** you install them and build yours.
+**Today:** anyone can start, build and walk a zone on their own machine, from npm. **Founding builders** upload to the test world and get a link to share. Uploads open wider after.
 
 ## Build · you title
 
@@ -1552,8 +1552,8 @@ You
 ## Build · you points
 
 - The idea, in one line.
-- Every pick: the pitch, the look, the map.
-- Play the grey slice; say what's dull.
+- Every pick: the place, the look, the fights.
+- Play it as it grows, and say what's dull.
 
 ## Build · agent title
 
@@ -1561,13 +1561,13 @@ Your agent
 
 ## Build · agent points
 
-- Writes the shard: ground, places, creatures, quests.
-- Brings each pick to you as pictures first.
-- Runs build and validate after every step.
+- Writes the zone: ground, places, creatures, quests.
+- Runs `wildshard check` after every change.
+- Proves it with a tape: talk, fight, finish the quest.
 
 ## Build · agent note
 
-Claude Code, Codex, Cursor, OpenCode: any coding agent that can edit files and run a terminal. In our experience **Claude Opus 5.5** makes the best shards today.
+Every new zone comes with Claude skills that know the loop, the format and the budgets; other coding agents read the same guide. In our experience **Claude Opus 5.5** builds the best zones today.
 
 # Build page · the six steps
 
@@ -1577,190 +1577,173 @@ what do I actually do?
 
 ## Build · steps title
 
-Six steps, in full.
+From a prompt to a link.
 
 ## Build · steps intro
 
-From a key to a cell on the grid. Steps 1 and 6 open with creator keys; the four between them are how our own shards are built today.
+Six steps. Anyone can do the first five today; the sixth is open to founding builders first.
 
 ## Build · step 1 text
 
-Keys aren't open yet. Join the waitlist and we'll write when they are. Your key ties every shard you upload to your name.
+One command makes a repo of your own: Mossgate Hollow as one three.js scene, its quests and proof tape, the guide and the Claude skills. The install is about 580 MB, and the first `dev` fetches the game once (about 300 MB more).
+
+## Build · step 1 command
+
+npx @wildshard/cli new my-zone
 
 ## Build · step 2 text
 
-The SDK is the shard format and four commands: `new`, `build`, `validate`, `dev`. The skill teaches your agent the order: a playable slice first, the look last.
+Open the repo in Claude Code. The `wildshard` skills teach it the loop; `GUIDE.md` has every command, every budget and every refusal with its fix.
 
 ## Build · step 2 command
 
-wildshard new my-shard
+claude
 
 ## Build · step 2 terminal
 
-✓ copied the template · one 500 m cell, ready to build
+· reads GUIDE.md and the wildshard skills
 
 ## Build · step 3 text
 
-Start with one line; your agent brings pictures first and you pick at every stage. Then it writes the shard: generators that fill the 500 m cell, the look as data, behaviour as small sandboxed scripts. Grey first, so you play it before it's pretty.
+Say what you want, and pick at every stage. Claude writes it as three.js: the scene that fills the 500 m cell, creatures, quests and talks. Write it the way you'd write a three.js one-shot; bringing whole one-shot games across is next.
 
 ## Build · step 3 link
 
-See one sentence become a shard ↓
+One pitch to a zone, the next day ↓
 
 ## Build · step 4 text
 
-One path for every shard, ours too: `wildshard build` bakes one package, its ground in tiles that stream in near you, and refuses anything over budget. Validate walks every road in from the edges, with no screen.
+One verdict after every change: lint, build, the format's checks, a headless run of your proof tape, and a report card against a phone's budgets. Each refusal names its rule and its fix.
 
 ## Build · step 4 terminal
 
-✓ budgets · ✓ 60 ticks · ✓ 92 paths in from the edges
+✓ lint · ✓ build · ✓ proof tape · ✓ report card
 
 ## Build · step 5 text
 
-`wildshard dev` opens the real game with your shard in it, on desktop or on your phone. Save a file and it rebuilds and reloads; a broken build keeps the last good one on screen.
+`wildshard dev` opens the real game with your zone in it, on desktop or your phone, and reloads as you save. `wildshard watch` swaps an edited part into the running page in about a second.
 
 ## Build · step 6 text
 
-When uploads open, your shard takes its own cell on the grid, beside everyone else's, with your name on it.
+Founding builders upload to the test world: the zone takes a free open plot on the grid and gets its own link. The team places zones on the live world.
 
-# Build page · one sentence to a shard (Thin Ice's whole chain)
+# Build page · one pitch to a zone (Mirror Salt)
 
 ## Build · chain question
 
-can one sentence really become a shard?
+can one line really become a zone?
 
 ## Build · chain title
 
-One sentence to a shard.
+One pitch to a zone, the next day.
 
 ## Build · chain intro
 
-Thin Ice is our own dry run of step 3: one line, five stages, a plan we're going to build. The shard itself isn't built yet.
+Mirror Salt was one of four pitches, picked at random on 16 Nov to prove the whole path. Claude built it in its own repo, and it was on the test world on 17 Nov.
 
-## Build · pitch label
+## Build · chain tag
 
-Pitch
+In engine · Mirror Salt
 
-## Build · pitch image description
+## Build · chain points
 
-Pitch C, Thin Ice: racing over black ice above a drowned village
+- **The Salt Cup** for The Marshal: a licence run, then three heats to the Canyon Drop against Sorrel Vane.
+- **Land-sails** and a two-seat salt buggy, built for racing on a mirror of salt water.
+- **Salt skaters, brine crabs and dust hounds**, the Brine King, and the Salt Colossus at the end.
+- **Ten lost race pennants** hidden across the flat.
 
-## Build · pitch caption
+## Build · chain play link
 
-Three pitches. We picked Thin Ice: race the ice on a sled-board and find the village that drowned beneath it.
-
-## Build · style label
-
-Style
-
-## Build · style image description
-
-Art direction: the village under an aurora
-
-## Build · style caption
-
-Three looks tried; we kept "Aurora, kept simple".
-
-## Build · map label
-
-Map
-
-## Build · map image description
-
-The map of the fjord, revision 2
-
-## Build · map caption
-
-The map, from a 3D blockout: eleven places and three beacons.
+Play Mirror Salt ↗
 
 # Build page · the template
 
 ## Build · template question
 
-where does every shard start?
+where does every zone start?
 
 ## Build · template title
 
-The template.
+Mossgate Hollow, the template.
 
 ## Build · template intro
 
-Every author starts from the same grey shard: a complete, working project you copy and make your own. It builds, validates and walks on day one.
+Every new zone starts as a copy of Mossgate Hollow: a complete zone you can play, with a quest, fights and a boss. It builds, checks and walks on day one.
 
 ## Build · template tag
 
-In engine · The Template
+In engine · Mossgate Hollow
 
 ## Build · template path
 
-my-shard/
+shard-my-zone/
 
 ## Build · template files
 
-- `shard.config.ts` who the shard is: its name and its rules
-- `data/` ground, props, creatures, items, water, the look, the sounds
-- `quests/` the adventure, step by step
-- `behaviour/` small scripts, run in a sandbox
-- `generators/` build-time code that fills the 500 m cell: roads, set pieces, districts
-- `assets/` models, textures and sounds, baked
+- `src/shard.config.ts` who the zone is: its name and its rules
+- `src/generators/world.ts` the ground and places, as one three.js scene
+- `src/generators/play.ts` braziers, gates, a lever, a chest, a lift
+- `src/generators/quests.ts` the quests and the talks
+- `src/behaviour/` small scripts, run in a sandbox
+- `src/proof.json` the proof tape `check` plays
+- `GUIDE.md` and the skills: every command, budget and fix
 
 ## Build · template note
 
-The template has one of everything on purpose: delete what you won't use.
+Mossgate has one of everything on purpose: keep what you need and delete the rest.
 
 # Build page · budgets and validation, in plain words (the deep version is the /mmo page)
 
 ## Build · budgets question
 
-what keeps a shard fast on my phone?
+what keeps a zone fast on my phone?
 
 ## Build · budgets title
 
-Budgets, checked every build.
+Checked every change.
 
 ## Build · budgets intro
 
-A shard has to run on a phone, next to its neighbours. So every build is measured, and a new shard over budget doesn't build.
+A zone runs on a phone, next to its neighbours. `wildshard check` measures it every time and says what to fix.
 
 ## Build · budgets
 
-- **{=memoryPlaying}** of memory a shard while you play, {=memoryLoading} while loading, engine included.
-- **8 MB** for a shard's shared library, and about 300 KB for each tile of ground.
-- **8 draws** and 40,000 triangles for each tile near you; one draw for a whole shard far away.
-- **¼ frame** for scripts, about 4 ms, in a sandbox with a fuel limit.
-- **60 fps** on desktop and 30 on a phone, measured, not estimated.
+- **{=downloadHard}** the most a zone may download; {=downloadFine} is fine.
+- **{=memoryLoading}** of phone memory while a zone loads, engine included; {=memoryPlaying} while you play is the target.
+- **Every road in** from all four edges, walked with no screen.
+- **Scripts** in a sandbox, with a fuel limit on every call.
 
 ## Build · validate path
 
-~/shards/my-shard
+~/shard-my-zone
 
 ## Build · validate command
 
-wildshard validate my-shard
+wildshard check .
 
 ## Build · validate line 1
 
-✓ PASS · every budget measured, no refusals
+✓ lint · build · the format's checks
 
 ## Build · validate line 2
 
-✓ 60 ticks with no screen · no script failed
+✓ proof tape: talk, fight, quest done
 
 ## Build · validate line 3
 
-✓ 92 paths walked in from all four edges
+✓ report card: download, memory, every road in
 
 ## Build · validate refusal
 
-✗ REFUSAL: library download budget bytes: 8000001 > 8000000
+✗ [budget-download] fix: shrink or drop assets, or load them later (GUIDE.md#budget-download)
 
 ## Build · validate text
 
-One byte over and nothing is written. Validate plays your shard with no screen, then walks 92 paths in from all four edges: a wall, a cliff or deep water across a road fails it, whatever the shard says about itself.
+Over a hard limit, nothing is written. `wildshard check . --json` gives your agent the same verdict, each refusal with its rule, its fix and the guide's section.
 
 ## Build · mmo deep link
 
-The shardfile and the sandbox, in depth →
+The shardfile, the sandbox and the grid, in depth →
 
 # Build page · the tools
 
@@ -1774,7 +1757,7 @@ The tools.
 
 ## Build · tools intro
 
-What we build our own shards with today, and what comes next. Each new tool arrives when a new shard needs it.
+What we build our own zones with today, and what comes next.
 
 ## Build · tool in use tag
 
@@ -1794,7 +1777,7 @@ The wildshard CLI
 
 ## Build · tool 1 line
 
-`new`, `build`, `validate`, `dev`: a project from the template, a checked package, and a preview that reloads as you save.
+`new`, `dev`, `watch`, `check`, `upload`: a zone from the template, the real game as you save, one verdict, a link.
 
 ## Build · tool 2 name
 
@@ -1802,55 +1785,55 @@ Explore, in the game
 
 ## Build · tool 2 line
 
-Every model, set and place of a shard in the real engine: turn a model, walk a set, try a feature in its own playground.
+Every model, set and place of a zone in the real engine: fly the cell, turn a model, walk a set.
 
 ## Build · tool 3 name
 
-The drafts site
+The Claude skills
 
 ## Build · tool 3 line
 
-A shard before it's built: every stage's pictures and picks, a slider between any two versions of a view, the planned models and sets as mock-ups, and Map Lab, which tests a map for walkable ground and sightlines before any ground exists.
+Four come with every zone: the loop in order, the hero shots and proof tapes, a model from a reference picture, and moving to a newer SDK.
 
 ## Build · tool 4 name
 
-The WorldClaw skills
+The format reference
 
 ## Build · tool 4 line
 
-The workflow as skills for your agent: guided, with you at every pick; zero-shot, from one sentence; or a fast low-poly sketch to try a layout.
+Every part of a shardfile, documented, at format.wildshard.io.
 
 ## Build · tool 5 name
 
-Composition, Coverage, Beats
+Bring a one-shot across
 
 ## Build · tool 5 line
 
-New tabs in the game's Explore: place things by hand, see which ground is polished, and play a shard from any beat.
+A game Claude one-shot in three.js, brought into a zone with its mechanics working: the cleanroom saga's next phase.
 
 # Build page · shards that grow (the points are the home page's Grow · points)
 
 ## Build · grow question
 
-does a shard stay the same forever?
+what does Wildshard run for me?
 
 ## Build · grow title
 
-Shards that grow.
+What your zone gets.
 
 ## Build · grow intro
 
-An uploaded shard is a start, not an end: you keep changing it, with friends, while players are inside.
+You build the zone; we run the MMO around it.
 
 ## Build · grow note
 
-Planned for the MMO · not live yet
+Live today on play.wildshard.io
 
 # Build page · the end: founding authors and the waitlist
 
 ## Build · grid description
 
-A 5 by 5 wish map: seven shards placed, the other cells open for a wish
+A 5 by 5 map of the grid: the live zones by name and the open plots you can claim
 
 ## Build · grid yours
 
@@ -1858,15 +1841,15 @@ Yours?
 
 ## Build · grid note
 
-A wish map · claim a cell when you join
+The live grid · claim an open plot when you join
 
 ## Build · author button
 
-Become an author
+Become a founding builder
 
 ## Build · author button note
 
-join the waitlist · claim a cell
+ask for an invite · claim an open plot
 
 # MMO page (wildshard.io/mmo/)
 
