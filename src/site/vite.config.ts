@@ -1,7 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 
 // The marketing site's build (MARKETING-SITE MS4, E465), its own root, public/ and output, from this folder alone (P1-W1)
 //   → dist/      pages: index.html (home), play/, build/ and mmo/ (the sagas, MS29–MS31), map/ (E506 MR4), 404.html
@@ -11,7 +10,8 @@ import { fileURLToPath } from 'node:url'
 //   <!--gen:shardfile-->  facts.json's `shardfile`: an excerpt of the template zone's live shard.json (MS15, WW5),
 //                         written by `pnpm site:facts` and checked in here, so the site builds when the game is down
 //   <!--gen:media-->      media.json: the trailer and shard loops, on R2 behind the Worker (MS11, tools/publish-media.ts);
-//                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags
+//                         %TRAILER_WIDE% / %TRAILER_PHONE% put the trailer encodes straight into its <source> tags;
+//                         %ALPHA1_WIDE% / %ALPHA1_POSTER% the alpha 1 trailer's, in its smaller slot
 //   <!--gen:grid-->       /mmo's grid to scale and <!--gen:gridmini--> home's lit 5 × 5 (desktop only), both drawn from
 //                         facts.json's grid (MR11, MR5); %SEAM% sizes /mmo's seam from the same facts
 //   <!--gen:claimgrid-->  home's waitlist radios and <!--gen:buildgrid--> /build's picture of them, from the same grid
@@ -26,6 +26,7 @@ import { MAP_LABEL, buildGridHtml, claimGridHtml } from './tools/claim-grid.ts'
 import { fillCopy, parseCopy, unusedCopy } from './tools/copy.ts'
 import { fillFacts, readFacts } from './tools/facts.ts'
 import { fillGames } from './tools/games.ts'
+import { esc, fields, fillTrailers } from './tools/trailers.ts'
 
 import type { FactCell } from './tools/facts.ts'
 import type { Plugin } from 'vite'
@@ -50,20 +51,7 @@ const sha =
 const BUILD = `${sha}-${Date.now().toString(36)}`
 
 /** A JSON object's own fields, or null when it isn't an object */
-function fields(v: unknown): Record<string, unknown> | null {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-    ? Object.fromEntries(Object.entries(v))
-    : null
-}
 const FACTS = readFacts(join(root, 'facts.json'))
-
-function esc(s: string): string {
-  return s
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-}
 
 // ---- MR11 / MR5 · the grid, drawn from facts.json ---------------------------------------------------
 function label(c: FactCell): string {
@@ -236,17 +224,8 @@ function generated(): Plugin {
           JSON.stringify(media).replaceAll('</', String.raw`<\/`),
         )
       }
-      if (out.includes('%TRAILER_PHONE%')) {
-        // The trailer is a plain <video>: both encodes go straight into its <source> tags
-        const { trailer } = media ?? {}
-        const { mp4, mp4Phone } = fields(trailer) ?? {}
-        if (typeof mp4 !== 'string' || typeof mp4Phone !== 'string') {
-          throw new Error('src/site/media.json has no trailer.mp4 / mp4Phone')
-        }
-        out = out
-          .replace('%TRAILER_PHONE%', esc(mp4Phone))
-          .replace('%TRAILER_WIDE%', esc(mp4))
-      }
+      // Both trailers are plain <video> tags: their encodes go straight into the <source> tags
+      out = fillTrailers(out, media)
       if (out.includes('<!--gen:shardfile-->')) {
         out = out.replace('<!--gen:shardfile-->', shardfileHtml())
       }
@@ -273,7 +252,7 @@ export default defineConfig({
   publicDir: 'public',
   base: '/',
   build: {
-    outDir: fileURLToPath(new URL('dist', import.meta.url)),
+    outDir: join(root, 'dist'),
     emptyOutDir: true,
     target: 'es2022',
     sourcemap: false,

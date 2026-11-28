@@ -154,7 +154,19 @@ upload to the test world first
 
 ## Trailer · description
 
-The alpha trailer: gameplay captured in engine from every shard, looping without sound
+Alpha 2 · captured in engine: play and building in the MMO, looping without sound
+
+## Trailer · caption
+
+Alpha 2 · captured in engine
+
+## Trailer · alpha 1 description
+
+The alpha 1 trailer, from October: gameplay captured in engine from every zone
+
+## Trailer · alpha 1 caption
+
+Alpha 1 · October
 
 # What is Wildshard
 

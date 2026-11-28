@@ -133,3 +133,11 @@ saga in place of Coming worlds).
   against engine package.json. Multiplayer is live: queue, guests,
   Name#1234, voice up to 8; no per-zone seat count (WW17). The road has
   seven milestones: four done, uploads and cleanroom in progress.
+
+- WW14, the trailer. J535 (3) ships alpha 2: the trailer-a2-site
+  branch's two commits (6daafd7 wip, c06640c) applied to main cleanly.
+  Alpha 2 plays in the slot with its poster; the October trailer stays
+  below, smaller, as Alpha 1; trailers.ts fills both video tags from
+  media.json and trailers.test.ts is green (372 pass). Checked muted at
+  1440 and 402 px on a local build. Alpha 1's description said every
+  shard; it says every zone.
