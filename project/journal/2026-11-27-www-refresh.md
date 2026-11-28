@@ -141,3 +141,21 @@ saga in place of Coming worlds).
   media.json and trailers.test.ts is green (372 pass). Checked muted at
   1440 and 402 px on a local build. Alpha 1's description said every
   shard; it says every zone.
+
+- WW12, the map. The six borrowed most-played names were renamed, but
+  the chart itself drew about thirty more names from other games, films
+  and characters (Bikini Bottom, Gotham Rooftops, Firelink Ruins, Green
+  Hill Loop, The Shire, Raccoon City, Castle in the Sky ...) under a note
+  saying every name is invented. All of them are original now; generic
+  riffs (Spicefall, Kaiju Bay, Stonks Exchange) stay. worldmap.py moved
+  into www at art/world-map/ with cut-tiles.py, which crops the chart
+  (8800 x 8820, legend panels out) and cuts six levels of 512 px WebP
+  tiles; level 0 matches the old one at 2.8% RMSE (the labels).
+
+- WW13, share cards. No generator existed (they came from singleplayer
+  as images). art/og/make-og.mjs shoots one HTML card per page at
+  1200 x 630: the line, play and build in words, a current capture and
+  its tag (Driftwood, Mirror Salt, Mossgate the template, Signal Dunes,
+  the new map). The site title and description say the line; the map
+  page says zones. The sitemap already lists the five pages; the 404
+  copy needed nothing.

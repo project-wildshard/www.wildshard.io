@@ -35,15 +35,15 @@ Project Wildshard
 
 ## Page · browser title
 
-Project Wildshard · the infinite MMO built by its players
+Project Wildshard · the MMO whose world is built by its players
 
 ## Page · image description
 
-Shards side by side on one grid, seen from the air, in engine
+Driftwood Isle in engine, beside the line: the MMO whose world is built by its players
 
 ## Page · description
 
-The infinite MMO in your browser: one world of shards, each built by a player with Claude or any coding agent.
+An MMO in your browser, built zone by zone by its players with Claude Code. Play ten zones today, free; build the next one.
 
 # Hero
 
@@ -2448,10 +2448,10 @@ Play →
 
 every zone in full
 
-# Map page (wildshard.io/map/: the world-map concept, art/world-map/round-4-plots, E506 MR4)
+# Map page (wildshard.io/map/: the world-map concept, art/world-map/worldmap.py, E506 MR4)
 
-<!-- The map is drawn by code (art/world-map/round-4-plots/worldmap.py, scale 2), cut into zoom tiles in
-site/public/map/tiles/. Names as drawn (RD3); the legend and the most-played list are the map's own panels, as text.
+<!-- The map is drawn by code (art/world-map/worldmap.py, scale 2), cut into zoom tiles in
+src/site/public/map/tiles/ by art/world-map/cut-tiles.py. Names as drawn (RD3); the legend and the most-played list are the map's own panels, as text.
 The entry lane's width is left out on purpose (the format opens 8 m; the drawing says otherwise). -->
 
 ## Map page · title
@@ -2460,11 +2460,11 @@ The world map · Project Wildshard
 
 ## Map page · description
 
-A concept map of Wildshard's one world after a hundred shards: the most played at the Heart, the quiet ones drifting out. Every name on it is made up.
+A concept map of Wildshard's one world after a hundred zones: the most played at the Heart, the quiet ones drifting out. Every name on it is made up.
 
 ## Map page · image description
 
-Concept map of the world after a hundred shards, drawn by code: plots on a flat world adrift in space, joined by roads
+Concept map of the world after a hundred zones, drawn by code: plots on a flat world adrift in space, joined by roads
 
 ## Map · question
 
@@ -2472,11 +2472,11 @@ what could the world look like?
 
 ## Map · title
 
-The world, at a hundred shards.
+The world, at a hundred zones.
 
 ## Map · intro
 
-A draft, drawn by code, of the grid once players start uploading: a hundred shards on one flat world adrift in space, joined by one road. Each season the most played move toward the Heart and the quiet ones drift out.
+A draft, drawn by code, of the grid once players start uploading: a hundred zones on one flat world adrift in space, joined by one road. Each season the most played move toward the Heart and the quiet ones drift out.
 
 ## Map · viewer description
 
@@ -2509,9 +2509,9 @@ Legend
 - **The Heart** of the grid, at its centre
 - **Entry:** one lane at each edge
 - **Hamlet,** pier, sky landing, turnaround
-- **Server verge:** fades a shard's edge to the road
+- **Server verge:** fades a zone's edge to the road
 - **Cut-off edge,** left high by its author
-- **Sea wall,** where a shard ends in water
+- **Sea wall,** where a zone ends in water
 - **Placeholder plot** from the server
 - **World's end:** the Boulevard stops, then the void
 
@@ -2527,20 +2527,20 @@ The most played
 
 - Serpent Way
 - The White Tiers
-- Tilted Towers
+- Rebuild Town
 - Dragonspire
 - Spicefall
-- Totoro Hollow
-- The Upside Down
-- Mini Stormwind
-- Rainbow Road
-- Pocket Hyrule
+- Camphor Hollow
+- The Underside
+- Little Capital
+- Prism Run
+- Pocket Kingdom
 - Skyharbor
 - The Drowned Colossus
 - Neon Lotus
 - The Hollow Crown
 - Touch Grass
-- The Backrooms
+- The Yellow Rooms
 
 ## Map · invented
 

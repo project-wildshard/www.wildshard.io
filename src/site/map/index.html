@@ -32,8 +32,8 @@
   <nav class="page-nav" aria-label="{{@Nav · label}}"><a href="/play/">{{Nav · play}}</a><a href="/build/">{{Nav · build}}</a><a href="/mmo/">{{Nav · mmo}}</a></nav>
 </header>
 <main class="map-page">
-  <!-- E506 MR4: the world-map concept, drawn by code (art/world-map/round-4-plots/worldmap.py at scale 2: 8800 × 8820
-       for the chart, its legend panels left out), cut into 512 px WebP tiles, six levels (site/public/map/tiles/<z>/<x>_<y>.webp).
+  <!-- E506 MR4: the world-map concept, drawn by code (art/world-map/worldmap.py at scale 2: 8800 × 8820
+       for the chart, its legend panels left out), cut into 512 px WebP tiles, six levels, by art/world-map/cut-tiles.py (src/site/public/map/tiles/<z>/<x>_<y>.webp).
        The viewer below loads only the tiles in view at the level the screen needs: the first phone screen is level 2. -->
   <figure class="wm bk" id="wm" role="img" aria-label="{{@Map · viewer description}}" tabindex="0">
     <div class="wm-stage" aria-hidden="true"></div>
