@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url'
 import { parseCopy } from './copy.ts'
 import { retiredWords } from './words.ts'
 
-// Meta WWW-REFRESH WW2: no retired word reaches a page. The copy rows (WW3 to WW13) remove them page by page; until
-// WW15 makes enforcing the default, the gate prints what is left and passes (SITE_WORDS=enforce runs it now).
-const ENFORCE = process.env.SITE_WORDS === 'enforce'
+// Meta WWW-REFRESH WW2: no retired word reaches a page. WW15 made enforcing the default; SITE_WORDS=report only prints
+// what is left, for a big copy change in progress.
+const ENFORCE = process.env.SITE_WORDS !== 'report'
 const COPY_FILE = fileURLToPath(new URL('../COPY.md', import.meta.url))
 
 test('the check finds each retired word and keeps the allowed ones', () => {
@@ -16,7 +16,7 @@ test('the check finds each retired word and keeps the allowed ones', () => {
     ['a', 'Ten shards. A single-player alpha, Shard Select.'],
     [
       'b',
-      'Wildshard, a shardfile, shard.json, shard-driftwood and @wildshard/sdk.',
+      'Wildshard, a shardfile, shard.json, shard-driftwood, @wildshard/sdk and three glyph shards.',
     ],
     ['c', 'open it with ?chunk=3 on revision 2'],
   ])

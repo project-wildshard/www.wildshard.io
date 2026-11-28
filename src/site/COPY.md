@@ -186,7 +186,7 @@ An MMO in your browser, made of zones on one grid. Each zone is its own game, wi
 
 - Walk one world of {=zonesWord} zones joined by roads, with other players in it.
 - Fight, quest and ride, on your phone or at your desk.
-- Every zone is built from one shard format, so anyone can add the next one.
+- Every zone is built in one format, so anyone can add the next one.
 
 ## What · map description
 
@@ -678,7 +678,7 @@ A platform, and a repo for each zone
 
 ## Journey · 7 text
 
-The shard platform is done: every zone its own repo, built with the SDK.
+The zone platform is done: every zone its own repo, built with the SDK.
 
 ## Journey · 7 image description
 
@@ -2014,7 +2014,7 @@ What else is in a shard.json?
 
 ## MMO · shardfile sections
 
-- `identity`: slug, name, author, save revision. Never a grid position: placement is the platform's.
+- `identity`: slug, name and author. Never a grid position: placement is the platform's.
 - `requires` and `admission`: the engine it needs, and the caps and budgets it promises.
 - `build`, `cook` and `preparation`: the source it came from, and what the server's cook made of it.
 - `sections`: 35 hashed parts, each with its schema: the look from fixed families with a day cycle, a 60 Hz sim, state that is public, owner-only or host-only, four edge profiles, 62.5 m and 125 m tiles, creatures, encounters, quests, the ledger.

@@ -20,7 +20,8 @@ export const RETIRED: readonly Retired[] = [
   // J535 (2): the player's word is zone; shardfile is the file a creator uploads. Wildshard, shardfile, shard.json and
   // the shard-* repo names stay.
   {
-    pattern: /(?<![\w./@-])shards?(?![\w-]|\.\w)/giu,
+    // Driftwood's quest item is called a glyph shard in the game, so the site keeps its name
+    pattern: /(?<![\w./@-])(?<!glyph )shards?(?![\w-]|\.\w)/giu,
     instead: 'zone, or shardfile for the file',
   },
   { pattern: /single[- ]player alpha/giu, instead: 'the MMO' },
