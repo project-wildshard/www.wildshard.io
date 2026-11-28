@@ -30,32 +30,41 @@
 <script>document.documentElement.classList.add("js");</script>
 <script type="application/json" id="media"><!--gen:media--></script>
 
-<header class="hero">
-  <div class="pane bk">
-    <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Hero · terminal path}}</span></div>
-    <div class="pane-body">
-      <p class="ask" id="typed" data-text="{{@Hero · prompt}}"><span class="t">{{Hero · prompt}}</span><span class="cursor" aria-hidden="true"></span></p>
-      <div class="out" aria-hidden="true">
-        <div class="line">{{Hero · build line 1}}</div>
-        <div class="line">{{Hero · build line 2}}</div>
-        <div class="line">{{Hero · build line 3}}</div>
-      </div>
-    </div>
-  </div>
-  <div class="world" id="world">
-    <img src="/media/hero-driftwood-pier-m.webp" srcset="/media/hero-driftwood-pier-m.webp 800w, /media/hero-driftwood-pier.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw" alt="{{@Hero · image description}}" fetchpriority="high">
-    <span class="tag">{{Hero · image tag}}</span>
-  </div>
+<header class="hero hero2">
   <div class="masthead">
     <div class="kicker">{{Hero · kicker}}</div>
     <h1>{{Hero · title}}</h1>
     <p class="tagline">{{Hero · tagline}}</p>
-    <p class="sub">{{Hero · subline}}</p>
-    <nav class="doors games" aria-label="{{@Games · label}}">
-      <!--gen:games-->
-    </nav>
     <p class="status">{{Hero · status}}</p>
-    <a class="door author author-bar" href="#author">{{Hero · author button}}<small>{{Hero · author button note}}</small></a>
+  </div>
+  <div class="two">
+    <div class="door2 play-door bk">
+      <div class="world" id="world">
+        <img src="/media/hero-driftwood-pier-m.webp" srcset="/media/hero-driftwood-pier-m.webp 800w, /media/hero-driftwood-pier.webp 1600w" sizes="(min-width: 1024px) 45vw, 100vw" alt="{{@Hero · image description}}" fetchpriority="high">
+        <span class="tag">{{Hero · image tag}}</span>
+      </div>
+      <h2>{{Hero · play title}}</h2>
+      <p class="sub">{{Hero · play line}}</p>
+      <nav class="doors games" aria-label="{{@Games · label}}">
+        <!--gen:games-->
+      </nav>
+    </div>
+    <div class="door2 build-door bk">
+      <div class="pane bk">
+        <div class="pane-bar" aria-hidden="true"><i></i><i></i><i></i><span>{{Hero · terminal path}}</span></div>
+        <div class="pane-body">
+          <p class="ask" id="typed" data-text="{{@Hero · prompt}}"><span class="t">{{Hero · prompt}}</span><span class="cursor" aria-hidden="true"></span></p>
+          <div class="out" aria-hidden="true">
+            <div class="line">{{Hero · build line 1}}</div>
+            <div class="line">{{Hero · build line 2}}</div>
+            <div class="line">{{Hero · build line 3}}</div>
+          </div>
+        </div>
+      </div>
+      <h2>{{Hero · build title}}</h2>
+      <p class="sub">{{Hero · build line}}</p>
+      <a class="door author author-bar" href="#author">{{Hero · author button}}<small>{{Hero · author button note}}</small></a>
+    </div>
   </div>
 </header>
 

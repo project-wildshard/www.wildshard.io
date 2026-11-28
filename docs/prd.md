@@ -13,7 +13,7 @@ plans, commits and tests.
 
 ## One line
 
-The marketing website at wildshard.io (www and wildshard.dev redirect to it), with the in-engine trailer.
+The marketing website at wildshard.io (www and wildshard.dev redirect to it), with the in-engine trailer: "The MMO whose world is built by its players" (J520, J535).
 
 ## Requirements
 

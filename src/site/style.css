@@ -790,3 +790,33 @@ footer { flex-wrap: wrap; }
   .map-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
   .map-top { font-size: 17px; }
 }
+
+/* WWW-REFRESH WW3 (J535 (1)): the hero is two doors, Play and Build, side by side under the line. It keeps the hero's
+   pieces (the masthead, the world it opens, the typed prompt pane, the game doors) and only lays them out again. */
+.hero.hero2 { display: block; height: auto; min-height: 0; max-width: 1320px; margin: 0 auto; padding: 22px var(--g) 8px; }
+.hero.hero2 .masthead { margin: 0; padding: 0; }
+.hero.hero2 .tagline { max-width: 22ch; }
+.hero.hero2 .status { padding-bottom: 0; }
+.hero.hero2 .two { display: grid; gap: 14px; margin-top: 18px; }
+.hero.hero2 .door2 { display: flex; flex-direction: column; gap: 10px; padding: 12px; min-width: 0; background: rgba(10, 18, 34, .55); }
+.hero.hero2 .door2.build-door { --c: var(--violet); }
+.hero.hero2 .door2 h2 { font-size: 30px; max-width: none; margin-top: 2px; }
+.hero.hero2 .door2 .sub { margin: 0; }
+.hero.hero2 .world { height: auto; aspect-ratio: 16 / 9; margin: 0; max-width: 100%; }
+.hero.hero2 .world img { position: absolute; inset: 0; object-position: 50% 62%; }
+.hero.hero2 .world .tag { top: auto; bottom: 10px; left: 10px; right: auto; }
+.hero.hero2 .pane { margin: 0; }
+.hero.hero2 .doors.games { grid-template-columns: 1fr 1fr; margin-top: 4px; max-width: none; }
+.hero.hero2 .door.game.play { grid-column: 1 / -1; }
+.hero.hero2 .door.author-bar { margin-top: auto; max-width: none; }
+@media (min-width: 1024px) {
+  .hero.hero2 { padding-top: 44px; }
+  .hero.hero2 h1 { font-size: 112px; }
+  .hero.hero2 .tagline { font-size: 40px; }
+  .hero.hero2 .status { font-size: 13px; max-width: 760px; }
+  .hero.hero2 .two { grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; align-items: stretch; }
+  .hero.hero2 .door2 { padding: 16px; gap: 14px; }
+  .hero.hero2 .door2 h2 { font-size: 38px; }
+  .hero.hero2 .door2 .sub { font-size: 19px; }
+  .hero.hero2 .pane-body { padding: 18px 18px 16px; }
+}

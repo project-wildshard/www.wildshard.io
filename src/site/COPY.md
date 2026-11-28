@@ -49,23 +49,23 @@ The infinite MMO in your browser: one world of shards, each built by a player wi
 
 ## Hero · terminal path
 
-~/shards/driftwood-isle
+~/shard-driftwood
 
 ## Hero · prompt
 
-build me a bright island with a pier, a wreck and a shrine
+build me an open ocean, with as much under the sea as above it
 
 ## Hero · build line 1
 
-· raising the island on a 500 m cube
+· wildshard dev: walk it as you save
 
 ## Hero · build line 2
 
-· placing **pier**, **wreck**, **shrine**
+✓ wildshard check: phone budgets, roads in
 
 ## Hero · build line 3
 
-✓ wildshard validate: every budget, every edge
+· wildshard upload --channel staging
 
 ## Hero · image description
 
@@ -85,23 +85,35 @@ Wildshard
 
 ## Hero · tagline
 
-The infinite MMO in your browser.
+The MMO whose world is built by its players.
 
-## Hero · subline
+## Hero · play title
 
-Every shard of the world is built by a player. Explore it, fight in it, play it together.
+Play
+
+## Hero · play line
+
+Walk {=zonesWord} zones on one grid, with up to {=seats} players in each. Free, in your browser or on your phone, with nothing to install.
 
 ## Games · label
 
-The game: three links
+The game: Play, Explore and Staging
 
 ## Games · Play
 
-Play ↗
+Play now ↗
 
 ## Games · Play note
 
 the MMO, live world
+
+## Games · Explore
+
+Explore ↗
+
+## Games · Explore note
+
+any zone, on your own
 
 ## Games · Staging
 
@@ -111,27 +123,27 @@ Staging ↗
 
 the MMO, test world
 
-## Games · Preview
+## Hero · build title
 
-Preview ↗
+Build
 
-## Games · Preview note
+## Hero · build line
 
-solo, newest build
+Every zone is its own repo, built with Claude Code and checked against a phone's budget before it joins the grid. Creator keys open next.
 
 ## Hero · author button
 
-Become an author
+Become a creator
 
 ## Hero · author button note
 
-with Claude or any coding agent
+join the waitlist for a creator key
 
 # Trailer
 
 ## Hero · status
 
-**Now:** the MMO, in testing. **Roadmap:** the Friends grid → sign-in → the public grid, all 25 shards → uploading your own shard.
+**Live:** {=zones} zones and {=plots} open plots on one grid, up to {=seats} players a zone. **Next:** the cleanroom saga, every zone rebuilt to the bar of a standalone game.
 
 ## Trailer · description
 
@@ -145,17 +157,17 @@ what is wildshard?
 
 ## What · title
 
-An infinite MMO, built by its players.
+One world, zone by zone.
 
 ## What · intro
 
-An infinite MMO in your browser. Every shard of it is built by a player with Claude or any coding agent, and the world grows with each one: a step beyond a Minecraft server.
+An MMO in your browser, made of zones on one grid. Each zone is its own game, with its own look, quests and boss, built with Claude Code in its own repo and checked by the platform before it goes live. Today the Wildshard team builds them; next, creators do.
 
 ## What · points
 
-- Explore an open world that never stops growing.
-- Fight, quest and ride together, on desktop or phone.
-- Anyone can add a shard, with its own look and rules: describe it to Claude or any coding agent.
+- Walk one world of {=zonesWord} zones joined by roads, with other players in it.
+- Fight, quest and ride, on your phone or at your desk.
+- Every zone is built from one shard format, so anyone can add the next one.
 
 ## Mockup · tag
 
@@ -163,15 +175,15 @@ GPT mockup
 
 ## What · map description
 
-Concept map, drawn by code: the whole world after a hundred shards, every plot ringed by roads, placeholder plots at the edge and the void beyond
+Concept map, drawn by code: the whole world after a hundred zones, every plot ringed by roads, placeholder plots at the edge and the void beyond
 
 ## What · map tag
 
-Concept · a draft of the world after 100 shards
+Concept · a draft of the world after 100 zones
 
 ## What · map note
 
-Every name on this map is made up. None of these shards exist yet.
+Every name on this map is made up. None of these zones exist yet.
 
 ## What · map link
 

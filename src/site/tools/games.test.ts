@@ -4,8 +4,8 @@ import { test } from 'node:test'
 
 import { fillGames, GAMES, gamesHtml } from './games.ts'
 
-// J212: the site links the three games (Play, Staging, Preview) and nothing
-// else. The bug this file exists for: 22 links to the retired shell's
+// J212, WWW-REFRESH WW3: the site links the three games (Play, Explore,
+// Staging) and nothing else. The bug this file exists for: 22 links to the retired shell's
 // wildshard-singleplayer.vercel.app across five templates.
 
 const site = new URL('../', import.meta.url)
@@ -25,7 +25,7 @@ test('no page names a game address of its own', () => {
   for (const p of PAGES) {
     const html = page(p)
     assert.doesNotMatch(html, /vercel\.app/u, p)
-    assert.doesNotMatch(html, /https:\/\/(play|staging|preview)\./u, p)
+    assert.doesNotMatch(html, /https:\/\/(play|explore|staging|preview)\./u, p)
   }
 })
 
@@ -37,16 +37,16 @@ test('every Play button lands on the production MMO', () => {
   }
 })
 
-test('the three links go Play, Staging, Preview, each with its own copy', () => {
+test('the three links go Play, Explore, Staging, each with its own copy', () => {
   const hrefs = [...gamesHtml().matchAll(/href="(?<h>[^"]+)"/gu)].map(
     m => m.groups?.h,
   )
   assert.deepEqual(hrefs, [
     'https://play.wildshard.io/',
+    'https://explore.wildshard.io/',
     'https://staging.wildshard.io/',
-    'https://preview.wildshard.io/',
   ])
-  for (const name of ['Play', 'Staging', 'Preview']) {
+  for (const name of ['Play', 'Explore', 'Staging']) {
     assert.ok(gamesHtml().includes(`{{Games · ${name}}}`), name)
     assert.ok(gamesHtml().includes(`{{Games · ${name} note}}`), name)
   }

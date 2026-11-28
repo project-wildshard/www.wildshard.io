@@ -23,3 +23,11 @@ saga in place of Coming worlds).
   (179 under 137 headings at the start) and enforces once WW15 makes
   SITE_WORDS=enforce the default. The bare word shard is retired for a
   place (J535); shardfile, shard.json and the shard-* repos stay.
+
+- WW3, the hero. J535 picked prototype C: two doors under the line,
+  Play (the Driftwood capture, Play now full width, Explore and Staging
+  under it) and Build (the typed prompt pane, Become a creator). It is
+  the old hero's pieces laid out again under .hero.hero2, so the typing
+  script and the world's frame still work. Preview left the doors for
+  Explore until the fix-preview plan settles. (WW1's note says five
+  validation actions; it was four.)
