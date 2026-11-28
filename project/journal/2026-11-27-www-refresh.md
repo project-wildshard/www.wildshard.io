@@ -73,3 +73,12 @@ saga in place of Coming worlds).
   development, and the note says the pictures are today and the lines
   are next. Glowfen and Mirror Salt have no cleanroom yet, so they are
   not in it. The twelve idea-* images are deleted.
+
+- WW8, the waitlist. The claim grid stays the 5 × 5: WW1 already put
+  the live grid in facts.json and api-server's waitlist-grid.json
+  (site:api-grid: same grid), so the ten zones show taken by name and
+  the fifteen open plots stay claimable. api-server's claim test
+  (f082d72) is the local proof: A1 is stored, a zone's cell is stored
+  as no cell (the API never 400s a taken cell; the plan's done-when
+  follows the code). The words say creator, zone and open plot;
+  Founding Author stays.

@@ -840,7 +840,7 @@ A railroad town on a mesa above a red canyon, and a train that never stops.
 
 Pictures: each zone as it plays today, in engine. Lines: where its cleanroom is heading. In development, not live.
 
-# Become an author
+# Become a creator (the waitlist)
 
 ## Author · question
 
@@ -848,15 +848,15 @@ I want to build one
 
 ## Author · title
 
-Become an author.
+Become a creator.
 
 ## Author · intro
 
-Join the waitlist for a creator key. Tell us the shard you'd build, and claim the empty cell you'd build it in.
+Join the waitlist for a creator key. Tell us the zone you'd build, and claim the open plot you'd build it on.
 
 ## Author · founding authors
 
-**Founding authors:** the first authors to upload get a permanent Founding Author title and a plaque on their shard.
+**Founding creators:** the first creators to upload get a permanent Founding Author title and a plaque on their zone.
 
 ## Author · form path
 
@@ -880,11 +880,11 @@ build me a frozen fjord where you are the last ferryman
 
 ## Author · claim label
 
-Claim a cell (a wish, not a promise)
+Claim an open plot (a wish, not a promise)
 
 ## Author · claim map description
 
-Tap an empty cell to claim it
+Tap an open plot to claim it; the {=zonesWord} zones are taken
 
 ## Author · send button
 
