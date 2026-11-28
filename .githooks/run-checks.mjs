@@ -2,6 +2,7 @@
 // on by themselves once the scaffold defines them.
 //   commit: like the scaffold's own pre-commit: `lint` and `format:check`
 //           on the staged code files only, plus the whole `typecheck`,
+//           in a clean copy of the staged index,
 //           in parallel under a budget (silent < 5 s, warn 5-8 s, BLOCK
 //           > 8 s; SKIP_BUDGET=1). Skipped when no code or JSON is staged.
 //   push:   the full `check` script (adds knip and the unit tests), run in
@@ -14,16 +15,17 @@
 // yet, `pnpm lint:fix` / `pnpm format`).
 // Bypass a lane: SKIP_CHECK=1 (last resort; CI still runs it).
 import { spawn, spawnSync } from 'node:child_process';
+import { gateTestEnvironment } from './gate-workers.mjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { gateTestEnvironment } from './gate-workers.mjs';
 import { copyReason, makeGateCopy, pushedCommit } from './push-gate-copy.mjs';
 import { restoreVerdict } from './branch-restore.mjs';
 import { git } from './lib.mjs';
-import { stagedCheckCommit, stagedCheckTree } from './staged-check-tree.mjs';
 import { guardPinnedLinks } from './pinned-links.mjs';
 import { failureReport } from './gate-report.mjs';
+import { landGate } from './land-gate.mjs';
+import { stagedCheckCommit, stagedCheckTree } from './staged-check-tree.mjs';
 
 const lane = process.argv[2];
 const root = git(['rev-parse', '--show-toplevel']).trim();
@@ -75,6 +77,11 @@ if (lane === 'push' && reuse) {
 }
 if (process.env.SKIP_CHECK === '1') {
   console.error(`  - SKIP_CHECK=1: ${lane} lane skipped (CI still runs it)`);
+  process.exit(0);
+}
+const land = lane === 'push' ? landGate(root) : null;
+if (land?.reusable()) {
+  console.error('  - land reused a completed push gate after a disjoint rebase; main CI checks the combined tree');
   process.exit(0);
 }
 // The push lane gates the pushed commit in a clean copy of it (M1).
@@ -130,7 +137,6 @@ if (copy === null && !existsSync(join(pkgDir, 'node_modules'))) {
   console.error(`\n  X ${lane} blocked: node_modules is missing. Run pnpm install, then pnpm exec npr install --frozen when binDependencies are declared.\n`);
   process.exit(1);
 }
-
 if (stagedTree !== null) {
   copy = makeGateCopy(root, stagedCheckCommit(root, stagedTree), {say: () => {}});
   pkgDir = copy.path;
@@ -140,6 +146,7 @@ if (stagedTree !== null) {
 // (knip, tests that build repos) must see a normal environment.
 const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
 const env = lane === 'push' ? gateTestEnvironment(cleanEnv) : cleanEnv;
+Reflect.deleteProperty(env, 'WS_LAND_GATE_FILE');
 // Install a missing shared tool cache from its committed lock before checks.
 // Frozen mode refuses stale pins instead of silently rewriting the checkout.
 if (manifest.binDependencies !== undefined) {
@@ -223,3 +230,4 @@ if (lane === 'commit') {
   if (seconds > SOFT) console.error(`  !! commit lane took ${seconds.toFixed(1)} s (soft ${SOFT} s, hard ${HARD} s)`);
 }
 console.error(`  - ${lane} lane green in ${seconds.toFixed(1)} s`);
+land?.record();
