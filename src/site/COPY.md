@@ -217,7 +217,7 @@ Driftwood Isle
 
 ## Driftwood Isle · line
 
-A bright island in a toon ocean: a pier, a wreck, and a drowned sailor who guards the hold key.
+A bright island in a toon ocean: a pier, a wreck, a ring shrine, and the Drowned Captain at the end.
 
 ## Nalati Grasslands · prompt
 
@@ -302,7 +302,7 @@ Lantern Square, halfway up a neon city stacked 500 metres high. Grapple up.
 
 ## Mirror Salt · prompt
 
-a salt flat like a mirror, a land-sail graveyard to build a racer from, and the Salt Cup to win
+a flooded salt flat at dusk, race arches, a land-sail graveyard, and the Salt Cup to win
 
 ## Mirror Salt · image description
 
@@ -314,7 +314,7 @@ Mirror Salt
 
 ## Mirror Salt · line
 
-Build a racer from the land-sail graveyard, then beat Sorrel Vane through the arches in the Salt Cup.
+Race Sorrel Vane through the arches for the Salt Cup: three heats, ending down the Canyon Drop.
 
 ## Glowfen · prompt
 
@@ -334,11 +334,11 @@ A fen at night under a full moon. Carry spirit lanterns through the fireflies an
 
 ## Brasscap Mesa · prompt
 
-a frontier mesa with a shooting arena, and a Dust Wyrm under the sand
+a railway depot in a red-rock canyon, bandit camps down the trail and a Dust Wyrm in its pit
 
 ## Brasscap Mesa · image description
 
-Brasscap Mesa in the game: a gunslinger on a porch looking down a red-rock frontier street
+Brasscap Mesa in the game: a figure in a wide hat on the depot porch, the canyon trail beyond
 
 ## Brasscap Mesa · name
 
@@ -346,7 +346,7 @@ Brasscap Mesa
 
 ## Brasscap Mesa · line
 
-A red-rock frontier town. Shoot the arena, mind the ammo cache, then bring down the Dust Wyrm.
+Take the sheriff's lever-action down the canyon trail, through three bandit camps to the Dust Wyrm's pit.
 
 ## Mossgate Hollow · prompt
 
@@ -362,7 +362,7 @@ Mossgate Hollow
 
 ## Mossgate Hollow · line
 
-Light three beacons and put down the Barrow Warden. Every new zone starts as a copy of this one.
+Relight the Hollow: braziers, standing stones, the beacon on Lookout Ridge, then the Barrow Warden. Every new zone starts as a copy of this one.
 
 ## Shards · play link
 
