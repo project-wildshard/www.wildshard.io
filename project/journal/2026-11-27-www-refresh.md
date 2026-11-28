@@ -64,3 +64,12 @@ saga in place of Coming worlds).
   from day 1 to asOf. Two new stills: the MMO online in Signal Dunes
   (plan-artifacts mmo/go5b, cropped under its fps overlay) and Brasscap
   Mesa's cleanroom first pass (plan-artifacts brasscap-cleanroom-b1).
+
+- WW7, where it's going. Coming worlds (six GPT concepts, D40) is
+  replaced by the cleanroom saga: what it is, the zone bar (D32, D35)
+  and the eight cleanroom zones, each card a capture of the zone as it
+  plays today with its direction in our own words (the descriptions
+  name other games; the site does not). Every card says In
+  development, and the note says the pictures are today and the lines
+  are next. Glowfen and Mirror Salt have no cleanroom yet, so they are
+  not in it. The twelve idea-* images are deleted.

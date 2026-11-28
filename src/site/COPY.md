@@ -743,95 +743,102 @@ Brasscap Mesa's cleanroom, first pass: a mesa camp under a water tower
 
 Next: every zone raised to its cleanroom bar, then creator keys and uploads.
 
-# Coming worlds
+# Where it's going (the cleanroom saga, J535 (4); every line is in development, nothing here is live)
 
 ## Ideas · question
 
-what could I build?
+what comes next?
 
 ## Ideas · title
 
-Coming worlds.
+Where it's going.
 
 ## Ideas · intro
 
-Shards nobody has built yet. One of them could be yours.
+The cleanroom saga: each zone is rebuilt on its own as a standalone game, to find how good it can be. Then Wildshard is raised to play it at that bar, on a phone, with everyone else.
 
-## The Clockwork Tide · image description
+## Ideas · bar heading
 
-Concept art for The Clockwork Tide, an idea for a shard
+Every zone, at the bar:
 
-## The Clockwork Tide · name
+## Ideas · bar
 
-The Clockwork Tide
+- Levels 1 to 10 at least, with levelled enemies and elites.
+- A main quest to a boss, side quests, and people to meet.
+- Several weapons, and as much to do in peace as in a fight.
+- A third-person camera, by default.
 
-## The Clockwork Tide · line
+## Ideas · tag
 
-A canal city on a 20-minute tide.
+In development
 
-## Skyforge Regatta · image description
+## Ideas · Driftwood Isle image description
 
-Concept art for Skyforge Regatta, an idea for a shard
+Driftwood Isle as it plays today, in engine
 
-## Skyforge Regatta · name
+## Ideas · Driftwood Isle line
 
-Skyforge Regatta
+Open ocean and islands of every shape, with as much under the sea as above it.
 
-## Skyforge Regatta · line
+## Ideas · Pine Hollow image description
 
-Sky-sailing races through floating islands.
+Pine Hollow as it plays today, in engine
 
-## Ashfall Bastion · image description
+## Ideas · Pine Hollow line
 
-Concept art for Ashfall Bastion, an idea for a shard
+A boreal forest deep enough to smell, an elven realm in the crowns and dwarven mines below.
 
-## Ashfall Bastion · name
+## Ideas · Nalati Grasslands image description
 
-Ashfall Bastion
+Nalati Grasslands as it plays today, in engine
 
-## Ashfall Bastion · line
+## Ideas · Nalati Grasslands line
 
-A co-op siege on a volcanic fortress.
+A herders' valley climbing from a braided river to grass in the sky, under snow peaks.
 
-## Lantern Night Market · image description
+## Ideas · Nine Dragon Stack image description
 
-Concept art for Lantern Night Market, an idea for a shard
+Nine Dragon Stack as it plays today, in engine
 
-## Lantern Night Market · name
+## Ideas · Nine Dragon Stack line
 
-Lantern Night Market
+One impossibly dense megablock, from black water to an antenna crown in the clouds.
 
-## Lantern Night Market · line
+## Ideas · Sky Reach image description
 
-A social hub that only opens at dusk.
+Sky Reach as it plays today, in engine
 
-## The Underways · image description
+## Ideas · Sky Reach line
 
-Concept art for The Underways, an idea for a shard
+Grassy islands drifting over a sea of cloud, at a golden hour that never ends.
 
-## The Underways · name
+## Ideas · Signal Dunes image description
 
-The Underways
+Signal Dunes as it plays today, in engine
 
-## The Underways · line
+## Ideas · Signal Dunes line
 
-A deep mine in the 100 m below ground.
+One open stretch of a desert planet: dunes the size of mountains, ruins breaking through.
 
-## The Drowned Archive · image description
+## Ideas · Mossgate Hollow image description
 
-Concept art for The Drowned Archive, an idea for a shard
+Mossgate Hollow as it plays today, in engine
 
-## The Drowned Archive · name
+## Ideas · Mossgate Hollow line
 
-The Drowned Archive
+A mossy hollow at first light, mist in the low ground and wild country all round.
 
-## The Drowned Archive · line
+## Ideas · Brasscap Mesa image description
 
-A sunken library, explored underwater.
+Brasscap Mesa as it plays today, in engine
+
+## Ideas · Brasscap Mesa line
+
+A railroad town on a mesa above a red canyon, and a train that never stops.
 
 ## Ideas · note
 
-Ideas · not built · concept art
+Pictures: each zone as it plays today, in engine. Lines: where its cleanroom is heading. In development, not live.
 
 # Become an author
 

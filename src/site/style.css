@@ -820,3 +820,8 @@ footer { flex-wrap: wrap; }
   .hero.hero2 .door2 .sub { font-size: 19px; }
   .hero.hero2 .pane-body { padding: 18px 18px 16px; }
 }
+
+/* WWW-REFRESH WW7: where it's going. The zone bar above eight cards, four across on a desk. */
+#ideas .bar-h { margin: 20px 0 0; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--act); }
+#ideas .grow { margin-top: 8px; }
+@media (min-width: 1024px) { .ideas.saga { grid-template-columns: repeat(4, 1fr); } .ideas.saga .idea b { font-size: 21px; } .ideas.saga .idea span { font-size: 15px; } }
