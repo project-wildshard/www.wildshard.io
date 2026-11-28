@@ -533,7 +533,7 @@ Glowfen, as it plays today
 
 # The journey
 
-<!-- The biggest milestones so far, newest last. Each has a date, a title and a line; the pictures are fixed per row. -->
+<!-- The biggest milestones so far, newest last. Each has a title and a line; its date is {=date<Id>} from facts.json's timeline, where its source sits beside it; the pictures are fixed per row. -->
 
 ## Journey · question
 
@@ -545,15 +545,15 @@ The journey so far.
 
 ## Journey · intro
 
-Six weeks, one engine, seven shards, built by two humans and a fleet of agents.
+In {=weeksWord} weeks: one engine and {=zonesWord} zones, built by two humans and a fleet of agents.
 
 ## Journey · 1 date
 
-16–18 Sep 2026
+{=dateFirstZones}
 
 ## Journey · 1 title
 
-First shards
+First zones
 
 ## Journey · 1 text
 
@@ -561,11 +561,11 @@ Pine Hollow in a day, then Driftwood Isle.
 
 ## Journey · 1 image description
 
-Pine Hollow, the first shard
+Pine Hollow, the first zone
 
 ## Journey · 2 date
 
-22–25 Sep 2026
+{=dateHorseCity}
 
 ## Journey · 2 title
 
@@ -581,7 +581,7 @@ Nalati Grasslands
 
 ## Journey · 3 date
 
-1 Oct 2026
+{=dateOneEngine}
 
 ## Journey · 3 title
 
@@ -589,7 +589,7 @@ One engine
 
 ## Journey · 3 text
 
-Every shard one game; two new shards in a day.
+Every zone one game; two new zones in a day.
 
 ## Journey · 3 image description
 
@@ -597,15 +597,15 @@ Sky Reach, built on the one engine
 
 ## Journey · 4 date
 
-9 Oct 2026
+{=dateGrid}
 
 ## Journey · 4 title
 
-The grid, in testing
+The grid
 
 ## Journey · 4 text
 
-Walk shard to shard. Developer only, for now.
+Walk from zone to zone, for the team only.
 
 ## Journey · 4 image description
 
@@ -613,55 +613,135 @@ Driftwood Isle from the air, on the grid
 
 ## Journey · 5 date
 
-20 Oct 2026
+{=dateAsData}
 
 ## Journey · 5 title
 
-A 5 × 5 world with open plots
+Every zone as data
 
 ## Journey · 5 text
 
-Open plots round the shards, each with an idea.
+About 99,000 lines of one-off code, to zero.
 
 ## Journey · 5 image description
 
-Open plots on the grid, each with its idea as a hologram
+Signal Dunes, one of the zones rebuilt as data
 
 ## Journey · 6 date
 
-23 Oct 2026
+{=dateRoad}
 
 ## Journey · 6 title
 
-Every shard on one format
+The road between zones
 
 ## Journey · 6 text
 
-About 99,000 lines of one-off code, to zero.
+Leave one zone and walk into the next.
 
 ## Journey · 6 image description
 
-Signal Dunes, one of the shards rebuilt as data
+The road between zones from above, at a crossroads
 
 ## Journey · 7 date
 
-24 Oct 2026
+{=datePlatformDone}
 
 ## Journey · 7 title
 
-The road between shards
+A platform, and a repo for each zone
 
 ## Journey · 7 text
 
-No loading panel between them. In testing.
+The shard platform is done: every zone its own repo, built with the SDK.
 
 ## Journey · 7 image description
 
-The road between Pine Hollow, the Template and Nalati
+Nine Dragon Stack, built in its own repo
+
+## Journey · 8 date
+
+{=dateMmoOpens}
+
+## Journey · 8 title
+
+The MMO opens
+
+## Journey · 8 text
+
+One world on one server, up to {=seats} players a zone, with chat and voice.
+
+## Journey · 8 image description
+
+Signal Dunes online: a bullwhip, a signal tower and the chat box
+
+## Journey · 9 date
+
+{=dateNewZones}
+
+## Journey · 9 title
+
+Four new zones
+
+## Journey · 9 text
+
+Brasscap Mesa, Mossgate Hollow, Mirror Salt and Glowfen join the grid.
+
+## Journey · 9 image description
+
+Mirror Salt, one of the four new zones
+
+## Journey · 10 date
+
+{=dateExplore}
+
+## Journey · 10 title
+
+Explore
+
+## Journey · 10 text
+
+Any zone, on your own, at explore.wildshard.io.
+
+## Journey · 10 image description
+
+Glowfen at night
+
+## Journey · 11 date
+
+{=dateOneFormat}
+
+## Journey · 11 title
+
+One format
+
+## Journey · 11 text
+
+Every zone, ours or yours, is the same kind of shardfile.
+
+## Journey · 11 image description
+
+Mossgate Hollow, the template every new zone copies
+
+## Journey · 12 date
+
+{=dateCleanroom}
+
+## Journey · 12 title
+
+The cleanroom saga
+
+## Journey · 12 text
+
+The cook makes every texture; each zone is rebuilt as a standalone game to find its bar.
+
+## Journey · 12 image description
+
+Brasscap Mesa's cleanroom, first pass: a mesa camp under a water tower
 
 ## Journey · next
 
-Next: one world for everyone, then multiplayer and uploads.
+Next: every zone raised to its cleanroom bar, then creator keys and uploads.
 
 # Coming worlds
 

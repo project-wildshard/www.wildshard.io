@@ -213,5 +213,62 @@
   "download": {
     "fineMB": 50,
     "hardMB": 100
+  },
+  "timeline": {
+    "$source": "Kept by hand (WW6). Each entry says where its date comes from; COPY.md shows them as {=date<Id>}, and {=weeksWord} counts day 1 to asOf.",
+    "asOf": "2026-11-27",
+    "entries": {
+      "FirstZones": {
+        "from": "2026-09-16",
+        "to": "2026-09-18",
+        "source": "day 1; Pine Hollow then Driftwood Isle (singleplayer history, the site's journey since 10-10)"
+      },
+      "HorseCity": {
+        "from": "2026-09-22",
+        "to": "2026-09-25",
+        "source": "Nalati and Nine Dragon (singleplayer history)"
+      },
+      "OneEngine": {
+        "from": "2026-10-01",
+        "source": "one engine for every zone (singleplayer history)"
+      },
+      "Grid": {
+        "from": "2026-10-09",
+        "source": "the grid, developer only (singleplayer history)"
+      },
+      "AsData": {
+        "from": "2026-10-23",
+        "source": "every zone rebuilt as data (singleplayer history)"
+      },
+      "Road": {
+        "from": "2026-10-24",
+        "source": "the road between zones (singleplayer history)"
+      },
+      "PlatformDone": {
+        "from": "2026-11-04",
+        "source": "meta: the shard platform saga closed and the multi-repo split began, 11-04"
+      },
+      "MmoOpens": {
+        "from": "2026-11-12",
+        "source": "J300; api.wildshard.io catalogue: the six zones first uploaded to prod 11-12"
+      },
+      "NewZones": {
+        "from": "2026-11-15",
+        "to": "2026-11-17",
+        "source": "api.wildshard.io catalogue firstUploadedAt: Brasscap 11-15, Mossgate 11-16, Mirror Salt and Glowfen 11-17"
+      },
+      "Explore": {
+        "from": "2026-11-21",
+        "source": "J463: Explore, any zone on your own"
+      },
+      "OneFormat": {
+        "from": "2026-11-24",
+        "source": "J364: the one shard format plan closed 11-24"
+      },
+      "Cleanroom": {
+        "from": "2026-11-26",
+        "source": "J525 (the cook makes every texture); shard-showcase cleanroom-saga master plan, 11-26"
+      }
+    }
   }
 }

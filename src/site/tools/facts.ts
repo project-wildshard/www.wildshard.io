@@ -112,6 +112,61 @@ function serviceText(raw: Record<string, unknown>): Record<string, string> {
   }
 }
 
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
+const DAY_MS = 86_400_000
+const WEEK_DAYS = 7
+
+/** A date, or a run of days in one month, as the journey shows it: 1 Oct 2026, 16–18 Sep 2026 */
+export function journeyDate(from: string, to?: string): string {
+  const [y, m, d] = from.split('-').map(Number)
+  const month = MONTHS[(m ?? 0) - 1]
+  if (y === undefined || month === undefined || d === undefined) {
+    throw new Error(`site facts: timeline date ${from} is not YYYY-MM-DD`)
+  }
+  const end = to === undefined ? '' : `–${Number(to.split('-')[2])}`
+  return `${d}${end} ${month} ${y}`
+}
+
+/** The journey's dates (WW6): {=date<Id>} for each entry, and {=weeksWord} from day 1 to asOf */
+function timelineText(raw: Record<string, unknown>): Record<string, string> {
+  const timeline = record(raw.timeline, 'timeline'),
+    entries = record(timeline.entries, 'timeline.entries')
+  const text: Record<string, string> = {}
+  for (const [id, e] of Object.entries(entries)) {
+    const entry = record(e, `timeline.entries.${id}`)
+    if (typeof entry.from !== 'string' || typeof entry.source !== 'string') {
+      throw new Error(`site facts: timeline entry ${id} needs from and source`)
+    }
+    text[`date${id}`] = journeyDate(
+      entry.from,
+      typeof entry.to === 'string' ? entry.to : undefined,
+    )
+  }
+  const weeks = Math.round(
+    (Date.parse(String(timeline.asOf)) -
+      Date.parse(
+        String(record(Object.values(entries)[0], 'timeline.entries').from),
+      )) /
+      DAY_MS /
+      WEEK_DAYS,
+  )
+  text.weeksWord = WORDS[weeks] ?? String(weeks)
+  return text
+}
+
 export function readFacts(file: string): SiteFacts {
   const raw = record(JSON.parse(readFileSync(file, 'utf8')), file)
   if (raw.format !== FORMAT) {
@@ -144,6 +199,7 @@ export function readFacts(file: string): SiteFacts {
     shardsWord: WORDS[zones] ?? String(zones),
     plots: String(plots), // 15
     ...serviceText(raw),
+    ...timelineText(raw),
   }
   return { text, cells, names, shardfile: record(raw.shardfile, 'shardfile') }
 }

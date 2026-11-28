@@ -56,3 +56,11 @@ saga in place of Coming worlds).
   zones, two wallets, native apps) and says what the format holds
   (J364, J525). The Thin Ice GPT mockup in the creator steps is
   replaced by Glowfen in engine (D40), on home and on /build/.
+
+- WW6, the journey. Twelve entries from day 1 (16 Sep) to the
+  cleanroom saga (26 Nov); the 20 Oct open-plots entry is gone (open
+  plots are never featured). Every date is facts.json timeline.entries
+  with its source, shown as {=date<Id>}, and the intro counts the weeks
+  from day 1 to asOf. Two new stills: the MMO online in Signal Dunes
+  (plan-artifacts mmo/go5b, cropped under its fps overlay) and Brasscap
+  Mesa's cleanroom first pass (plan-artifacts brasscap-cleanroom-b1).
