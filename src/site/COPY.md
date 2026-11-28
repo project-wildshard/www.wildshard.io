@@ -93,7 +93,7 @@ Play
 
 ## Hero · play line
 
-Walk {=zonesWord} zones on one grid, with up to {=seats} players in each. Free, in your browser or on your phone, with nothing to install.
+Walk {=zonesWord} zones on one grid, with other players, chat and voice. Free, in your browser or on your phone, with nothing to install.
 
 ## Games · label
 
@@ -143,7 +143,7 @@ join the waitlist for a creator key
 
 ## Hero · status
 
-**Live:** {=zones} zones and {=plots} open plots on one grid, up to {=seats} players a zone. **Next:** the cleanroom saga, every zone rebuilt to the bar of a standalone game.
+**Live:** an MMO of {=zones} zones and {=plots} open plots on one grid. **Next:** the cleanroom saga, every zone rebuilt to the bar of a standalone game.
 
 ## Trailer · description
 
@@ -440,7 +440,7 @@ Read from Mossgate Hollow's live shardfile: the template every new zone starts f
 
 - Walk from zone to zone: the road between them is free, and a gate counts you in.
 - Keep one name, like Name#1234, in every zone.
-- Meet up to {=seats} players in each zone, with world and nearby chat.
+- Meet other players in every zone, with world and nearby chat.
 - Every zone passes the same phone budgets before it goes live.
 
 # How a shard is made
@@ -669,7 +669,7 @@ The MMO opens
 
 ## Journey · 8 text
 
-One world on one server, up to {=seats} players a zone, with chat and voice.
+One world on one server, with chat and voice.
 
 ## Journey · 8 image description
 
@@ -1004,7 +1004,7 @@ What can I play today?
 
 ## FAQ · 1 answer
 
-The MMO: {=zonesWord} zones on one grid, up to {=seats} players in each, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Not open yet: creator keys and uploads.
+The MMO: {=zonesWord} zones on one grid, with other players, in any desktop or phone browser. Play as a guest with no account, or sign in with an email link or a passkey to keep your name. Not open yet: creator keys and uploads.
 
 ## FAQ · 2 question
 
